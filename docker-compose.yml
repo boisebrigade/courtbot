@@ -1,0 +1,18 @@
+version: "3.3"
+services:
+  postgres:
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=excourtbot_dev
+    image: postgres:9
+    ports:
+      - "${POSTGRES_PORT}:5432"
+  postgres_test:
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=excourtbot_test
+    image: postgres:9
+    ports:
+      - "${POSTGRES_PORT_TEST}:5432"
