@@ -50,7 +50,10 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
     :ok
   end
 
-  test "you can subscribe to a case via sms", %{conn: conn} do
+  test "you can unsubscribe to a case via sms", %{conn: conn} do
+
+
+    Enum.map()
     conn = post conn, "/sms", %{"From" => @phone_number, "Body" => @case_number}
   end
 end

@@ -34,4 +34,12 @@ defmodule ExCourtbotWeb.Case do
       preload: :hearings)
     |> Repo.all
   end
+
+  def find_with_county(case_number, county) do
+    from(c in Case,
+      where: c.case_number == ^case_number,
+      where: c.county == ^county,
+      preload: :hearings)
+    |> Repo.all
+  end
 end

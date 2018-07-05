@@ -1,13 +1,20 @@
 defmodule ExCourtbotWeb.ImportTest do
-  use ExCourtbotWeb.ConnCase, async: true
+  use ExCourtbotWeb.ConnCase
+  use Timex
+  use HTTPoison.Base
 
-  test "imports from csv" do
-
-  end
+  import Mock
 
   test "imports Anchorage data" do
-    Application.put_env(:excourtbot, :csv_headings, [:date, nil, nil, nil, :location, :time, :case_number, nil, :violation, nil])
-    records = ExCourtbot.import_from_csv("data/anchorage.csv" |> Path.expand(__DIR__))
+    Application.put_env(:excourtbot, ExCourtbot, source: %{
+        file: "data/anchorage.csv" |> Path.expand(__DIR__),
+        type: {:csv, %{
+          has_headings: false,
+          headings: [{:date, "{0M}/{0D}/{0YYYY}"}, nil, nil, nil, :location, {:time, "{h12}{m}{am}"}, :case_number, nil, :violation, nil],
+        }}
+      })
+
+    records = ExCourtbot.import
 
     sucessful_inserts = records
     |> Enum.count(fn
@@ -17,17 +24,61 @@ defmodule ExCourtbotWeb.ImportTest do
 
     assert sucessful_inserts == 5
 
-    Application.delete_env(:excourtbot, :csv_headings)
+    Application.delete_env(:excourtbot, ExCourtbot)
   end
 
-  # test "imports Atlanta data" do
-  #   {:ok, records} = ExCourtbot.import_from_csv("data/atlanta.csv" |> Path.expand(__DIR__))
+  test "imports Atlanta data" do
+    Application.put_env(:excourtbot, ExCourtbot, source: %{
+      url: fn ->
+        {:ok, date} = Timex.format(DateTime.utc_now(), "{0M}{0D}{0YYYY}")
+        "http://courtview.atlantaga.gov/courtcalendars/court_online_calendar/codeamerica.#{date}.csv"
+      end,
+      type: {:csv, %{
+        has_headings: true,
+        headings: [:date, nil, nil, nil, :time, :case_number, nil, nil, nil],
+        delimiter: ?|
+      }}
+    })
 
-  # end
+    # Mock the Atlanta endpoint and return our local test file.
+    with_mock(HTTPoison, [
+      get: fn
+        url, _ ->
+          IO.inspect url
+          {
+          :ok,
+          %HTTPoison.Response {
+            body: "data/atlanta.csv" |> Path.expand(__DIR__) |> File.stream!,
+            status_code: 200
+          }
+        }
+      end
+    ]) do
+      records = ExCourtbot.import
+
+      sucessful_inserts = records
+      |> Enum.count(fn
+        {:ok, _} -> true
+        _ -> false
+      end)
+
+      assert sucessful_inserts == 1
+
+      Application.delete_env(:excourtbot, ExCourtbot)
+    end
+
+  end
 
   test "imports Boise data" do
-    Application.put_env(:excourtbot, :csv_headings, [nil, nil, nil, nil, :case_number, nil, nil, :date, :time, nil])
-    records = ExCourtbot.import_from_csv("data/anchorage.csv" |> Path.expand(__DIR__))
+    Application.put_env(:excourtbot, ExCourtbot, source: %{
+      file: "data/boise.csv" |> Path.expand(__DIR__),
+      type: {:csv, %{
+        has_headings: true,
+        headings: [nil, nil, nil, nil, :case_number, nil, nil, :date, :time, nil]
+      }}
+    })
+
+    records = ExCourtbot.import
 
     sucessful_inserts = records
     |> Enum.count(fn
@@ -35,15 +86,9 @@ defmodule ExCourtbotWeb.ImportTest do
       _ -> false
     end)
 
-    assert sucessful_inserts == 5
+    assert sucessful_inserts == 6
 
-    Application.delete_env(:excourtbot, :csv_headings)
+    Application.delete_env(:excourtbot, ExCourtbot)
   end
-
-  # test "imports Tulsa data" do
-  #   {:ok, records} = ExCourtbot.import_from_csv("data/tulsa.json" |> Path.expand(__DIR__))
-
-  # end
-
 
 end

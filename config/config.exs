@@ -18,17 +18,20 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
   pubsub: [name: ExCourtbot.PubSub,
            adapter: Phoenix.PubSub.PG2]
 
+
+config :excourtbot,
+  import_time: "0 9 * * *",
+  notify_time: "0 13 * * *"
+
 config :excourtbot, ExCourtbot,
   source: %{
-    file: "",
+    url: "",
     type: {:csv, %{
       has_headings: false,
       headings: [nil, nil, nil, nil, :case_number, nil, nil, :date, :time, nil],
       delimiter: ','
     }}
-  },
-  import_time: "0 9 * * *",
-  notify_time: "0 13 * * *"
+  }
 
 # Configures Elixir's Logger
 config :logger, :console,

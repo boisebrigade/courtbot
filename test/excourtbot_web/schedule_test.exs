@@ -20,7 +20,7 @@ defmodule ExCourtbotWeb.ScheduleTest do
   test "notifications runs at 1300 everday" do
     # IO.inspect SchedEx.run_every(&ExCourtbot.notify/0,  "0 13 * * *", time_scale: TestTimeScale)
 
-    Process.sleep(1000)
+    # Process.sleep(1000)
   end
 
 end

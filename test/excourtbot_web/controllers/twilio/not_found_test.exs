@@ -52,5 +52,6 @@ defmodule ExCourtbotWeb.TwilioNotFoundTest do
 
   test "you can subscribe to a case via sms", %{conn: conn} do
     conn = post conn, "/sms", %{"From" => @phone_number, "Body" => @case_number}
+    IO.inspect conn
   end
 end
