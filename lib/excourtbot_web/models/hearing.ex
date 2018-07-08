@@ -26,4 +26,12 @@ defmodule ExCourtbotWeb.Hearing do
     |> cast(params, [:case_id, :type, :date, :time, :location, :detail])
     |> validate_required([:date, :time])
   end
+
+  defp clean_time(time) do
+
+  end
+
+  defp clean_date() do
+
+  end
 end

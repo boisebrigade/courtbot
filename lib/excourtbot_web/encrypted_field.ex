@@ -12,7 +12,9 @@ defmodule ExCourtbotWeb.EncryptedField do
   end
 
   def dump(value) do
-    data_encryption = System.get_env("DATA_ENCRYPTION_KEY") || raise "expected the DATA_ENCRYPTION_KEY environment variable to be set"
+    data_encryption =
+      System.get_env("DATA_ENCRYPTION_KEY") ||
+        raise "expected the DATA_ENCRYPTION_KEY environment variable to be set"
 
     [iv: iv, ciphertext: ciphertext] = AES256.encrypt(value, data_encryption)
 
@@ -25,7 +27,9 @@ defmodule ExCourtbotWeb.EncryptedField do
   def load(value) do
     <<iv::binary-16, ciphertext::binary>> = value
 
-    data_encryption = System.get_env("DATA_ENCRYPTION_KEY") || raise "expected the DATA_ENCRYPTION_KEY environment variable to be set"
+    data_encryption =
+      System.get_env("DATA_ENCRYPTION_KEY") ||
+        raise "expected the DATA_ENCRYPTION_KEY environment variable to be set"
 
     {
       :ok,

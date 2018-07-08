@@ -23,7 +23,7 @@ config :excourtbot,
   import_time: "0 9 * * *",
   notify_time: "0 13 * * *"
 
-config :excourtbot, ExCourtbot,
+config :excourtbot, ExCourtbot.Import,
   source: %{
     url: "",
     type: {:csv, %{

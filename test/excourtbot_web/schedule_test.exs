@@ -7,7 +7,8 @@ defmodule ExCourtbotWeb.ScheduleTest do
     end
 
     def speedup do
-      86400 # skip one day
+      # skip one day
+      86400
     end
   end
 
@@ -22,5 +23,4 @@ defmodule ExCourtbotWeb.ScheduleTest do
 
     # Process.sleep(1000)
   end
-
 end

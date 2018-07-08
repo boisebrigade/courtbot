@@ -10,28 +10,41 @@ defmodule ExCourtbot.TwilioController do
     |> send_resp(200, "Ok")
   end
 
-  def sms(conn = %Plug.Conn{private: %{plug_session: session}}, %{"From" => phone_number, "Body" => body}) when is_map(session) do
+  def sms(conn = %Plug.Conn{private: %{plug_session: session}}, %{
+        "From" => phone_number,
+        "Body" => body
+      })
+      when is_map(session) do
     session
-    |> IO.inspect
     |> case do
       %{requires_county: case_number} ->
         result = Case.find_with_county(case_number, body)
 
         result
-        |> IO.inspect
+        |> IO.inspect()
 
         case result do
           _ -> prompt_unfound(conn, phone_number, case_number)
         end
-      _ -> Logger.error "State unknown"
+
+      _ ->
+        Logger.error("State unknown")
     end
   end
 
   def sms(conn, %{"From" => phone_number, "Body" => body}) do
-    message = body
-    |> String.downcase()
+    message =
+      body
+      |> String.downcase()
 
-    unsubscribe_keywords = [gettext("stop"), gettext("stopall"), gettext("cancel"), gettext("end"), gettext("quit"), gettext("unsubscribe")]
+    unsubscribe_keywords = [
+      gettext("stop"),
+      gettext("stopall"),
+      gettext("cancel"),
+      gettext("end"),
+      gettext("quit"),
+      gettext("unsubscribe")
+    ]
 
     cond do
       Enum.member?(unsubscribe_keywords, message) -> handle_unsubscribe(conn, phone_number)
@@ -41,8 +54,8 @@ defmodule ExCourtbot.TwilioController do
 
   defp clean_case_number(case_number) do
     case_number
-    |> String.trim
-    |> String.downcase
+    |> String.trim()
+    |> String.downcase()
     |> String.replace("-", "")
     |> String.replace("_", "")
     |> String.replace(",", "")
@@ -57,14 +70,14 @@ defmodule ExCourtbot.TwilioController do
 
     case result do
       [%Case{hearings: []}] -> prompt_no_hearings(conn, phone_number, case_number)
-      [%Case{hearings: hearing}] -> prompt_remind(conn, phone_number, hearing)
-      [_|_] -> prompt_county(conn, phone_number, result)
+      [%Case{hearings: hearing}] -> prompt_remind(conn, phone_number, case_number, hearing)
+      [_ | _] -> prompt_county(conn, phone_number, result)
       _ -> prompt_unfound(conn, phone_number, case_number)
     end
   end
 
   defp handle_unsubscribe(conn, phone_number) do
-    Logger.info log_safe_phone_number(phone_number) <> ": Unsubscribing"
+    Logger.info(log_safe_phone_number(phone_number) <> ": Unsubscribing")
 
     Subscriber.unsubscribe(phone_number)
 
@@ -73,41 +86,61 @@ defmodule ExCourtbot.TwilioController do
   end
 
   defp prompt_no_hearings(conn, phone_number, case_number) do
-    Logger.warn log_safe_phone_number(phone_number) <> ": No hearings found for case number: #{case_number}"
+    Logger.warn(
+      log_safe_phone_number(phone_number) <> ": No hearings found for case number: #{case_number}"
+    )
+
+    response =
+      gettext("""
+        We were unable to find any hearing information for that case number. Look at xyz.com website to follow the case.
+      """)
 
     conn
-    |> send_resp(200, "Ok")
+    |> encode_twilio(response)
   end
 
   defp prompt_unfound(conn, phone_number, case_number) do
-    Logger.warn log_safe_phone_number(phone_number) <> ": No case found: #{case_number}"
+    Logger.warn(log_safe_phone_number(phone_number) <> ": No case found: #{case_number}")
+
+    response =
+      gettext("""
+        Unable to find your case number:
+      """)
 
     conn
-    |> send_resp(200, "Ok")
+    |> encode_twilio(response <> " #{case_number}")
   end
 
-  defp prompt_remind(conn, phone_number, _) do
-    Logger.info log_safe_phone_number(phone_number) <> ": Asking about reminder"
+  defp prompt_remind(conn, phone_number, case_number, _) do
+    Logger.info(log_safe_phone_number(phone_number) <> ": Asking about reminder")
+
+    response =
+      gettext("""
+        Would you like a reminder 24hr before your hearing date?
+      """)
 
     conn
-    |> send_resp(200, "Ok")
+    |> put_session(:reminder, case_number)
+    |> encode_twilio(response)
   end
 
   defp prompt_county(conn, phone_number, case_number) do
-    Logger.info log_safe_phone_number(phone_number) <> ": Asking about county"
+    Logger.info(log_safe_phone_number(phone_number) <> ": Asking about county")
+
+    # TODO(ts): Does it make sense to include which counties we've found?
+    response =
+      gettext("""
+        Multiple cases found with this case number. Which county are you interested in?
+      """)
 
     conn
     |> put_session(:requires_county, case_number)
-
-    # TODO(ts): Does it make sense to include which counties we've found?
-    gettext """
-      Multiple cases found with this case number. Which county are you interested in?
-    """
+    |> encode_twilio(response)
   end
 
   defp encode_twilio(conn, message) do
     conn
     |> put_resp_header("Content-Type", "application/xml")
+    |> send_resp(200, message)
   end
-
 end

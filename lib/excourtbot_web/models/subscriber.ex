@@ -13,7 +13,7 @@ defmodule ExCourtbotWeb.Subscriber do
 
     field(:phone_number, ExCourtbotWeb.EncryptedField)
 
-    has_many(:notifications, Notification)
+    has_many(:notifications, Notification, on_delete: :delete_all)
 
     timestamps()
   end
@@ -25,7 +25,15 @@ defmodule ExCourtbotWeb.Subscriber do
   end
 
   def unsubscribe(phone_number) do
+  end
 
-
+  def pending_notifications() do
+    from(
+      s in Subscriber,
+      where: c.case_number == ^case_number,
+      where: c.county == ^county,
+      preload: :hearings
+    )
+    |> Repo.all()
   end
 end

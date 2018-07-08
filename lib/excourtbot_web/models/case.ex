@@ -15,8 +15,8 @@ defmodule ExCourtbotWeb.Case do
     field(:last_name, :string)
     field(:county, :string)
 
-    has_many(:hearings, Hearing)
-    has_many(:subscribers, Subscriber)
+    has_many(:hearings, Hearing, on_delete: :delete_all)
+    has_many(:subscribers, Subscriber, on_delete: :delete_all)
 
     timestamps()
   end
@@ -24,22 +24,43 @@ defmodule ExCourtbotWeb.Case do
   def changeset(changeset, params \\ %{}) do
     changeset
     |> cast(params, [:case_number, :first_name, :last_name, :county])
+    |> update_change(:case_number, &clean_case_number/1)
+    |> update_change(:county, &clean_county/1)
     |> cast_assoc(:hearings)
     |> validate_required([:case_number])
   end
 
   def find(case_number) do
-    from(c in Case,
+    from(
+      c in Case,
       where: c.case_number == ^case_number,
-      preload: :hearings)
-    |> Repo.all
+      preload: :hearings
+    )
+    |> Repo.all()
   end
 
   def find_with_county(case_number, county) do
-    from(c in Case,
+    from(
+      c in Case,
       where: c.case_number == ^case_number,
       where: c.county == ^county,
-      preload: :hearings)
-    |> Repo.all
+      preload: :hearings
+    )
+    |> Repo.all()
+  end
+
+  defp clean_county(county) do
+    county
+    |> String.trim()
+    |> String.downcase()
+  end
+
+  defp clean_case_number(case_number) do
+    case_number
+    |> String.trim()
+    |> String.downcase()
+    |> String.replace("-", "")
+    |> String.replace("_", "")
+    |> String.replace(",", "")
   end
 end

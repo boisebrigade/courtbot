@@ -31,7 +31,6 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
     create table(:subscribers, primary_key: false) do
       add :id, :uuid, primary_key: true
       add :case_id, references(:cases, type: :uuid)
-      add :hearing_id, references(:hearings, type: :uuid)
 
       add :phone_number, :binary
 
@@ -41,6 +40,7 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
     create table(:notifications, primary_key: false) do
       add :id, :uuid, primary_key: true
       add :subscriber_id, references(:subscribers, type: :uuid)
+      add :hearing_id, references(:hearings, type: :uuid)
 
       timestamps()
     end

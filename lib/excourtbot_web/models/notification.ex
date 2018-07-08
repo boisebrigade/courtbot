@@ -15,6 +15,6 @@ defmodule ExCourtbotWeb.Notification do
   end
 
   def changeset(changeset, params \\ %{}) do
-
+    changeset
   end
 end

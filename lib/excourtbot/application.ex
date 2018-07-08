@@ -13,8 +13,18 @@ defmodule ExCourtbot.Application do
       # Start the endpoint when the application starts
       supervisor(ExCourtbotWeb.Endpoint, []),
       # Start the schedule runners.
-      %{ id: "import", start: {SchedEx, :run_every, [ExCourtbot, :import, [], Application.get_env(:excourtbot, :import_time, "0 9 * * *")]} },
-      %{ id: "notify", start: {SchedEx, :run_every, [ExCourtbot, :notify, [], Application.get_env(:excourtbot, :notify_time, "0 13 * * *")]} },
+      %{
+        id: "import",
+        start:
+          {SchedEx, :run_every,
+           [ExCourtbot, :import, [], Application.get_env(:excourtbot, :import_time, "0 9 * * *")]}
+      },
+      %{
+        id: "notify",
+        start:
+          {SchedEx, :run_every,
+           [ExCourtbot, :notify, [], Application.get_env(:excourtbot, :notify_time, "0 13 * * *")]}
+      }
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

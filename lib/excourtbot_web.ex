@@ -28,8 +28,9 @@ defmodule ExCourtbotWeb do
 
   def view do
     quote do
-      use Phoenix.View, root: "lib/excourtbot_web/templates",
-                        namespace: ExCourtbotWeb
+      use Phoenix.View,
+        root: "lib/excourtbot_web/templates",
+        namespace: ExCourtbotWeb
 
       # Import convenience functions from controllers
       import ExCourtbotWeb.Router.Helpers

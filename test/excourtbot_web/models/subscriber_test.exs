@@ -5,22 +5,22 @@ defmodule ExCourtbotWeb.SubscriberTest do
   alias ExCourtbot.Repo
   alias ExCourtbotWeb.{Case, Hearing, Subscriber}
 
-  @case_id Ecto.UUID.generate
-  @hearing_id Ecto.UUID.generate
-  @subscriber_id Ecto.UUID.generate
+  @case_id Ecto.UUID.generate()
+  @hearing_id Ecto.UUID.generate()
+  @subscriber_id Ecto.UUID.generate()
 
   setup do
-    Multi.new
-    |>Multi.insert(:case, %Subscriber{
-      id: @case_id,
+    Multi.new()
+    |> Multi.insert(:case, %Subscriber{
+      id: @case_id
     })
-    |>Multi.insert(:hearing, %Hearing{
-      id: @hearing_id,
+    |> Multi.insert(:hearing, %Hearing{
+      id: @hearing_id
     })
-    |>Multi.insert(:subscriber, %Subscriber{
-      id: @subscriber_id,
+    |> Multi.insert(:subscriber, %Subscriber{
+      id: @subscriber_id
     })
-    |> Repo.transaction
+    |> Repo.transaction()
 
     :ok
   end

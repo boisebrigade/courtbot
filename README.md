@@ -21,6 +21,10 @@ Any changes to `config/*` require Phoenix to be restarted (Elixir is a compiled 
 
 #### Twilio
 
+#### Rollbar
+
+
+
 ### Deployment
 
 
