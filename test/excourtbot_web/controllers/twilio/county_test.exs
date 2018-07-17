@@ -1,4 +1,4 @@
-defmodule ExCourtbotWeb.TwilioCountyTest do
+ defmodule ExCourtbotWeb.TwilioCountyTest do
   use ExCourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
@@ -11,10 +11,11 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
 
   @hearing_id Ecto.UUID.generate()
   @hearing_two_id Ecto.UUID.generate()
+  @hearing_three_id Ecto.UUID.generate()
 
   @subscriber_id Ecto.UUID.generate()
 
-  @phone_number "2084470077"
+  @phone_number "2025550186"
   @case_number "aabbc000000000000"
 
   setup do
@@ -32,14 +33,20 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
       case_id: @case_id,
-      time: Time.to_string(~T[09:00:00.000]),
-      date: Date.to_string(Date.utc_today())
+      time: ~T[09:00:00.000],
+      date: Ecto.Date.utc()
     })
     |> Multi.insert(:hearing_two, %Hearing{
       id: @hearing_two_id,
       case_id: @case_id,
-      time: Time.to_string(~T[11:00:00.000]),
-      date: Date.to_string(Date.utc_today())
+      time: ~T[11:00:00.000],
+      date: Ecto.Date.utc()
+    })
+    |> Multi.insert(:hearing_three, %Hearing{
+      id: @hearing_three_id,
+      case_id: @case_two_id,
+      time: ~T[11:00:00.000],
+      date: Ecto.Date.utc()
     })
     |> Multi.insert(:subscriber, %Subscriber{
       id: @subscriber_id,
@@ -51,6 +58,16 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
   end
 
   test "you can subscribe to a case via sms", %{conn: conn} do
-    conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @case_number})
+    Enum.map(["Canyon", "Gym"], fn(county) ->
+      initial_conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @case_number})
+
+      assert initial_conn.status === 200
+      assert initial_conn.private[:plug_session] === %{"requires_county" => @case_number}
+
+      county_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => county})
+
+      assert county_conn.status === 200
+    end)
   end
-end
+
+ end

@@ -20,8 +20,8 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
       add :case_id, references(:cases, type: :uuid)
 
       add :type, :string
-      add :date, :string
-      add :time, :string
+      add :date, :date
+      add :time, :time
       add :location, :string
       add :detail, :string
 

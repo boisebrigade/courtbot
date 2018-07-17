@@ -27,13 +27,11 @@ defmodule ExCourtbotWeb.Subscriber do
   def unsubscribe(phone_number) do
   end
 
-  def pending_notifications() do
-    from(
-      s in Subscriber,
-      where: c.case_number == ^case_number,
-      where: c.county == ^county,
-      preload: :hearings
-    )
-    |> Repo.all()
+  def all_pending_notifications() do
+    #    from(
+    #      s in Subscriber,
+    #      preload: :hearings
+    #    )
+    #    |> Repo.all()
   end
 end

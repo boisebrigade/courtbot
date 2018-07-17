@@ -1,36 +1,93 @@
 defmodule ExCourtbotWeb.Csv do
+  alias Ecto.Multi
   alias ExCourtbot.Repo
-  alias ExCourtbotWeb.Case
+  alias ExCourtbotWeb.{Case, Csv, Hearing}
 
   require Logger
 
-  def extract(csv_data, %{has_headings: has_headings, headings: headings, delimiter: delimiter}) do
-    decoded_csv = csv_data
-    |> CSV.decode(headers: headings, separator: delimiter)
+  def extract(raw_data, options) do
+    delimiter = Keyword.get(options, :delimiter, ?,)
+    has_headers = Keyword.get(options, :has_headers, false)
+    headers = Keyword.get(options, :headers)
 
-    if has_headings do
-      decoded_csv |> Enum.drop(1)
-    else
-      decoded_csv
-    end
-    |> Enum.map(fn
-        {:ok, %{date: date, time: time, case_number: case_number}} ->
-          %Case{}
-          |> Case.changeset(%{
-            case_number: case_number,
-            hearings: [
-              %{
-                time: time,
-                date: date
-              }
-            ]
-          })
-          |> Repo.insert
-        {:error, message} ->
-          {:error, message}
-    end)
+    mappings =
+      headers
+      |> Enum.filter(fn
+        {_, v} -> v
+        _ -> false
+      end)
+      |> Keyword.take([:date, :time, :date_and_time])
+      |> Enum.into(%{})
+
+    headings =
+      headers
+      |> Enum.map(fn
+        {:date, date_format} -> :date
+        {:time, time_format} -> :time
+        {:date_and_time, date_and_time_format} -> :date_and_time
+        mapping when is_atom(mapping) -> mapping
+        nil -> nil
+      end)
+
+    decoded_csv = CSV.decode(raw_data, headers: headings, separator: delimiter)
+
+    cases =
+      if has_headers do
+        Enum.drop(decoded_csv, 1)
+      else
+        decoded_csv
+      end
+      |> Enum.map(fn row -> process(row, mappings) |> cast end)
   end
 
-  def extract(csv_data, %{has_headings: has_headings, headings: headings}), do: ExCourtbotWeb.Csv.extract(csv_data, %{has_headings: has_headings, headings: headings, delimiter: ?,})
-  def extract(csv_data, %{headings: headings}), do: ExCourtbotWeb.Csv.extract(csv_data, %{has_headings: true, headings: headings, delimiter: ?,})
+  defp process({:ok, params = %{date: date, time: time, case_number: case_number}}, %{
+         date: date_format,
+         time: time_format
+       }) do
+
+    params
+    |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format))
+    |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format))
+  end
+
+  defp process({:ok, params = %{date_and_time: date_and_time, case_number: case_number}}, %{
+         date_and_time: date_and_time_format
+       }) do
+    params
+    |> Map.put(
+      :date,
+      date_and_time
+      |> String.trim()
+      |> Timex.parse!(date_and_time_format)
+      |> DateTime.to_date()
+    )
+    |> Map.put(
+      :time,
+      date_and_time
+      |> String.trim()
+      |> Timex.parse!(date_and_time_format)
+      |> DateTime.to_time()
+    )
+  end
+
+  defp process({:ok, row}, %{}),
+    do: Logger.error("Unable to process row. Mappings for date and time are required")
+
+  defp process({:ok, row}, _),
+    do: Logger.error("Unable to process row date, time, and case_number are required #{row}")
+
+  defp process({:error, message}, _), do: Logger.error("Row failed to import because #{message}")
+
+  defp cast(case) do
+    combined =
+      case
+      |> Map.put(
+        :hearings,
+        [case]
+      )
+
+    %Case{}
+    |> Case.changeset(combined)
+    |> Repo.insert()
+  end
 end

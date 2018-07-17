@@ -1,4 +1,4 @@
-defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
+ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
   use ExCourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
@@ -14,7 +14,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
 
   @subscriber_id Ecto.UUID.generate()
 
-  @phone_number "2084470077"
+  @phone_number "2025550186"
   @case_number "aabbc000000000000"
 
   setup do
@@ -32,14 +32,14 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
       case_id: @case_id,
-      time: Time.to_string(~T[09:00:00.000]),
-      date: Date.to_string(Date.utc_today())
+      time: ~T[09:00:00.000],
+      date: Ecto.Date.utc()
     })
     |> Multi.insert(:hearing_two, %Hearing{
       id: @hearing_two_id,
       case_id: @case_id,
-      time: Time.to_string(~T[11:00:00.000]),
-      date: Date.to_string(Date.utc_today())
+      time: ~T[11:00:00.000],
+      date: Ecto.Date.utc()
     })
     |> Multi.insert(:subscriber, %Subscriber{
       id: @subscriber_id,
@@ -51,6 +51,12 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
   end
 
   test "you can unsubscribe to a case via sms", %{conn: conn} do
-    conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @case_number})
+    initial_conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @case_number})
+
+    remind_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => "Yes"})
+
+    assert remind_conn.status == 200
+
+
   end
-end
+ end

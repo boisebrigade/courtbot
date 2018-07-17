@@ -13,8 +13,8 @@ defmodule ExCourtbotWeb.Hearing do
     belongs_to(:case, Case)
 
     field(:type, :string)
-    field(:date, :string)
-    field(:time, :string)
+    field(:date, :date)
+    field(:time, :time)
     field(:location, :string)
     field(:detail, :string)
 
@@ -25,13 +25,5 @@ defmodule ExCourtbotWeb.Hearing do
     changeset
     |> cast(params, [:case_id, :type, :date, :time, :location, :detail])
     |> validate_required([:date, :time])
-  end
-
-  defp clean_time(time) do
-
-  end
-
-  defp clean_date() do
-
   end
 end

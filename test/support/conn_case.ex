@@ -27,10 +27,10 @@ defmodule ExCourtbotWeb.ConnCase do
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(ExCourtbot.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(ExCourtbot.Repo, ownership_timeout: 80_000)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(ExCourtbot.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(ExCourtbot.Repo, {:manual, self()})
     end
 
     {:ok, conn: Phoenix.ConnTest.build_conn()}

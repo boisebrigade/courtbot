@@ -30,13 +30,22 @@ defmodule ExCourtbotWeb.Case do
     |> validate_required([:case_number])
   end
 
-  def find(case_number) do
+  def find_by_case_number(case_number) do
     from(
       c in Case,
       where: c.case_number == ^case_number,
       preload: :hearings
     )
     |> Repo.all()
+  end
+
+  def find(id) do
+    from(
+      c in Case,
+      where: c.id == ^id,
+      preload: :hearings
+    )
+    |> Repo.one()
   end
 
   def find_with_county(case_number, county) do

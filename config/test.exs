@@ -7,7 +7,7 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
   server: false
 
 # Print only warnings and errors during test
-config :logger, level: :warn
+config :logger, :console, format: "[$level] $message\n"
 
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
@@ -17,4 +17,5 @@ config :excourtbot, ExCourtbot.Repo,
   database: "excourtbot_test",
   hostname: "localhost",
   port: System.get_env("POSTGRES_PORT_TEST"),
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool: Ecto.Adapters.SQL.Sandbox,
+  ownership_timeout: 80_000

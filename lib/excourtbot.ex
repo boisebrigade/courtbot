@@ -1,19 +1,19 @@
 defmodule ExCourtbot do
-  @moduledoc """
-  ExCourtbot keeps the contexts that define your domain
-  and business logic.
-
-  Contexts are also responsible for managing your data, regardless
-  if it comes from the database, an external API or others.
-  """
+  alias ExCourtbotWeb.{Csv, Subscriber}
 
   require Logger
 
-  def import(data, type) do
-    case type do
-      {:csv, config} -> ExCourtbotWeb.Csv.extract(data, config)
-      _ -> Logger.error("Parser config has not been defined")
-    end
+  def import(data, {:csv, options}) do
+    Csv.extract(data, options)
+  end
+
+  def import(_data, {:json, _options}) do
+    # TODO(ts): Implement
+    Logger.error("Not implemented yet")
+  end
+
+  def import(data, _) do
+    Logger.error("Parser config has not been defined")
   end
 
   def import() do
@@ -48,6 +48,9 @@ defmodule ExCourtbot do
 
   def notify() do
     Logger.info("Starting notifications")
+
+    Subscriber.all_pending_notifications()
+    |> IO.inspect()
 
     Logger.info("Finished notifications")
   end

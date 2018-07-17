@@ -42,11 +42,12 @@ defmodule ExCourtbot.Mixfile do
       {:csv, "~> 2.0.0"},
       {:aes256, "~> 0.5.0"},
       {:sched_ex, "~> 1.0"},
-      {:httpoison, "~> 1.0"},
+      {:tesla, "~> 1.0.0"},
       {:timex, "~> 3.1"},
-      {:distillery, "~> 1.5", runtime: false},
-      {:mock, "~> 0.3.0", only: :test, runtime: false},
-      {:mix_test_watch, "~> 0.6", only: :test, runtime: false}
+      {:ex_twilio, "~> 0.6.0"},
+      {:distillery, "~> 1.5", only: :dev, runtime: false},
+      {:mix_test_watch, "~> 0.6", only: :test, runtime: false},
+      {:sentry, "~> 6.4", only: :prod}
     ]
   end
 

@@ -5,7 +5,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=excourtbot_dev
-    image: postgres:9
+    image: postgres:10
     ports:
       - "${POSTGRES_PORT}:5432"
   postgres_test:
@@ -13,6 +13,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=excourtbot_test
-    image: postgres:9
+    image: postgres:10
     ports:
       - "${POSTGRES_PORT_TEST}:5432"
