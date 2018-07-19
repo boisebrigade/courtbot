@@ -1,30 +1,30 @@
 alias ExCourtbot.Repo
-alias ExCourtbot.{Client, Hearing, Subscriber}
+alias ExCourtbotWeb.{Case, Hearing, Subscriber}
 
-if Mix.env == :dev || Mix.env == :test do
-  # Repo.insert! %Case{
-  #   id: "9cd4e3fd-58ce-473b-b4ee-51c61f09393f",
-  #   case_number: "CASE-NUM-0000",
-  #   first_name: "Foo",
-  #   last_name: "Bar",
-  #   county: "Generic"
-  # }
+if Mix.env == :dev do
+  case_one_id = "db638726-7912-496f-84a6-4a3aa869800c"
 
-  # Repo.insert! %Hearing{
-  #   id: "ba722747-3346-4001-8ca1-3fcdee5844f3",
-  #   case_id: "cd4e3fd-58ce-473b-b4ee-51c61f09393f",
-  #   type: "criminal",
-  #   date: Date.add(Date.utc_today(), 1),
-  #   time: ~T[10:00:00],
-  #   location: "County Courthouse",
-  #   detail: "Crime"
-  # }
+  Repo.insert! %Case{
+    id: case_one_id,
+    case_number: "abc123",
+    first_name: "Foo",
+    last_name: "Bar",
+    county: "Generic"
+  }
 
-  # subscriber = %Subscriber{}
-  # |> %Subscriber.create({
-  #   case_id: "cd4e3fd-58ce-473b-b4ee-51c61f09393f",
-  #   hearing_id: "ba722747-3346-4001-8ca1-3fcdee5844f3",
-  #   phone_number: "202-555-0134"
-  # })
-  # |> Repo.insert!
+  Repo.insert! %Hearing{
+    id: "299992b7-8b40-4896-b45c-c941aec1b155",
+    case_id: case_one_id,
+    type: "criminal",
+    time: ~T[09:00:00.000],
+    date: Ecto.Date.utc(),
+    location: "County Courthouse",
+    detail: "Crime"
+  }
+
+  Repo.insert! %Subscriber{
+    id: "98caf3df-99e1-4b43-98d0-9eeb14057697",
+    case_id: case_one_id,
+    phone_number: "2025550134"
+  }
 end

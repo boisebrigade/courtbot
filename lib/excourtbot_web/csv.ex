@@ -1,7 +1,6 @@
 defmodule ExCourtbotWeb.Csv do
-  alias Ecto.Multi
   alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Csv, Hearing}
+  alias ExCourtbotWeb.Case
 
   require Logger
 
@@ -22,35 +21,33 @@ defmodule ExCourtbotWeb.Csv do
     headings =
       headers
       |> Enum.map(fn
-        {:date, date_format} -> :date
-        {:time, time_format} -> :time
-        {:date_and_time, date_and_time_format} -> :date_and_time
+        {:date, _} -> :date
+        {:time, _} -> :time
+        {:date_and_time, _} -> :date_and_time
         mapping when is_atom(mapping) -> mapping
         nil -> nil
       end)
 
     decoded_csv = CSV.decode(raw_data, headers: headings, separator: delimiter)
 
-    cases =
-      if has_headers do
-        Enum.drop(decoded_csv, 1)
-      else
-        decoded_csv
-      end
-      |> Enum.map(fn row -> process(row, mappings) |> cast end)
+    if has_headers do
+      Enum.drop(decoded_csv, 1)
+    else
+      decoded_csv
+    end
+    |> Enum.map(fn row -> process(row, mappings) |> cast end)
   end
 
-  defp process({:ok, params = %{date: date, time: time, case_number: case_number}}, %{
+  defp process({:ok, params = %{date: date, time: time, case_number: _}}, %{
          date: date_format,
          time: time_format
        }) do
-
     params
     |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format))
     |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format))
   end
 
-  defp process({:ok, params = %{date_and_time: date_and_time, case_number: case_number}}, %{
+  defp process({:ok, params = %{date_and_time: date_and_time, case_number: _}}, %{
          date_and_time: date_and_time_format
        }) do
     params
@@ -70,7 +67,7 @@ defmodule ExCourtbotWeb.Csv do
     )
   end
 
-  defp process({:ok, row}, %{}),
+  defp process({:ok, _}, %{}),
     do: Logger.error("Unable to process row. Mappings for date and time are required")
 
   defp process({:ok, row}, _),

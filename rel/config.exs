@@ -30,13 +30,13 @@ environment :dev do
   # dev mode.
   set dev_mode: true
   set include_erts: false
-  set cookie: :"8Z(^:qiIRJY&&AY9Wd*uf{IvrS9lZ1B&rm>SkTo5G;A5jZKRALQppUO1lc=x/p<^"
+  set cookie: :test
 end
 
 environment :prod do
   set include_erts: true
   set include_src: false
-  set cookie: :"ty,EB.m(mJweudsI_v=`=9>@0R^!K5VCSyd{oPiwVCUjOhbyrb5[OSi@RB<&A3,]"
+  set cookie: :crypto.hash(:sha256, System.get_env("COOKIE")) |> Base.encode16 |> String.to_atom
 end
 
 # You may define one or more releases in this file.

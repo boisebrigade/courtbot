@@ -1,4 +1,4 @@
- defmodule ExCourtbotWeb.TwilioCountyTest do
+defmodule ExCourtbotWeb.TwilioCountyTest do
   use ExCourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
@@ -58,7 +58,7 @@
   end
 
   test "you can subscribe to a case via sms", %{conn: conn} do
-    Enum.map(["Canyon", "Gym"], fn(county) ->
+    Enum.map(["Canyon", "Gym"], fn county ->
       initial_conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @case_number})
 
       assert initial_conn.status === 200
@@ -69,5 +69,4 @@
       assert county_conn.status === 200
     end)
   end
-
- end
+end

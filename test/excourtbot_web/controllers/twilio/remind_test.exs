@@ -1,4 +1,4 @@
- defmodule ExCourtbotWeb.TwilioRemindTest do
+defmodule ExCourtbotWeb.TwilioRemindTest do
   use ExCourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
@@ -45,4 +45,4 @@
 
     assert remind_conn.status == 200
   end
- end
+end

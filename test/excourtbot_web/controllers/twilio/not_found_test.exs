@@ -1,4 +1,4 @@
- defmodule ExCourtbotWeb.TwilioNotFoundTest do
+defmodule ExCourtbotWeb.TwilioNotFoundTest do
   use ExCourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
@@ -12,4 +12,4 @@
   test "you can subscribe to a case via sms", %{conn: conn} do
     initial_conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @case_number})
   end
- end
+end

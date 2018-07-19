@@ -1,10 +1,9 @@
 defmodule ExCourtbotWeb.Hearing do
   use Ecto.Schema
 
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing}
+  alias ExCourtbotWeb.Case
 
-  import Ecto.{Changeset, Query}
+  import Ecto.Changeset
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

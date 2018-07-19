@@ -4,15 +4,9 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=excourtbot_dev
+      - POSTGRES_DB=excourtbot
     image: postgres:10
+    volumes:
+      - ${PWD}/local-test-db.sh:/docker-entrypoint-initdb.d/local-test-db.sh
     ports:
-      - "${POSTGRES_PORT}:5432"
-  postgres_test:
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=excourtbot_test
-    image: postgres:10
-    ports:
-      - "${POSTGRES_PORT_TEST}:5432"
+      - "5432:5432"

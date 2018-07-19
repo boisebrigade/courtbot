@@ -1,4 +1,4 @@
- defmodule ExCourtbotWeb.TwilioHearingTest do
+defmodule ExCourtbotWeb.TwilioHearingTest do
   use ExCourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
@@ -43,4 +43,4 @@
     assert initial_conn.status == 200
     assert initial_conn.private[:plug_session] === %{"reminder" => @case_id}
   end
- end
+end

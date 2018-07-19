@@ -2,56 +2,55 @@ defmodule ExCourtbotWeb.ImportTest do
   use ExCourtbotWeb.ConnCase, async: true
   use HTTPoison.Base
 
-  import Mock
+  import Tesla.Mock
 
-#  test "imports Anchorage data" do
-#    Application.put_env(
-#      :excourtbot,
-#      ExCourtbot,
-#      source: %{
-#        file: "data/anchorage.csv" |> Path.expand(__DIR__),
-#        type:
-#          {:csv,
-#           [
-#             {:has_headers, false},
-#             {
-#               :headers,
-#               [
-#                 {:date, "{0M}/{0D}/{YYYY}"},
-#                 :last_name,
-#                 :first_name,
-#                 nil,
-#                 :location,
-#                 {:time, "{h12}:{m} {am}"},
-#                 :case_number,
-#                 nil,
-#                 :violation,
-#                 nil
-#               ]
-#             }
-#           ]}
-#      }
-#    )
-#
-#    records =
-#      ExCourtbot.import()
-#
-#    sucessful_inserts =
-#      records
-#      |> Enum.count(fn
-#        {:ok, _} -> true
-#        _ -> false
-#      end)
-#
-#    assert sucessful_inserts == 5
-#
-#    Application.delete_env(:excourtbot, ExCourtbot)
-#  end
-#
+  test "imports Anchorage data" do
+    Application.put_env(
+      :excourtbot,
+      ExCourtbot.Import,
+      source: %{
+        file: "data/anchorage.csv" |> Path.expand(__DIR__),
+        type:
+          {:csv,
+           [
+             {:has_headers, false},
+             {
+               :headers,
+               [
+                 {:date, "{0M}/{0D}/{YYYY}"},
+                 :last_name,
+                 :first_name,
+                 nil,
+                 :location,
+                 {:time, "{h12}:{m} {am}"},
+                 :case_number,
+                 nil,
+                 :violation,
+                 nil
+               ]
+             }
+           ]}
+      }
+    )
+
+    records = ExCourtbot.import()
+
+    sucessful_inserts =
+      records
+      |> Enum.count(fn
+        {:ok, _} -> true
+        _ -> false
+      end)
+
+    assert sucessful_inserts == 5
+
+    Application.delete_env(:excourtbot, ExCourtbot.Import)
+  end
+
   test "imports Atlanta data" do
     Application.put_env(
       :excourtbot,
-      ExCourtbot,
+      ExCourtbot.Import,
       source: %{
         url: fn ->
           date = Timex.format!(DateTime.utc_now(), "{0M}{0D}{0YYYY}")
@@ -107,44 +106,44 @@ defmodule ExCourtbotWeb.ImportTest do
     end
   end
 
-#  test "imports Boise data" do
-#    Application.put_env(
-#      :excourtbot,
-#      ExCourtbot,
-#      source: %{
-#        file: "data/boise.csv" |> Path.expand(__DIR__),
-#        type:
-#          {:csv,
-#           [
-#             {:has_headers, true},
-#             {:headings,
-#              [
-#                nil,
-#                :first_name,
-#                :last_name,
-#                nil,
-#                :case_number,
-#                nil,
-#                nil,
-#                {:date, "{0M}/{0D}/{YYYY}"},
-#                {:time, "{h24}:{m}"},
-#                nil
-#              ]}
-#           ]}
-#      }
-#    )
-#
-#    records = ExCourtbot.import()
-#
-#    sucessful_inserts =
-#      records
-#      |> Enum.count(fn
-#        {:ok, _} -> true
-#        _ -> false
-#      end)
-#
-#    assert sucessful_inserts == 6
-#
-#    Application.delete_env(:excourtbot, ExCourtbot)
-#  end
+  test "imports Boise data" do
+    Application.put_env(
+      :excourtbot,
+      ExCourtbot.Import,
+      source: %{
+        file: "data/boise.csv" |> Path.expand(__DIR__),
+        type:
+          {:csv,
+           [
+             {:has_headers, true},
+             {:headings,
+              [
+                nil,
+                :first_name,
+                :last_name,
+                nil,
+                :case_number,
+                nil,
+                nil,
+                {:date, "{0M}/{0D}/{YYYY}"},
+                {:time, "{h24}:{m}"},
+                nil
+              ]}
+           ]}
+      }
+    )
+
+    records = ExCourtbot.import()
+
+    sucessful_inserts =
+      records
+      |> Enum.count(fn
+        {:ok, _} -> true
+        _ -> false
+      end)
+
+    assert sucessful_inserts == 6
+
+    Application.delete_env(:excourtbot, ExCourtbot.Import)
+  end
 end

@@ -9,7 +9,6 @@ defmodule ExCourtbotWeb.Router do
   scope "/", ExCourtbot do
     pipe_through(:twilio)
 
-    get("/status", TwilioController, :index)
-    post("/sms", TwilioController, :sms)
+    post("/sms/:locale", TwilioController, :sms)
   end
 end

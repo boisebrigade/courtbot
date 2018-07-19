@@ -1,4 +1,4 @@
- defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
+defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
   use ExCourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
@@ -56,7 +56,5 @@
     remind_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => "Yes"})
 
     assert remind_conn.status == 200
-
-
   end
- end
+end

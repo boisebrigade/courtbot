@@ -26,7 +26,8 @@ defmodule ExCourtbotWeb.Endpoint do
     Plug.Session,
     store: :cookie,
     key: "_excourtbot_key",
-    signing_salt: "JXkMr3AQ"
+    signing_salt: "JXkMr3AQ",
+    log: :debug
   )
 
   plug(ExCourtbotWeb.Router)
@@ -38,6 +39,8 @@ defmodule ExCourtbotWeb.Endpoint do
   configuration should be loaded from the system environment.
   """
   def init(_key, config) do
+    :ets.new(:session, [:named_table, :public, read_concurrency: true])
+
     if config[:load_from_system_env] do
       port = System.get_env("PORT") || raise "expected the PORT environment variable to be set"
       {:ok, Keyword.put(config, :http, [:inet6, port: port])}
