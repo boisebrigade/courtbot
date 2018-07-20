@@ -176,8 +176,20 @@ defmodule ExCourtbot.TwilioController do
   defp prompt_remind(conn, params = %{"From" => phone_number}, case) do
     Logger.info(log_safe_phone_number(phone_number) <> ": Asking about reminder")
 
+    %ExCourtbotWeb.Case{
+      first_name: first_name,
+      last_name: last_name,
+      hearings: [
+        %ExCourtbotWeb.Hearing{
+          time: time,
+          date: date,
+          location: location
+        }
+      ]
+    } = case
+
     response =
-      Response.message(:hearing_details, params) <> Response.message(:prompt_reminder, params)
+      Response.message(:hearing_details, Map.merge(params, %{"first_name" => first_name, "last_name" => last_name, "date" => date, "time" => time, "location" => location})) <> Response.message(:prompt_reminder, params)
 
     conn
     |> put_session(:reminder, case.id)
