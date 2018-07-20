@@ -104,7 +104,7 @@ This is an abbreviated and customized form of this [tutorial](https://hexdocs.pm
     - `TWILIO_ACCOUNT_SID` and`TWILIO_AUTH_TOKEN` require setting up a Twilio account. See [external dependencies]() for more detail.
     - `DATABASE_URL` should already be provided if you are using the Postgres addon.
 - Trigger a build: `git push heroku master`
-- Setup database: `heroku run "mix run ecto.reset"`
+- Run migrations: `heroku run "MIX_ENV=prod mix ecto.migrate"`
 - ExCourtbot should now be running on Heroku.
 
 For convenience fill in the placeholders:

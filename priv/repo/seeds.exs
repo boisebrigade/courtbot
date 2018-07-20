@@ -1,7 +1,7 @@
 alias ExCourtbot.Repo
 alias ExCourtbotWeb.{Case, Hearing, Subscriber}
 
-if Mix.env == :dev do
+#if Mix.env == :dev do
   case_one_id = "db638726-7912-496f-84a6-4a3aa869800c"
 
   Repo.insert! %Case{
@@ -22,4 +22,4 @@ if Mix.env == :dev do
     detail: "Crime"
   }
 
-end
+#end
