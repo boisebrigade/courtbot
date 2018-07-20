@@ -4,7 +4,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
   alias Ecto.Multi
 
   alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Subscriber}
+  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
 
   @case_id Ecto.UUID.generate()
   @case_two_id Ecto.UUID.generate()
@@ -15,7 +15,12 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
   @subscriber_id Ecto.UUID.generate()
 
   @phone_number "2025550186"
+  @phone_number_invalid "2025550187"
   @case_number "aabbc000000000000"
+
+  @unsubscribe "stop"
+
+  @locale "en"
 
   setup do
     Multi.new()
@@ -43,6 +48,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
     })
     |> Multi.insert(:subscriber, %Subscriber{
       id: @subscriber_id,
+      locale: @locale,
       phone_number: @phone_number
     })
     |> Repo.transaction()
@@ -50,11 +56,26 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
     :ok
   end
 
-  test "you can unsubscribe to a case via sms", %{conn: conn} do
-    initial_conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @case_number})
+  test "you can unsubscribe to a case", %{conn: conn} do
+    unsubscribe_conn = post(conn, "/sms", %{"From" => @phone_number, "Body" => @unsubscribe})
 
-    remind_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => "Yes"})
+    assert unsubscribe_conn.status == 200
 
-    assert remind_conn.status == 200
+    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    message = Response.message(:unsubscribe, params)
+
+    assert unsubscribe_conn.resp_body === Twiml.sms(message)
+  end
+
+  test "you are alerted if you are currently not subscribed", %{conn: conn} do
+    unsubscribe_conn =
+      post(conn, "/sms", %{"From" => @phone_number_invalid, "Body" => @unsubscribe})
+
+    assert unsubscribe_conn.status == 200
+
+    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    message = Response.message(:no_subscriptions, params)
+
+    assert unsubscribe_conn.resp_body === Twiml.sms(message)
   end
 end

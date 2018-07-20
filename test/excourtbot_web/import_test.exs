@@ -1,8 +1,5 @@
 defmodule ExCourtbotWeb.ImportTest do
   use ExCourtbotWeb.ConnCase, async: true
-  use HTTPoison.Base
-
-  import Tesla.Mock
 
   test "imports Anchorage data" do
     Application.put_env(
@@ -52,11 +49,7 @@ defmodule ExCourtbotWeb.ImportTest do
       :excourtbot,
       ExCourtbot.Import,
       source: %{
-        url: fn ->
-          date = Timex.format!(DateTime.utc_now(), "{0M}{0D}{0YYYY}")
-
-          "http://courtview.atlantaga.gov/courtcalendars/court_online_calendar/codeamerica.#{date}.csv"
-        end,
+        file: "data/atlanta.csv" |> Path.expand(__DIR__),
         type:
           {:csv,
            [
@@ -67,7 +60,7 @@ defmodule ExCourtbotWeb.ImportTest do
                 nil,
                 nil,
                 nil,
-                {:time, "{0h24}:{m}"},
+                {:time, "{h24}:{m}:{s}"},
                 :case_number,
                 nil,
                 nil,
@@ -79,31 +72,18 @@ defmodule ExCourtbotWeb.ImportTest do
     )
 
     # Mock the Atlanta endpoint and return our local test file.
-    with_mock(
-      HTTPoison,
-      get: fn url, _ ->
-        {
-          :ok,
-          %HTTPoison.Response{
-            body: "data/atlanta.csv" |> Path.expand(__DIR__) |> File.stream!(),
-            status_code: 200
-          }
-        }
-      end
-    ) do
-      records = ExCourtbot.import()
+    records = ExCourtbot.import()
 
-      sucessful_inserts =
-        records
-        |> Enum.count(fn
-          {:ok, _} -> true
-          _ -> false
-        end)
+    sucessful_inserts =
+      records
+      |> Enum.count(fn
+        {:ok, _} -> true
+        _ -> false
+      end)
 
-      assert sucessful_inserts == 1
+    assert sucessful_inserts == 1
 
-      Application.delete_env(:excourtbot, ExCourtbot)
-    end
+    Application.delete_env(:excourtbot, ExCourtbot)
   end
 
   test "imports Boise data" do
@@ -116,7 +96,7 @@ defmodule ExCourtbotWeb.ImportTest do
           {:csv,
            [
              {:has_headers, true},
-             {:headings,
+             {:headers,
               [
                 nil,
                 :first_name,
@@ -126,7 +106,7 @@ defmodule ExCourtbotWeb.ImportTest do
                 nil,
                 nil,
                 {:date, "{0M}/{0D}/{YYYY}"},
-                {:time, "{h24}:{m}"},
+                {:time, "{h24}:{m}:{s}"},
                 nil
               ]}
            ]}
@@ -146,4 +126,7 @@ defmodule ExCourtbotWeb.ImportTest do
 
     Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
+
+  # TODO(ts): Add tests for url sources
+  # TODO(ts): Add tests for reoccuring imports
 end

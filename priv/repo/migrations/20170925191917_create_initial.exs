@@ -33,6 +33,7 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
       add :case_id, references(:cases, type: :uuid)
 
       add :phone_number, :binary
+      add :locale, :string
 
       timestamps()
     end

@@ -21,24 +21,4 @@ defmodule ExCourtbotWeb.Gettext do
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
   use Gettext, otp_app: :excourtbot
-
-  defp locale(to_number, message) do
-    locales =
-      Application.get_env(:excourtbot, ExCourtbot)
-      |> Keyword.fetch(:locales)
-
-    #    locale = Enum.map(locales, fn {lo, number}
-    #
-    #    end)
-
-    case locales do
-      test ->
-        Gettext.with_locale(test, fn ->
-          gettext(message)
-        end)
-
-      _ ->
-        gettext(message)
-    end
-  end
 end

@@ -14,7 +14,7 @@ ExCourtbox seeks to solve the following problems:
   - Install [asdf](https://github.com/asdf-vm/asdf#setup)
   - Add Elixir asdf plugin: [asdf-elixir](https://github.com/asdf-vm/asdf-elixir) 
   - Goto where you've cloned the repo and run: `asdf install`
-- Copy `.env.dev.example` to `.env.dev`: `cp .env.dev.example .env.dev`
+- Copy `.env.example` to `.env.dev`: `cp .env.example .env.dev`
   - Tweak default environment variables as needed
   - Take a look at the [external dependencies]() as they their credentials will need to be configured for a full development setup 
 - Start docker: `docker-compose up -d`
@@ -26,14 +26,11 @@ Once Phoenix is started the REST API will be accessible. Any changes to `config/
 
 ### Testing
 - Start docker: `docker-compose up -d`
-- Copy `.env.test.example` to `.env.test`: `cp .env.test.example .env.test`
+- Copy `.env.example` to `.env.test`: `cp .env.example .env.test`
   - Tweak default environment variables as needed.
-  - By default the docker-compose will create a test database named `excourtbot_test` make sure to 
+  - By default the docker-compose will create a test database named `excourtbot_test` make sure to update the `DATABASE_URL` accordingly.
 - Run tests: `env $(cat .env.test | xargs) mix test`
 - Test watch: `env $(cat .env.test | xargs) mix test.watch`
-
-
-
 
 ## External Dependencies
 
@@ -42,21 +39,26 @@ External dependencies try to be limited as much as possible as the least amount 
 ### Twilio
 Required, Twilio is the service ExCourtbot uses to send (and receive) SMS.
 
-
-
+NOTE: these are likely to change. If any steps or URL's become broken or are incorrect please create an issue.
 
 #### Setup
-- A phone number should be secured.
-- API Key
-- 
+
+##### Webhook
+The Twilio Webhook you setup is how Twilio knows where to route messages and is how you register a phone number.
+
+- Buy a phone number that is SMS capable: https://www.twilio.com/console/phone-numbers/search
+- Manage your numbers: https://www.twilio.com/console/phone-numbers/incoming
+- Select the number you want ExCourtbot to respond to
+  - On the "Configure" tab under the "Messaging" section add your `HOST` to the section "A MESSAGE COMES IN"
+    - `HOST` can refer to your Heroku endpoint, the domain ExCourtbot is hosted on or the `ngrok` forwarding address.
+
+You can use [ngrok](https://ngrok.com/) to test  
+
+##### API Key
 
 
-- A webhook should be configured.
-
-Use ngrok locally to test webhook.
-
-### Sentry 
-Optionally, for a production environment you can configure Sentry for error monitoring and logging ExCourtbot. 
+### Rollbar 
+Optionally, for a production environment you can configure Rollbar for error monitoring and logging ExCourtbot. 
 
 
 #### Setup
@@ -66,10 +68,16 @@ Optionally, for a production environment you can configure Sentry for error moni
 ExCourbot intends for as much functionality to be exposed and configurable out of the box as possible. If your case is unsupported via configuration and requires customization please create a new issue.
 
 ### Configuration
-TODO: Document configuration
+
+
+#### ExCourtbot
+
+#### Importer
 
 ### Customization
-- Tesla
+
+
+#### Custom Authentication
 
 ## Deployment
 ExCourtbot is designed to be deployed as a docker container or on Heroku. Please create an issue if you have additional requirements which may not be met with either solution.
@@ -84,14 +92,41 @@ This is an abbreviated and customized form of this [tutorial](https://hexdocs.pm
 - Signup for Heroku account: https://signup.heroku.com/
 - Install Heroku cli: https://devcenter.heroku.com/articles/heroku-cli
   - Login with the CLI tool: `heroku login`
-  - Create a Heroku application: `heroku create`
-  
+
 #### Initial Setup
-- Use Elixir Buildpack: `heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git"`
-  - There are some details that could be configured such as the Erlang and Elixir version, details found [here](https://github.com/HashNuke/heroku-buildpack-elixir#configuration).
+- Create a Heroku project with the Elixir Buildpack: `heroku create --buildpack "https://github.com/HashNuke/heroku-buildpack-elixir.git"`
+- Add Postgres as a Heroku addon: `heroku addons:create heroku-postgresql:hobby-dev`
+  - Note: Doing this will automatically set the `DATABASE_URL` environment variable for you.
+- Set Environment variables: `heroku config:set VARIABLE="value"`
+  - Required are `HOST`, `SECRET_KEY_BASE`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `DATABASE_URL`
+    - `HOST` is the Heroku application name and`herokuapp.com`: i.e. `<heroku application>.herokuapp.com`
+    - `SECRET_KEY_BASE` is a cryptic key you can generate via `mix phx.gen.secret`
+    - `TWILIO_ACCOUNT_SID` and`TWILIO_AUTH_TOKEN` require setting up a Twilio account. See [external dependencies]() for more detail.
+    - `DATABASE_URL` should already be provided if you are using the Postgres addon.
+- Trigger a build: `git push heroku master`
+- Setup database: `heroku run "mix run ecto.reset"`
+- ExCourtbot should now be running on Heroku.
 
-#### Deployment
+For convenience fill in the placeholders:
+```sh
+heroku config:set HOST="<value>"
+heroku config:set SECRET_KEY_BASE="<value>"
+heroku config:set TWILIO_ACCOUNT_SID="<value>"
+heroku config:set TWILIO_AUTH_TOKEN="<value>"
+```
 
+##### Rollbar
+- Add the rollbar addon: `heroku addons:create rollbar:free` 
+
+##### Scheduler
+
+- Add scheduler as an addon: `heroku addons:create scheduler:standard`
+
+
+#### Updating Heroku after you've made changes
+- Add your changes: `git add <files>`
+- Commit the work: `git commit -m "Explain your changes"`
+- Push to Heroku: `git push heroku master`
 
 ### Docker
 - Build the docker image: `env $(cat .env.production | xargs) docker build`

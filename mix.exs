@@ -20,7 +20,7 @@ defmodule ExCourtbot.Mixfile do
   def application do
     [
       mod: {ExCourtbot.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :ex_twilio, :httpoison]
     ]
   end
 
@@ -45,6 +45,7 @@ defmodule ExCourtbot.Mixfile do
       {:tesla, "~> 1.0.0"},
       {:timex, "~> 3.1"},
       {:ex_twilio, "~> 0.6.0"},
+      {:ex_twiml, "~> 2.1.3"},
       {:distillery, "~> 1.5", only: :dev, runtime: false},
       {:mix_test_watch, "~> 0.6", only: :test, runtime: false},
       {:sentry, "~> 6.4", only: :prod}

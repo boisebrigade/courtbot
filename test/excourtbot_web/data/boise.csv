@@ -1,7 +1,7 @@
 PartyID,PartyFirstName,PartyLastName,PhoneNumber,CaseNumber,JudgeName,Next_Hearing,HearingDate,HearingTime,TimeFormatted
-595096,Jeremy,Darland,208-555-5555,CR01-18-11167,"Watkins, Thomas P.",Pre-trial Conference,6/19/2018,8:15:00,8:15 AM
-2007488,Adam,Butler,208-555-5555,CR01-18-11115,"Watkins, Thomas P.",Pre-trial Conference,6/19/2018,8:15:00,8:15 AM
-1893172,Lacey,Baughman,208-555-5555,CR01-18-21853,"Hawley/Lojek, Judge",Pre-trial Conference,6/20/2018,10:30:00,10:30 AM
-2724844,OMAR,MAGNA FLORES,208-555-5555,CR01-18-23455,"Gardunia, Theresa L.",Pro-se Arraignment,6/20/2018,13:30:00,1:30 PM
-2128028,Emily,Field,208-555-5555,CR-MD-2016-4967,"Watkins, Thomas P.",Pre-trial Conference,6/27/2018,10:15:00,10:15 AM
-1416169,Jerimiah,Sherrill,208-555-5555,CR01-18-22672,"Ellis, Andrew",Court Trial,6/28/2018,15:00:00,3:00 PM
+595096,Jeremy,Darland,208-555-5555,CR01-18-11167,"Watkins, Thomas P.",Pre-trial Conference,06/19/2018,08:15:00,8:15 AM
+2007488,Adam,Butler,208-555-5555,CR01-18-11115,"Watkins, Thomas P.",Pre-trial Conference,06/19/2018,08:15:00,8:15 AM
+1893172,Lacey,Baughman,208-555-5555,CR01-18-21853,"Hawley/Lojek, Judge",Pre-trial Conference,06/20/2018,10:30:00,10:30 AM
+2724844,OMAR,MAGNA FLORES,208-555-5555,CR01-18-23455,"Gardunia, Theresa L.",Pro-se Arraignment,06/20/2018,13:30:00,1:30 PM
+2128028,Emily,Field,208-555-5555,CR-MD-2016-4967,"Watkins, Thomas P.",Pre-trial Conference,06/27/2018,10:15:00,10:15 AM
+1416169,Jerimiah,Sherrill,208-555-5555,CR01-18-22672,"Ellis, Andrew",Court Trial,06/28/2018,15:00:00,3:00 PM

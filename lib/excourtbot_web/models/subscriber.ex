@@ -2,7 +2,7 @@ defmodule ExCourtbotWeb.Subscriber do
   use Ecto.Schema
 
   alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Notification, Subscriber}
+  alias ExCourtbotWeb.{Case, Hearing, Notification, Subscriber}
 
   import Ecto.{Changeset, Query}
 
@@ -12,7 +12,9 @@ defmodule ExCourtbotWeb.Subscriber do
   schema "subscribers" do
     belongs_to(:case, Case)
 
-    field(:phone_number, ExCourtbotWeb.EncryptedField)
+    # TODO(ts): Enable field encryption
+    field(:phone_number, :string)
+    field(:locale, :string)
 
     has_many(:notifications, Notification, on_delete: :delete_all)
 
@@ -21,23 +23,35 @@ defmodule ExCourtbotWeb.Subscriber do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:case_id, :phone_number])
+    |> cast(params, [:case_id, :phone_number, :locale])
     |> validate_length(:phone_number, min: 9)
-    |> validate_required([:phone_number])
+    |> validate_required([:phone_number, :locale])
   end
 
-  def unsubscribe(phone_number) do
+  def find_by_number(phone_number) do
     from(
       s in Subscriber,
       where: s.phone_number == ^phone_number
     )
-    |> Repo.delete()
   end
 
   def all_pending_notifications() do
+    today = Date.utc_today()
+    tomorrow = Date.add(today, 1)
+    #       left_join: n in Notification, where: n.subscriber_id == s.id,
     from(
       s in Subscriber,
-      preload: :case
+      join: c in Case, where: s.case_id == c.id,
+      join: h in Hearing, where: h.case_id == s.case_id,
+      where: h.date == ^tomorrow,
+      select: %{
+        "subscriber_id" => s.id,
+        "case_number" => c.case_number,
+        "phone_number" => s.phone_number,
+        "locale" => s.locale,
+        "date" => h.date,
+        "time" => h.time,
+     }
     )
     |> Repo.all()
   end

@@ -58,6 +58,10 @@ defmodule ExCourtbotWeb.Case do
     |> Repo.all()
   end
 
+  def all_counties() do
+    from(c in Case, select: c.county) |> Repo.all()
+  end
+
   defp clean_county(county) do
     county
     |> String.trim()

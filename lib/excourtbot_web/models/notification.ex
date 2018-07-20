@@ -1,7 +1,7 @@
 defmodule ExCourtbotWeb.Notification do
   use Ecto.Schema
 
-  alias ExCourtbotWeb.{Case, Hearing}
+  alias ExCourtbotWeb.Subscriber
 
   import Ecto.Changeset
 
@@ -16,5 +16,6 @@ defmodule ExCourtbotWeb.Notification do
 
   def changeset(changeset, params \\ %{}) do
     changeset
+    |> cast(params, [:subscriber_id])
   end
 end

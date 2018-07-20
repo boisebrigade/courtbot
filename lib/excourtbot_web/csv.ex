@@ -38,6 +38,7 @@ defmodule ExCourtbotWeb.Csv do
     |> Enum.map(fn row -> process(row, mappings) |> cast end)
   end
 
+  # TODO(ts): Handle parsing timestamps with single digit months and 24-hours.
   defp process({:ok, params = %{date: date, time: time, case_number: _}}, %{
          date: date_format,
          time: time_format
