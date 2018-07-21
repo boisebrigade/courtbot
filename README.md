@@ -16,7 +16,7 @@ ExCourtbox seeks to solve the following problems:
   - Goto where you've cloned the repo and run: `asdf install`
 - Copy `.env.example` to `.env.dev`: `cp .env.example .env.dev`
   - Tweak default environment variables as needed
-  - Take a look at the [external dependencies]() as they their credentials will need to be configured for a full development setup 
+  - Take a look at the [external dependencies](#external-dependencies) as they their credentials will need to be configured for a full development setup 
 - Start docker: `docker-compose up -d`
 - Install dependencies: `env $(cat .env.dev | xargs) mix deps.get`
 - Initialize database: `env $(cat .env.dev | xargs) mix ecto.reset`
@@ -101,7 +101,7 @@ This is an abbreviated and customized form of this [tutorial](https://hexdocs.pm
   - Required are `HOST`, `SECRET_KEY_BASE`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `DATABASE_URL`
     - `HOST` is the Heroku application name and`herokuapp.com`: i.e. `<heroku application>.herokuapp.com`
     - `SECRET_KEY_BASE` is a cryptic key you can generate via `mix phx.gen.secret`
-    - `TWILIO_ACCOUNT_SID` and`TWILIO_AUTH_TOKEN` require setting up a Twilio account. See [external dependencies]() for more detail.
+    - `TWILIO_ACCOUNT_SID` and`TWILIO_AUTH_TOKEN` require setting up a Twilio account. See [external dependencies](#external-dependencies) for more detail.
     - `DATABASE_URL` should already be provided if you are using the Postgres addon.
 - Trigger a build: `git push heroku master`
 - Run migrations: `heroku run "MIX_ENV=prod mix ecto.migrate"`
@@ -133,4 +133,6 @@ heroku config:set TWILIO_AUTH_TOKEN="<value>"
 
 
 ## License
+ICS, 2018, Code for America
 
+See [LICENSE.md](LICENSE.md)
