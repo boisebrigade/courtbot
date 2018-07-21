@@ -14,11 +14,17 @@ defmodule ExCourtbotWeb.Response do
   end
 
   def message(:hearing_details, %{"locale" => locale, "date" => date, "time" => time}) do
-    time_formated = time |> Time.truncate(:second) |> Time.to_string
+    time_formated = time |> Time.truncate(:second) |> Time.to_string()
     date_formated = Date.to_string(date)
 
     Gettext.with_locale(locale, fn ->
-      Gettext.dgettext(ExCourtbotWeb.Gettext, "response", "The next hearing is tomorrow, %{date}, at %{time}", [date: date_formated, time: time_formated])
+      Gettext.dgettext(
+        ExCourtbotWeb.Gettext,
+        "response",
+        "The next hearing is tomorrow, %{date}, at %{time}",
+        date: date_formated,
+        time: time_formated
+      )
     end)
   end
 
@@ -42,12 +48,24 @@ defmodule ExCourtbotWeb.Response do
     end)
   end
 
-  def message(:reminder, %{"locale" => locale, "case_number" => case_number, "date" => date, "time" => time}) do
-    time_formated = time |> Time.truncate(:second) |> Time.to_string
+  def message(:reminder, %{
+        "locale" => locale,
+        "case_number" => case_number,
+        "date" => date,
+        "time" => time
+      }) do
+    time_formated = time |> Time.truncate(:second) |> Time.to_string()
     date_formated = Date.to_string(date)
 
     Gettext.with_locale(locale, fn ->
-      Gettext.dgettext(ExCourtbotWeb.Gettext, "response", "This is a reminder for case %{case_number}. The next hearing is tomorrow, %{date}, at %{time}", [case_number: case_number, date: date_formated, time: time_formated])
+      Gettext.dgettext(
+        ExCourtbotWeb.Gettext,
+        "response",
+        "This is a reminder for case %{case_number}. The next hearing is tomorrow, %{date}, at %{time}",
+        case_number: case_number,
+        date: date_formated,
+        time: time_formated
+      )
     end)
   end
 

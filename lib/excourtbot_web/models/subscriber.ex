@@ -41,8 +41,10 @@ defmodule ExCourtbotWeb.Subscriber do
     #       left_join: n in Notification, where: n.subscriber_id == s.id,
     from(
       s in Subscriber,
-      join: c in Case, where: s.case_id == c.id,
-      join: h in Hearing, where: h.case_id == s.case_id,
+      join: c in Case,
+      where: s.case_id == c.id,
+      join: h in Hearing,
+      where: h.case_id == s.case_id,
       where: h.date == ^tomorrow,
       select: %{
         "subscriber_id" => s.id,
@@ -50,8 +52,8 @@ defmodule ExCourtbotWeb.Subscriber do
         "phone_number" => s.phone_number,
         "locale" => s.locale,
         "date" => h.date,
-        "time" => h.time,
-     }
+        "time" => h.time
+      }
     )
     |> Repo.all()
   end

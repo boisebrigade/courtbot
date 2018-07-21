@@ -64,18 +64,25 @@ defmodule ExCourtbot do
 
     locales = Application.get_env(:excourtbot, :locales)
 
-    Enum.map(Subscriber.all_pending_notifications(), fn params = %{"locale" => locale, "phone_number" => phone_number, "subscriber_id" => subscriber_id} ->
-      from_number = Map.fetch!(locales, locale)
-      to_number = phone_number
+    Enum.map(
+      Subscriber.all_pending_notifications(),
+      fn params = %{
+           "locale" => locale,
+           "phone_number" => phone_number,
+           "subscriber_id" => subscriber_id
+         } ->
+        from_number = Map.fetch!(locales, locale)
+        to_number = phone_number
 
-      response = Response.message(:reminder, params)
+        response = Response.message(:reminder, params)
 
-      {:ok, _} = ExTwilio.Message.create([to: to_number, from: from_number, body: response])
+        {:ok, _} = ExTwilio.Message.create(to: to_number, from: from_number, body: response)
 
-      %Notification{}
-      |> Notification.changeset(%{subscriber_id: subscriber_id})
-      |> Repo.insert
-    end)
+        %Notification{}
+        |> Notification.changeset(%{subscriber_id: subscriber_id})
+        |> Repo.insert()
+      end
+    )
 
     Logger.info("Finished notifications")
   end

@@ -21,12 +21,13 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
 
-config :ex_twilio, account_sid:   {:system, "TWILIO_ACCOUNT_SID"},
-                   auth_token:    {:system, "TWILIO_AUTH_TOKEN"}
+config :ex_twilio,
+  account_sid: {:system, "TWILIO_ACCOUNT_SID"},
+  auth_token: {:system, "TWILIO_AUTH_TOKEN"}
 
 config :excourtbot,
   locales: %{
-    "en" =>"12083144089"
+    "en" => "12083144089"
   },
   import_time: "0 9 * * *",
   notify_time: "0 13 * * *"

@@ -189,7 +189,16 @@ defmodule ExCourtbot.TwilioController do
     } = case
 
     response =
-      Response.message(:hearing_details, Map.merge(params, %{"first_name" => first_name, "last_name" => last_name, "date" => date, "time" => time, "location" => location})) <> Response.message(:prompt_reminder, params)
+      Response.message(
+        :hearing_details,
+        Map.merge(params, %{
+          "first_name" => first_name,
+          "last_name" => last_name,
+          "date" => date,
+          "time" => time,
+          "location" => location
+        })
+      ) <> Response.message(:prompt_reminder, params)
 
     conn
     |> put_session(:reminder, case.id)
