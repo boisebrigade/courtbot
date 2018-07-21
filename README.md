@@ -133,6 +133,6 @@ heroku config:set TWILIO_AUTH_TOKEN="<value>"
 
 
 ## License
-ICS, 2018, Code for America
+ISC, 2018, Code for America
 
 See [LICENSE.md](LICENSE.md)
