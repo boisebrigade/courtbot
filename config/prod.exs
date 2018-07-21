@@ -31,7 +31,7 @@ config :logger, level: :info
 config :excourtbot, ExCourtbot.Repo,
   adapter: Ecto.Adapters.Postgres,
   url: Map.fetch!(System.get_env(), "DATABASE_URL"),
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "18"),
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "9"),
   ssl: true
 
 # ## SSL Support

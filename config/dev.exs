@@ -40,4 +40,4 @@ config :phoenix, :stacktrace_depth, 20
 config :excourtbot, ExCourtbot.Repo,
   adapter: Ecto.Adapters.Postgres,
   url: Map.fetch!(System.get_env(), "DATABASE_URL"),
-  pool_size: 10
+  pool_size: 5

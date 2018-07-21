@@ -9,7 +9,7 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
 config :tesla, MyApi, adapter: Tesla.Mock
 
 # Print only warnings and errors during test
-config :logger, :console, format: "[$level] $message\n"
+config :logger, level: :warn
 
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
