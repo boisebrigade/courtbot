@@ -15,8 +15,5 @@ erl_crash.dump
 # variables.
 /config/*.secret.exs
 
-.env
-.env.heroku
-.env.dev
-.env.test
-.env.prod
+.env.*
+!.env.example
