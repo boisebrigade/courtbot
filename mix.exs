@@ -46,8 +46,10 @@ defmodule ExCourtbot.Mixfile do
       {:timex, "~> 3.1"},
       {:ex_twilio, "~> 0.6.0"},
       {:ex_twiml, "~> 2.1.3"},
-      {:distillery, "~> 1.5", only: :dev, runtime: false},
+      {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
+      {:earmark, "~> 1.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 0.6", only: :test, runtime: false},
+      {:distillery, "~> 1.5", only: :prod, runtime: false},
       {:sentry, "~> 6.4", only: :prod}
     ]
   end
