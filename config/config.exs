@@ -21,7 +21,8 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
 
-
+# Disable automatic timezone updates
+config :tzdata, :autoupdate, :disabled
 
 config :ex_twilio,
   account_sid: {:system, "TWILIO_ACCOUNT_SID"},
