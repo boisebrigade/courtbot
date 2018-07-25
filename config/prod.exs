@@ -25,6 +25,9 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
+config :rollbax,
+ environment: "production"
+
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
   adapter: Ecto.Adapters.Postgres,

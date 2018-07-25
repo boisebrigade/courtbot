@@ -50,7 +50,7 @@ defmodule ExCourtbot.Mixfile do
       {:earmark, "~> 1.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 0.6", only: :test, runtime: false},
       {:distillery, "~> 1.5", only: :prod, runtime: false},
-      {:sentry, "~> 6.4", only: :prod}
+      {:rollbax, ">= 0.0.0", only: :prod}
     ]
   end
 
