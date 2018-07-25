@@ -21,39 +21,11 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
 
+
+
 config :ex_twilio,
   account_sid: {:system, "TWILIO_ACCOUNT_SID"},
   auth_token: {:system, "TWILIO_AUTH_TOKEN"}
-
-config :excourtbot,
-  locales: %{
-    "en" => "12083144089"
-  },
-  import_time: "0 9 * * *",
-  notify_time: "0 13 * * *"
-
-config :excourtbot, ExCourtbot.Import,
-  source: %{
-    file: "../test/excourtbot_web/data/boise.csv",
-    type:
-      {:csv,
-       [
-         {:has_headers, true},
-         {:headers,
-          [
-            {:date, "{0M}/{0D}/{YYYY}"},
-            nil,
-            nil,
-            nil,
-            {:time, "{0h24}:{m}"},
-            :case_number,
-            nil,
-            nil,
-            nil
-          ]},
-         {:delimiter, ?|}
-       ]}
-  }
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
