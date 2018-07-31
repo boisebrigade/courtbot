@@ -11,26 +11,26 @@ defmodule ExCourtbot.Application do
       # Start the Ecto repository
       supervisor(ExCourtbot.Repo, []),
       # Start the endpoint when the application starts
-      supervisor(ExCourtbotWeb.Endpoint, []),
-      # Start the schedule runners.
-      %{
-        id: "import",
-        start:
-          {SchedEx, :run_every,
-           [ExCourtbot, :import, [], Application.get_env(:excourtbot, :import_time, "0 9 * * *")]}
-      },
-      %{
-        id: "notify",
-        start:
-          {SchedEx, :run_every,
-           [ExCourtbot, :notify, [], Application.get_env(:excourtbot, :notify_time, "0 13 * * *")]}
-      }
+      supervisor(ExCourtbotWeb.Endpoint, [])
     ]
+
+    # Grab our scheduled times and append them to our children if they are defined.
+    scheduled =
+      Application.get_env(:excourtbot, ExCourtbot)
+      |> Map.new()
+      |> Map.take([:import_time, :notify_time])
+      |> Enum.map(fn
+        {:import_time, import_time} ->
+          %{id: "import", start: {SchedEx, :run_every, [ExCourtbot, :import, [], import_time]}}
+
+        {:notify_time, notify_time} ->
+          %{id: "notify", start: {SchedEx, :run_every, [ExCourtbot, :notify, [], notify_time]}}
+      end)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: ExCourtbot.Supervisor]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(children ++ scheduled, opts)
   end
 
   # Tell Phoenix to update the endpoint configuration
