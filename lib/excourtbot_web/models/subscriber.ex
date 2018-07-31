@@ -12,8 +12,7 @@ defmodule ExCourtbotWeb.Subscriber do
   schema "subscribers" do
     belongs_to(:case, Case)
 
-    # TODO(ts): Enable field encryption
-    field(:phone_number, :string)
+    field(:phone_number, Cloak.EncryptedBinaryField)
     field(:locale, :string)
 
     has_many(:notifications, Notification, on_delete: :delete_all)
