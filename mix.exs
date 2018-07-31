@@ -37,6 +37,7 @@ defmodule ExCourtbot.Mixfile do
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.2"},
       {:postgrex, ">= 0.0.0"},
+      {:cloak, "~> 0.6.2"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:csv, "~> 2.0.0"},
