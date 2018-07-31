@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Import do
+defmodule Mix.Tasks.Courtbot.Import do
   use Mix.Task
 
   @shortdoc "Run the ExCourtbot import"

@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Notify do
+defmodule Mix.Tasks.Courtbot.Notify do
   use Mix.Task
 
   @shortdoc "Run the ExCourtbot notify"
