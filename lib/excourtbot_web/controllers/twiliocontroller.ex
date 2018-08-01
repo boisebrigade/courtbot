@@ -51,23 +51,31 @@ defmodule ExCourtbot.TwilioController do
       end)
 
     # If the user wants to unsubscribe handle that up front.
-    if Enum.member?(@unsubscribe_keywords, message) do
-      Logger.info(log_safe_phone_number(phone_number) <> ": Unsubscribing")
+    cond  do
+      Enum.member?(@unsubscribe_keywords, message) ->
+        Logger.info(log_safe_phone_number(phone_number) <> ": Unsubscribing")
 
-      subscriptions = Subscriber.find_by_number(phone_number) |> Repo.all()
+        subscriptions = Subscriber.find_by_number(phone_number) |> Repo.all()
 
-      response =
-        if Enum.empty?(subscriptions) do
-          Response.message(:no_subscriptions, request)
-        else
-          Repo.delete_all(Subscriber.find_by_number(phone_number))
-          Response.message(:unsubscribe, request)
-        end
+        response =
+          if Enum.empty?(subscriptions) do
+            Response.message(:no_subscriptions, request)
+          else
+            Repo.delete_all(Subscriber.find_by_number(phone_number))
+            Response.message(:unsubscribe, request)
+          end
 
-      conn
-      |> encode(response)
-    else
-      respond(conn, request)
+        conn
+        |> encode(response)
+      message == "start" ->
+        Logger.info(log_safe_phone_number(phone_number) <> ": Unsubscribing")
+
+        response = Response.message(:resubscribe, request)
+
+        conn
+        |> clear_session
+        |> encode(response)
+      true -> respond(conn, request)
     end
   end
 
