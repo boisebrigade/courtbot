@@ -20,7 +20,7 @@ defmodule ExCourtbot.Mixfile do
   def application do
     [
       mod: {ExCourtbot.Application, []},
-      extra_applications: [:logger, :runtime_tools, :ex_twilio, :httpoison]
+      extra_applications: [:logger, :runtime_tools, :ex_twilio, :httpoison, :rollbax]
     ]
   end
 
