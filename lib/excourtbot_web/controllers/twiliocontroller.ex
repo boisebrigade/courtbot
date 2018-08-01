@@ -66,6 +66,7 @@ defmodule ExCourtbot.TwilioController do
           end
 
         conn
+        |> clear_session
         |> encode(response)
       message == "start" ->
         Logger.info(log_safe_phone_number(phone_number) <> ": Unsubscribing")
@@ -98,6 +99,7 @@ defmodule ExCourtbot.TwilioController do
       response = Response.message(:no_county, params)
 
       conn
+      |> clear_session
       |> encode(response)
     end
   end
@@ -124,6 +126,7 @@ defmodule ExCourtbot.TwilioController do
         response = Response.message(:accept_reminder, params)
 
         conn
+        |> clear_session
         |> encode(response)
 
       Enum.member?(@reject_keywords, message) ->
@@ -132,6 +135,7 @@ defmodule ExCourtbot.TwilioController do
         response = Response.message(:reject_reminder, params)
 
         conn
+        |> clear_session
         |> encode(response)
 
       true ->
@@ -179,6 +183,7 @@ defmodule ExCourtbot.TwilioController do
     response = Response.message(:not_found, params)
 
     conn
+    |> clear_session
     |> encode(response)
   end
 
