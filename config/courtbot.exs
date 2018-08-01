@@ -8,7 +8,7 @@ config :excourtbot, ExCourtbot,
   queued_ttl_days: 14,
   subscribe_limit: 10,
   importer: %{
-    file: "../test/excourtbot_web/data/boise.csv",
+    file: "/app/test/excourtbot_web/data/boise.csv",
     type:
       {:csv,
        [
