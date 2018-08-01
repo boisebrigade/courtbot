@@ -25,10 +25,10 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
 # Do not print debug messages in production
 config :logger, level: :info
 
-config :rollbax,
-  access_token: {:system, "ROLLBAR_ACCESS_TOKEN"},
-  enable_crash_reports: true,
-  environment: "production"
+#config :rollbax,
+#  access_token: {:system, "ROLLBAR_ACCESS_TOKEN"},
+#  enable_crash_reports: true,
+#  environment: "production"
 
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
