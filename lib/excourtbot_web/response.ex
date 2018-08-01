@@ -85,7 +85,7 @@ defmodule ExCourtbotWeb.Response do
       Gettext.dgettext(
         ExCourtbotWeb.Gettext,
         "response",
-        "This is a reminder for case %{case_number}. The next hearing is tomorrow, %{date}, at %{time}. You can go to %{court_url} for more information.",
+        "This is a reminder for case %{case_number}. The next hearing is on %{date}, at %{time}. You can go to %{court_url} for more information.",
         case_number: case_number,
         date: date_formated,
         time: time_formated,
