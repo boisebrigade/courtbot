@@ -1,7 +1,7 @@
 PartyID,PartyFirstName,PartyLastName,PhoneNumber,CaseNumber,JudgeName,Next_Hearing,HearingDate,HearingTime,TimeFormatted
-595096,Johnnie,Mcgee,208-555-5555,ID01-18-00001,"Name, Judge",Pre-trial Conference,6/20/2018,8:15:00,8:15 AM
-2007488,George,Larson,208-555-5555,ID01-18-00002,"Name, Judge.",Pre-trial Conference,7/02/2018,8:15:00,8:15 AM
-1893172,Lisa,Jennings,208-555-5555,ID01-18-00003,"Name, Judge",Pre-trial Conference,7/06/2018,10:30:00,10:30 AM
-2724844,Steve,Yates,208-555-5555,ID01-18-00004,"Name, Judge",Pro-se Arraignment,7/07/2018,13:30:00,1:30 PM
-2128028,Leigh,Boyd,208-555-5555,ID-MD-2016-0000,"Name, Judge",Pre-trial Conference,7/10/2018,10:15:00,10:15 AM
-1416169,Bill,Myers,208-555-5555,ID01-18-00005,"Name, Judge",Court Trial,7/11/2018,15:00:00,3:00 PM
+595096,Johnnie,Mcgee,208-555-5555,ID01-18-00001,"Name, Judge",Pre-trial Conference,7/20/2018,8:15:00,8:15 AM
+2007488,George,Larson,208-555-5555,ID01-18-00002,"Name, Judge.",Pre-trial Conference,8/02/2018,8:15:00,8:15 AM
+1893172,Lisa,Jennings,208-555-5555,ID01-18-00003,"Name, Judge",Pre-trial Conference,8/06/2018,10:30:00,10:30 AM
+2724844,Steve,Yates,208-555-5555,ID01-18-00004,"Name, Judge",Pro-se Arraignment,8/07/2018,13:30:00,1:30 PM
+2128028,Leigh,Boyd,208-555-5555,ID-MD-2016-0000,"Name, Judge",Pre-trial Conference,8/10/2018,10:15:00,10:15 AM
+1416169,Bill,Myers,208-555-5555,ID01-18-00005,"Name, Judge",Court Trial,8/11/2018,15:00:00,3:00 PM
