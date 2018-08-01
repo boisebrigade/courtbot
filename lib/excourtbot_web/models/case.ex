@@ -32,7 +32,7 @@ defmodule ExCourtbotWeb.Case do
   end
 
   def find_by_case_number(case_number) do
-    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1)
+    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
 
     from(
       c in Case,
@@ -43,17 +43,17 @@ defmodule ExCourtbotWeb.Case do
   end
 
   def find(id) do
+    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
     from(
       c in Case,
       where: c.id == ^id,
-      preload: :hearings
+      preload: [hearings: ^latest_hearing]
     )
     |> Repo.one()
   end
 
   def find_with_county(case_number, county) do
-    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1)
-
+    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
     from(
       c in Case,
       where: c.case_number == ^case_number,
