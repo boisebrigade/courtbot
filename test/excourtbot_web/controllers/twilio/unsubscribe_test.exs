@@ -48,6 +48,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
     })
     |> Multi.insert(:subscriber, %Subscriber{
       id: @subscriber_id,
+      case_id: @case_id,
       locale: @locale,
       phone_number: @phone_number
     })

@@ -7,15 +7,12 @@ defmodule ExCourtbotWeb.TwilioResubscribeTest do
   alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
 
   @case_id Ecto.UUID.generate()
-  @case_two_id Ecto.UUID.generate()
 
   @hearing_id Ecto.UUID.generate()
-  @hearing_two_id Ecto.UUID.generate()
 
   @subscriber_id Ecto.UUID.generate()
 
   @phone_number "2025550186"
-  @phone_number_invalid "2025550187"
   @case_number "aabbc000000000000"
 
   @unsubscribe "stop"
@@ -29,25 +26,15 @@ defmodule ExCourtbotWeb.TwilioResubscribeTest do
       case_number: @case_number,
       county: "canyon"
     })
-    |> Multi.insert(:case_two, %Case{
-      id: @case_two_id,
-      case_number: @case_number,
-      county: "gym"
-    })
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
       case_id: @case_id,
       time: ~T[09:00:00.000],
       date: Date.utc_today()
     })
-    |> Multi.insert(:hearing_two, %Hearing{
-      id: @hearing_two_id,
-      case_id: @case_id,
-      time: ~T[11:00:00.000],
-      date: Date.utc_today()
-    })
     |> Multi.insert(:subscriber, %Subscriber{
       id: @subscriber_id,
+      case_id: @case_id,
       locale: @locale,
       phone_number: @phone_number
     })
