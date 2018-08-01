@@ -24,7 +24,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
 
   setup do
     Multi.new()
-    |> Multi.insert(:case_one, %Case{
+    |> Multi.insert(:case, %Case{
       id: @case_id,
       case_number: @case_number,
       county: "canyon"
@@ -38,13 +38,13 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
       id: @hearing_id,
       case_id: @case_id,
       time: ~T[09:00:00.000],
-      date: Ecto.Date.utc()
+      date: Date.utc_today()
     })
     |> Multi.insert(:hearing_two, %Hearing{
       id: @hearing_two_id,
       case_id: @case_id,
       time: ~T[11:00:00.000],
-      date: Ecto.Date.utc()
+      date: Date.utc_today()
     })
     |> Multi.insert(:subscriber, %Subscriber{
       id: @subscriber_id,

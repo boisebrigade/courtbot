@@ -4,15 +4,12 @@ defmodule ExCourtbotWeb.TwilioRemindTest do
   alias Ecto.Multi
 
   alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
+  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml}
 
   @case_id Ecto.UUID.generate()
   @case_two_id Ecto.UUID.generate()
 
   @hearing_id Ecto.UUID.generate()
-  @hearing_two_id Ecto.UUID.generate()
-
-  @subscriber_id Ecto.UUID.generate()
 
   @phone_number "2025550186"
   @case_number "aabbc000000000000"
@@ -23,9 +20,12 @@ defmodule ExCourtbotWeb.TwilioRemindTest do
 
   @locale "en"
 
+  @time ~T[09:00:00.000]
+  @date Date.utc_today()
+
   setup do
     Multi.new()
-    |> Multi.insert(:case_one, %Case{
+    |> Multi.insert(:case, %Case{
       id: @case_id,
       case_number: @case_number,
       county: "canyon"
@@ -38,8 +38,8 @@ defmodule ExCourtbotWeb.TwilioRemindTest do
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
       case_id: @case_id,
-      time: ~T[09:00:00.000],
-      date: Ecto.Date.utc()
+      time: @time,
+      date: @date
     })
     |> Repo.transaction()
 

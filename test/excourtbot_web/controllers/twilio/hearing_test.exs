@@ -4,20 +4,21 @@ defmodule ExCourtbotWeb.TwilioHearingTest do
   alias Ecto.Multi
 
   alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
+  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml}
 
   @case_id Ecto.UUID.generate()
   @case_two_id Ecto.UUID.generate()
 
   @hearing_id Ecto.UUID.generate()
 
-  @subscriber_id Ecto.UUID.generate()
-
   @phone_number "2025550186"
   @case_number "aabbc000000000000"
   @case_two_number "aabbc000000000001"
 
   @locale "en"
+
+  @time ~T[09:00:00.000]
+  @date Date.utc_today()
 
   setup do
     Multi.new()
@@ -34,8 +35,8 @@ defmodule ExCourtbotWeb.TwilioHearingTest do
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
       case_id: @case_id,
-      time: ~T[09:00:00.000],
-      date: Ecto.Date.utc()
+      time: @time,
+      date: @date
     })
     |> Repo.transaction()
 
@@ -48,10 +49,17 @@ defmodule ExCourtbotWeb.TwilioHearingTest do
     assert initial_conn.status === 200
     assert initial_conn.private[:plug_session] === %{"reminder" => @case_id}
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{
+      "From" => @phone_number,
+      "Body" => @case_number,
+      "locale" => @locale,
+      "time" => @time,
+      "date" => @date
+    }
 
     message =
-      Response.message(:hearing_details, params) <> Response.message(:prompt_reminder, params)
+      Response.message(:hearing_details, params) <>
+        " " <> Response.message(:prompt_reminder, params)
 
     assert initial_conn.resp_body === Twiml.sms(message)
   end

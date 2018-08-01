@@ -38,14 +38,13 @@ defmodule ExCourtbotWeb.Csv do
     |> Enum.map(fn row -> process(row, mappings) |> cast end)
   end
 
-  # TODO(ts): Handle parsing timestamps with single digit months and 24-hours.
   defp process({:ok, params = %{date: date, time: time, case_number: _}}, %{
          date: date_format,
          time: time_format
        }) do
     params
-    |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format))
-    |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format))
+    |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format, :strftime))
+    |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format, :strftime))
   end
 
   defp process({:ok, params = %{date_and_time: date_and_time, case_number: _}}, %{
@@ -56,14 +55,14 @@ defmodule ExCourtbotWeb.Csv do
       :date,
       date_and_time
       |> String.trim()
-      |> Timex.parse!(date_and_time_format)
+      |> Timex.parse!(date_and_time_format, :strftime)
       |> DateTime.to_date()
     )
     |> Map.put(
       :time,
       date_and_time
       |> String.trim()
-      |> Timex.parse!(date_and_time_format)
+      |> Timex.parse!(date_and_time_format, :strftime)
       |> DateTime.to_time()
     )
   end

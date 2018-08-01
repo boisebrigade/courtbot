@@ -1,10 +1,7 @@
 defmodule ExCourtbotWeb.TwilioNotFoundTest do
   use ExCourtbotWeb.ConnCase, async: true
 
-  alias Ecto.Multi
-
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
+  alias ExCourtbotWeb.{Response, Twiml}
 
   @phone_number "2025550186"
   @case_doesnt_exist_number "aabbc000000000000"

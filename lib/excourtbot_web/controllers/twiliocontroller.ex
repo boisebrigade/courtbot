@@ -23,6 +23,7 @@ defmodule ExCourtbot.TwilioController do
     gettext("stop")
   ]
 
+  # These are defined by Twilio. See https://support.twilio.com/hc/en-us/articles/223134027-Twilio-support-for-opt-out-keywords-SMS-STOP-filtering- for more detail.
   @unsubscribe_keywords [
     gettext("stop"),
     gettext("stopall"),
@@ -126,7 +127,7 @@ defmodule ExCourtbot.TwilioController do
         |> encode(response)
 
       true ->
-        Logger.error("Unknown reply #{body}")
+        Logger.warn("Unknown reply #{body}")
 
         response = Response.message(:yes_or_no, params)
 
@@ -198,7 +199,7 @@ defmodule ExCourtbot.TwilioController do
           "time" => time,
           "location" => location
         })
-      ) <> Response.message(:prompt_reminder, params)
+      ) <> " " <> Response.message(:prompt_reminder, params)
 
     conn
     |> put_session(:reminder, case.id)

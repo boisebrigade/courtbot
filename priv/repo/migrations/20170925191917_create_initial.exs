@@ -2,9 +2,19 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
   use Ecto.Migration
 
   def change do
+    create table(:queued, primary_key: false) do
+      add :id, :uuid, primary_key: true
+
+      add :phone_number, :binary
+      add :case_number, :string
+
+      timestamps()
+    end
+
     create table(:cases, primary_key: false) do
       add :id, :uuid, primary_key: true
 
+      add :type, :string
       add :case_number, :string
       add :first_name, :string
       add :last_name, :string
@@ -19,7 +29,6 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
       add :id, :uuid, primary_key: true
       add :case_id, references(:cases, type: :uuid)
 
-      add :type, :string
       add :date, :date
       add :time, :time
       add :location, :string

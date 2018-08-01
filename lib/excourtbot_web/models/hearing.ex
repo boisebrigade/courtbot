@@ -11,7 +11,6 @@ defmodule ExCourtbotWeb.Hearing do
   schema "hearings" do
     belongs_to(:case, Case)
 
-    field(:type, :string)
     field(:date, :date)
     field(:time, :time)
     field(:location, :string)
@@ -22,7 +21,7 @@ defmodule ExCourtbotWeb.Hearing do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:case_id, :type, :date, :time, :location, :detail])
+    |> cast(params, [:case_id, :date, :time, :location, :detail])
     |> validate_required([:date, :time])
   end
 end

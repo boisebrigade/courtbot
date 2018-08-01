@@ -20,22 +20,24 @@ defmodule ExCourtbot do
   def import() do
     Logger.info("Starting import")
 
-    Logger.info("Truncating hearings")
+    Logger.info("Creating backup hearings table")
 
-    backup_table = "hearing_" <> (Date.utc_today() |> Date.add(-1) |> Date.to_string())
+    backup_table = "hearing_" <> (Date.add(Date.utc_today(), -1) |> Date.to_string())
 
     Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings", [])
 
     imported =
-      Application.get_env(:excourtbot, ExCourtbot.Import)
+      Application.get_env(:excourtbot, ExCourtbot)
+      |> Map.new()
+      |> Map.take([:importer, :types])
       |> case do
-        [source: %{url: url, type: type}] when is_function(url) ->
+        %{importer: %{url: url, type: type}} when is_function(url) ->
           request(url.(), type) |> ExCourtbot.import(type)
 
-        [source: %{url: url, type: type}] ->
+        %{importer: %{url: url, type: type}} ->
           request(url, type) |> ExCourtbot.import(type)
 
-        [source: %{file: file, type: type}] ->
+        %{importer: %{file: file, type: type}} ->
           file |> File.stream!() |> ExCourtbot.import(type)
 
         _ ->
@@ -62,7 +64,10 @@ defmodule ExCourtbot do
   def notify() do
     Logger.info("Starting notifications")
 
-    locales = Application.get_env(:excourtbot, :locales)
+    locales =
+      Application.get_env(:excourtbot, ExCourtbot)
+      |> Map.new()
+      |> Map.take([:locales])
 
     Enum.map(
       Subscriber.all_pending_notifications(),

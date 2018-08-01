@@ -26,7 +26,9 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
 config :logger, level: :info
 
 config :rollbax,
- environment: "production"
+  access_token: {:system, "ROLLBAR_ACCESS_TOKEN"},
+  enable_crash_reports: true,
+  environment: "production"
 
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,

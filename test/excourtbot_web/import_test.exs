@@ -4,8 +4,8 @@ defmodule ExCourtbotWeb.ImportTest do
   test "imports Anchorage data" do
     Application.put_env(
       :excourtbot,
-      ExCourtbot.Import,
-      source: %{
+      ExCourtbot,
+      importer: %{
         file: "data/anchorage.csv" |> Path.expand(__DIR__),
         type:
           {:csv,
@@ -14,12 +14,12 @@ defmodule ExCourtbotWeb.ImportTest do
              {
                :headers,
                [
-                 {:date, "{0M}/{0D}/{YYYY}"},
+                 {:date, "%-m/%e/%Y"},
                  :last_name,
                  :first_name,
                  nil,
                  :location,
-                 {:time, "{h12}:{m} {am}"},
+                 {:time, "%-I:%M %P"},
                  :case_number,
                  nil,
                  :violation,
@@ -47,8 +47,8 @@ defmodule ExCourtbotWeb.ImportTest do
   test "imports Atlanta data" do
     Application.put_env(
       :excourtbot,
-      ExCourtbot.Import,
-      source: %{
+      ExCourtbot,
+      importer: %{
         file: "data/atlanta.csv" |> Path.expand(__DIR__),
         type:
           {:csv,
@@ -56,11 +56,11 @@ defmodule ExCourtbotWeb.ImportTest do
              {:has_headers, true},
              {:headers,
               [
-                {:date, "{0M}/{0D}/{YYYY}"},
+                {:date, "%-m/%e/%Y"},
                 nil,
                 nil,
                 nil,
-                {:time, "{h24}:{m}:{s}"},
+                {:time, "%-k:%M:%S"},
                 :case_number,
                 nil,
                 nil,
@@ -71,7 +71,6 @@ defmodule ExCourtbotWeb.ImportTest do
       }
     )
 
-    # Mock the Atlanta endpoint and return our local test file.
     records = ExCourtbot.import()
 
     sucessful_inserts =
@@ -89,8 +88,8 @@ defmodule ExCourtbotWeb.ImportTest do
   test "imports Boise data" do
     Application.put_env(
       :excourtbot,
-      ExCourtbot.Import,
-      source: %{
+      ExCourtbot,
+      importer: %{
         file: "data/boise.csv" |> Path.expand(__DIR__),
         type:
           {:csv,
@@ -105,8 +104,8 @@ defmodule ExCourtbotWeb.ImportTest do
                 :case_number,
                 nil,
                 nil,
-                {:date, "{0M}/{0D}/{YYYY}"},
-                {:time, "{h24}:{m}:{s}"},
+                {:date, "%-m/%e/%Y"},
+                {:time, "%k:%M:%S"},
                 nil
               ]}
            ]}

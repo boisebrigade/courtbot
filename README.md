@@ -32,6 +32,29 @@ Once Phoenix is started the REST API will be accessible. Any changes to `config/
 - Run tests: `env $(cat .env.test | xargs) mix test`
 - Test watch: `env $(cat .env.test | xargs) mix test.watch`
 
+
+## Code Overview
+
+ExCourtbot is a relatively simple REST endpoint with cookies and a state machine. Using Elixir's pattern matching the state machine responses are based upon the message sent to the services, the case/hearing data imported, and the configuration set.
+
+### Controllers
+- `TwilioController`
+  - `/sms/:locale`
+  - `/sms`
+    - 200, `Content-Type: application/xml`
+    - Body, [Twiml](https://www.twilio.com/docs/voice/twiml)
+
+### Models
+- Queued: Phone number and a case number. This model is used when a case is not found when a user tries to subscribe (a record is only created if `queued_ttl_days` is set in config.) All the Queued records are checked after the import has been ran. If the case has been found, then the Queued record is deleted and a Subscriber is 
+- Case: Case number that has many hearings and has many subscribers.
+  - Case can additionally have a county field which can be used to handle to resolve case number duplications.
+  - Case can also have a type (such as "Criminal" or "Violation") that can allow alternative responses to be served to the user. 
+- Hearing: A time and date.
+  - Hearings can additionally have a location (Courthouse, Room 123) and a detail (such as "Preliminary Hearing")
+- Subscriber: Belongs to Case and has a phone number.
+- Notification: Belongs to Subscriber.
+
+
 ## External Dependencies
 
 External dependencies try to be limited as much as possible as the least amount of 
@@ -39,9 +62,9 @@ External dependencies try to be limited as much as possible as the least amount 
 ### Twilio
 Required, Twilio is the service ExCourtbot uses to send (and receive) SMS.
 
-NOTE: These are likely to change. If any steps or URL's become broken or are incorrect please create an issue.
+**NOTE**: These are likely to change. If any steps or URL's become broken or are incorrect please create an issue.
 
-ADDITIONAL NOTE: If you're using a Trial account you will need to verify all phone numbers you'll be testing with manually. If you don't the API will not send the SMS messages. See [this](https://support.twilio.com/hc/en-us/articles/223180048-Adding-a-Verified-Phone-Number-or-Caller-ID-with-Twilio) help doc for additional detail.
+**ADDITIONAL NOTE**: If you're using a Trial account you will need to verify all phone numbers you'll be testing with manually. If you don't the API will not send the SMS messages. See [this](https://support.twilio.com/hc/en-us/articles/223180048-Adding-a-Verified-Phone-Number-or-Caller-ID-with-Twilio) help doc for additional detail.
 
 #### Setup
 There are two parts to configuring Twilio for ExCourtbot. One is the Webhook, this allows ExCourtbot to receive and respond to messages (in the same request.) The other step to configuring Twilio is configuring ExCourtbot to use your Twilio API key. The Twilio API key allows for ExCourtbot to send messages, or reminders, at the interval you set it.
@@ -64,14 +87,14 @@ View your [Project Settings](https://www.twilio.com/console/project/settings) fo
 - `TWILIO_ACCOUNT_SID`
 - `TWILIO_AUTH_TOKEN`
 
-NOTE: When your first setting up ExCourtbot it is recommended to use the TEST credentials provided by Twilio (found in your project settings.)
+**NOTE**: When your first setting up ExCourtbot it is recommended to use the TEST credentials provided by Twilio (found in your project settings.)
 
 ### Rollbar 
 Optionally, for a production environment you can configure Rollbar for error monitoring and logging ExCourtbot. 
 
 
 #### Setup
-NOTE: If you don't have a pre-existing Rollbar account you want to use and are deploying via Heroku, please ignore and follow the Heroku Rollbar setup steps.
+**NOTE**: If you don't have a pre-existing Rollbar account you want to use and are deploying via Heroku, please ignore and follow the Heroku Rollbar setup steps.
 
 If you have a pre-existing Rollbar account then you can create a [new project](https://docs.rollbar.com/docs/projects), Select "Elixir" for your framework, and upon deployment set the `ROLLBAR_ACCESS_TOKEN` environment variable.
 
@@ -80,14 +103,14 @@ If you have a pre-existing Rollbar account then you can create a [new project](h
 ExCourtbot intends for as much functionality to be exposed and configurable out of the box as possible. If your case is unsupported via configuration and requires customization please create a new issue.
 
 ### Configuration
-ExCourtbot is configurable via mix config. Via mix config you can change the import source, import mapping, locale mapping, import/notification schedule, and other court related details.
+ExCourtbot is configurable via mix config. The following refers to configuration that should be placed in `config/courtbot.exs`.
 
 At a high level ExCourtbot is configurable in the following way:
 - Import source and field mapping (CSV, and eventually JSON)
 - Case lookup details
 - Case validation rules
 - Locales
-- (Depending on deployment method) Import and notification time
+- (Depending on deployment method)* Import and notification time
 
 #### Base configuration
 
@@ -109,11 +132,8 @@ notify_time: "0 13 * * *"
 - `import_time`
 - `notify_time`
 
-
-<sup>1</sup>:
-
 #### Importer
-A sample importer configuration (to be placed in `config/courtbot.exs`) looks like so:
+
 ```elixir
 importer: %{
   file: "../test/excourtbot_web/data/boise.csv",
@@ -144,14 +164,15 @@ importer: %{
     - `date` and `time`: Syntax for defining formats can be found [here](https://hexdocs.pm/timex/Timex.Format.DateTime.Formatters.Strftime.html).
 
 #### CLI
+ExCourtbot comes with two custom mix tasks.
 
-- `mix notify`
-- `mix import`
+- `mix courtbot.notify`: Sends the pending notifications for the day.
+- `mix courtbot.import`: Uses the import configuration to import for the day.
 
 ## Deployment
-ExCourtbot is designed to be deployed as a docker container or on Heroku. Please create an issue if you have additional requirements which may not be met with either solution.
+ExCourtbot is designed to be deployed as a docker container or on Heroku. Please create an issue if you have additional requirements which may not be met with either solution. The recommended method of deployment is via Heroku.
 
-NOTE: Deployment of Elixir is different than say Ruby or Node. Elixir is a compiled lanaguage and the primary form of configuration in Elixir is `mix config`, which requires variables to be set at build time and not in the production's box environment. The deployment steps below does factor this in.
+**NOTE**: Deployment of Elixir is different than say Ruby or Node. Elixir is a compiled lanaguage and the primary form of configuration in Elixir is `mix config`, which requires variables to be set at build time and not in the production's box environment. The deployment steps below does factor this in.
 
 
 ### Heroku
@@ -193,11 +214,11 @@ Upon enabling this addon it will set the `ROLLBAR_ACCESS_TOKEN` environment vari
 Upon enabling this addon you'll need to configure it so that ExCourtbot can at an interval pull in new data and notify subscribers of upcoming hearings.
 - Open scheduler settings: `heroku addons:open scheduler`
 - Click "Add new job"
-  - $`mix notify`; _Dyno Size_: Free, _Frequency_: Daily, _Next Due_: 19:00 UTC
+  - $`mix courtbot.notify`; _Dyno Size_: Free, _Frequency_: Daily, _Next Due_: 19:00 UTC
     - I'd recommend converting 1pm into your local timezone and using it in place of 19:00 UTC.
-  - $`mix import`; _Dyno Size_: Free, _Frequency_: Daily, _Next Due_: 15:00 UTC
+  - $`mix courtbot.import`; _Dyno Size_: Free, _Frequency_: Daily, _Next Due_: 15:00 UTC
     - I'd recommend converting 9am into your local timezone and using it in place of 15:00 UTC.
-    - NOTE: Import has to occur before notify or else you will be sending stale hearing information. 
+    - **NOTE**: Import has to occur before notify or else you will be sending stale hearing information. 
 
 
 #### Updating Heroku after you've made changes
@@ -206,7 +227,16 @@ Upon enabling this addon you'll need to configure it so that ExCourtbot can at a
 - Push to Heroku: `git push heroku master`
 
 ### Docker
+**NOTE**: This deployment method does not result in a "just working" ExCourtbot. Additional setup such as crontab entires (if not using `import_time` and `notify_time` settings) and postgres are left out. In addition this does not include any crucial details such as debugging Elixir in production. Users beware. Github Issues are still welcomed!
+- Copy `.env.example` to `.env.production`: `cp .env.example .env.production`
+  - Tweak default environment variables as needed.
+  - `HOST` and `COOKIE` are two more environment variables required
 - Build the docker image: `env $(cat .env.production | xargs) docker build`
+
+
+## Contributing
+
+Before issuing a PR please run the formatter via `mix format`
 
 ## License
 ISC, 2018, Code for America

@@ -10,6 +10,7 @@ defmodule ExCourtbotWeb.Case do
   @foreign_key_type :binary_id
 
   schema "cases" do
+    field(:type, :string)
     field(:case_number, :string)
     field(:first_name, :string)
     field(:last_name, :string)
@@ -23,7 +24,7 @@ defmodule ExCourtbotWeb.Case do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:case_number, :first_name, :last_name, :county])
+    |> cast(params, [:type, :case_number, :first_name, :last_name, :county])
     |> update_change(:case_number, &clean_case_number/1)
     |> update_change(:county, &clean_county/1)
     |> cast_assoc(:hearings)
@@ -31,10 +32,12 @@ defmodule ExCourtbotWeb.Case do
   end
 
   def find_by_case_number(case_number) do
+    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1)
+
     from(
       c in Case,
       where: c.case_number == ^case_number,
-      preload: :hearings
+      preload: [hearings: ^latest_hearing]
     )
     |> Repo.all()
   end
@@ -49,11 +52,13 @@ defmodule ExCourtbotWeb.Case do
   end
 
   def find_with_county(case_number, county) do
+    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1)
+
     from(
       c in Case,
       where: c.case_number == ^case_number,
       where: c.county == ^county,
-      preload: :hearings
+      preload: [hearings: ^latest_hearing]
     )
     |> Repo.all()
   end

@@ -24,14 +24,18 @@ config :logger, :console,
 # Disable automatic timezone updates
 config :tzdata, :autoupdate, :disabled
 
+# Configure the field encryption.
+# TODO(ts): Have the CLOAK_ENCRYPTION_KEY environment variable be provided via init callback in the repo.
+config :cloak, Cloak.AES.CTR,
+  default: true,
+  tag: "AES",
+  keys: [%{tag: <<1>>, key: {:system, "CLOAK_ENCRYPTION_KEY"}, default: true}]
+
 config :ex_twilio,
   account_sid: {:system, "TWILIO_ACCOUNT_SID"},
   auth_token: {:system, "TWILIO_AUTH_TOKEN"}
 
-config :rollbax,
- access_token: {:system, "ROLLBAR_ACCESS_TOKEN"},
- enable_crash_reports: true
-
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
+import_config "courtbot.exs"

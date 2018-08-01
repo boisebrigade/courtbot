@@ -4,7 +4,7 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
   alias Ecto.Multi
 
   alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
+  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml}
 
   @case_id Ecto.UUID.generate()
   @case_two_id Ecto.UUID.generate()
@@ -13,8 +13,6 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
   @hearing_two_id Ecto.UUID.generate()
   @hearing_three_id Ecto.UUID.generate()
 
-  @subscriber_id Ecto.UUID.generate()
-
   @phone_number "2025550186"
   @case_number "aabbc000000000000"
 
@@ -22,35 +20,44 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
 
   @county_two "gym"
 
+  @time ~T[09:00:00.000]
+  @time_two ~T[11:00:00.000]
+
+  @date Date.utc_today()
+
   setup do
     Multi.new()
-    |> Multi.insert(:case_one, %Case{
+    |> Multi.insert(:case, %Case{
       id: @case_id,
+      first_name: "Case",
+      last_name: "One",
       case_number: @case_number,
       county: @county_one
     })
     |> Multi.insert(:case_two, %Case{
       id: @case_two_id,
+      first_name: "Case",
+      last_name: "Two",
       case_number: @case_number,
       county: @county_two
     })
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
       case_id: @case_id,
-      time: ~T[09:00:00.000],
-      date: Ecto.Date.utc()
+      time: @time,
+      date: @date
     })
     |> Multi.insert(:hearing_two, %Hearing{
       id: @hearing_two_id,
       case_id: @case_id,
-      time: ~T[11:00:00.000],
-      date: Ecto.Date.utc()
+      time: @time_two,
+      date: @date
     })
     |> Multi.insert(:hearing_three, %Hearing{
       id: @hearing_three_id,
       case_id: @case_two_id,
-      time: ~T[11:00:00.000],
-      date: Ecto.Date.utc()
+      time: @time_two,
+      date: @date
     })
     |> Repo.transaction()
 
@@ -72,10 +79,17 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
     # Check that we enter into the reminder phase
     county_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => @county_one})
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => "en"}
+    params = %{
+      "From" => @phone_number,
+      "Body" => @case_number,
+      "locale" => "en",
+      "time" => @time,
+      "date" => @date
+    }
 
     message =
-      Response.message(:hearing_details, params) <> Response.message(:prompt_reminder, params)
+      Response.message(:hearing_details, params) <>
+        " " <> Response.message(:prompt_reminder, params)
 
     assert county_conn.status === 200
 
@@ -97,10 +111,17 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
     # Check that we enter into the reminder phase
     county_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => @county_two})
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => "en"}
+    params = %{
+      "From" => @phone_number,
+      "Body" => @case_number,
+      "locale" => "en",
+      "time" => @time_two,
+      "date" => @date
+    }
 
     message =
-      Response.message(:hearing_details, params) <> Response.message(:prompt_reminder, params)
+      Response.message(:hearing_details, params) <>
+        " " <> Response.message(:prompt_reminder, params)
 
     assert county_conn.status === 200
 

@@ -12,7 +12,7 @@ defmodule ExCourtbotWeb.Subscriber do
   schema "subscribers" do
     belongs_to(:case, Case)
 
-    field(:phone_number, Cloak.EncryptedBinaryField)
+    field(:phone_number, :binary)
     field(:locale, :string)
 
     has_many(:notifications, Notification, on_delete: :delete_all)
@@ -27,6 +27,15 @@ defmodule ExCourtbotWeb.Subscriber do
     |> validate_required([:phone_number, :locale])
   end
 
+  def count_by_number(phone_number) do
+    from(
+      s in Subscriber,
+      where: s.phone_number == ^phone_number,
+      select: count(s.id)
+    )
+    |> Repo.one()
+  end
+
   def find_by_number(phone_number) do
     from(
       s in Subscriber,
@@ -37,13 +46,16 @@ defmodule ExCourtbotWeb.Subscriber do
   def all_pending_notifications() do
     today = Date.utc_today()
     tomorrow = Date.add(today, 1)
-    #       left_join: n in Notification, where: n.subscriber_id == s.id,
+    today_native = NaiveDateTime.utc_now()
+
     from(
       s in Subscriber,
       join: c in Case,
-      where: s.case_id == c.id,
+      on: s.case_id == c.id,
       join: h in Hearing,
-      where: h.case_id == s.case_id,
+      on: h.case_id == s.case_id,
+      left_join: n in Notification,
+      on: n.subscriber_id == s.id and n.inserted_at != ^today_native,
       where: h.date == ^tomorrow,
       select: %{
         "subscriber_id" => s.id,

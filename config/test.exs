@@ -14,4 +14,5 @@ config :logger, level: :warn
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
   adapter: Ecto.Adapters.Postgres,
-  pool: Ecto.Adapters.SQL.Sandbox
+  pool: Ecto.Adapters.SQL.Sandbox,
+  ownership_timeout: 30_000
