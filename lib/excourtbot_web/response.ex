@@ -16,6 +16,7 @@ defmodule ExCourtbotWeb.Response do
       |> Map.take([:court_url, :queued_ttl_days, :subscribe_limit])
 
     response(type, Map.merge(config, params))
+    |> IO.inspect()
   end
 
   defp response(:unsubscribe, %{"locale" => locale}) do
@@ -44,7 +45,7 @@ defmodule ExCourtbotWeb.Response do
       Gettext.dgettext(
         ExCourtbotWeb.Gettext,
         "response",
-        "The next hearing is tomorrow, %{date}, at %{time}.",
+        "The next hearing is on %{date}, at %{time}.",
         date: date_formated,
         time: time_formated
       )
