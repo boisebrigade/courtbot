@@ -94,7 +94,7 @@ defmodule ExCourtbot.TwilioController do
     if Enum.member?(Case.all_counties(), message) do
       case_response(conn, params, result)
     else
-      Logger.warn(log_safe_phone_number(phone_number) <> ": No county data for #{case_number}")
+      Logger.info(log_safe_phone_number(phone_number) <> ": No county data for #{case_number}")
 
       response = Response.message(:no_county, params)
 
@@ -139,7 +139,7 @@ defmodule ExCourtbot.TwilioController do
         |> encode(response)
 
       true ->
-        Logger.warn("Unknown reply #{body}")
+        Logger.info("Unknown reply #{body}")
 
         response = Response.message(:yes_or_no, params)
 
@@ -165,7 +165,7 @@ defmodule ExCourtbot.TwilioController do
   end
 
   defp prompt_no_hearings(conn, params = %{"From" => phone_number}, case) do
-    Logger.warn(
+    Logger.info(
       log_safe_phone_number(phone_number) <>
         ": No hearings found for case number: #{case.case_number}"
     )
@@ -178,7 +178,7 @@ defmodule ExCourtbot.TwilioController do
   end
 
   defp prompt_unfound(conn, params = %{"From" => phone_number, "message" => message}) do
-    Logger.warn(log_safe_phone_number(phone_number) <> ": No case found for input: #{message}")
+    Logger.info(log_safe_phone_number(phone_number) <> ": No case found for input: #{message}")
 
     response = Response.message(:not_found, params)
 
