@@ -9,18 +9,24 @@ defmodule ExCourtbotWeb.Csv do
     has_headers = Keyword.get(options, :has_headers, false)
     headers = Keyword.get(options, :headers)
 
-    mappings =
-      headers
-      |> Enum.filter(fn
+    # Check if we have defined types, if so we'll attempt to match them
+    types =
+      Application.get_env(:excourtbot, ExCourtbot, %{})
+      |> Map.new()
+      |> Map.take([:types])
+
+    # Certain fields can have custom formats defined that need to be used to extract specific data from the fields.
+    formats =
+      Enum.filter(headers, fn
         {_, v} -> v
         _ -> false
       end)
       |> Keyword.take([:date, :time, :date_and_time])
-      |> Enum.into(%{})
+      |> Enum.into(types)
 
+    # Remove formats from the headings
     headings =
-      headers
-      |> Enum.map(fn
+      Enum.map(headers, fn
         {:date, _} -> :date
         {:time, _} -> :time
         {:date_and_time, _} -> :date_and_time
@@ -30,61 +36,137 @@ defmodule ExCourtbotWeb.Csv do
 
     decoded_csv = CSV.decode(raw_data, headers: headings, separator: delimiter)
 
-    if has_headers do
-      Enum.drop(decoded_csv, 1)
-    else
-      decoded_csv
-    end
-    |> Enum.map(fn row -> process(row, mappings) |> cast end)
+    # If the CSV file has headings then drop the first element in the list
+    records =
+      if has_headers do
+        Enum.drop(decoded_csv, 1)
+      else
+        decoded_csv
+      end
+
+    # Combine multiple records by their case number (and county if mapped)
+    records = Enum.reduce(records, [], fn
+      {:ok, record}, acc ->
+        # Split the case fields from the hearing
+        {case = %{case_number: case_num, county: case_county}, hearing} =
+          Map.split(record, [:case_number, :first_name, :last_name, :county, :type])
+
+        # Check if we find a previously interated over case with the same case number and or county
+        found =
+          Enum.find_index(acc, fn
+            {:ok, rec} ->
+              case rec do
+                %{case_number: case_number, county: county}
+                when case_number == case_num and county == case_county ->
+                  rec
+
+                %{case_number: case_number} when case_number == case_num ->
+                  rec
+
+                _ ->
+                  false
+              end
+
+            _ ->
+              true
+          end)
+
+        # If we have a previous case, add hearings to it or add our semi-formatted record and continue
+        # TODO(ts): Compare hearings and discard duplicates
+        if found do
+          {:ok, rec} = Enum.at(acc, found)
+
+          {_, %{hearings: hearings}} =
+            Map.split(rec, [:case_number, :first_name, :last_name, :county, :type])
+
+          {_, acc} = List.pop_at(acc, found)
+          [{:ok, Map.merge(case, %{hearings: [hearing | hearings]})} | acc]
+        else
+          [{:ok, Map.merge(case, %{hearings: [hearing]})} | acc]
+        end
+
+      # Don't attempt to catch any import errors at this stage
+      record, acc ->
+        acc ++ [record]
+    end)
+
+    Enum.map(records, fn
+      {:ok, row = %{case_number: _}} ->
+        row
+        |> add_type(formats)
+        |> format_dates(formats)
+        |> cast()
+        |> Repo.insert()
+
+      {:ok, _} ->
+        Logger.error("Unable to process row because case_number is not mapped")
+
+      {:error, message} ->
+        Logger.error("Unable to process row because #{message}")
+    end)
   end
 
-  defp process({:ok, params = %{date: date, time: time, case_number: _}}, %{
+  defp add_type(params = %{case_number: case_number}, %{types: types})
+       when not is_nil(types) do
+    type =
+      Enum.reduce(types, [], fn {type, regex}, _ ->
+        if Regex.run(regex, case_number) do
+          type
+        end
+      end)
+
+    Map.put(params, :type, type)
+  end
+
+  # Noop if no types are defined
+  defp add_type(row, _), do: row
+
+  defp format_dates(params = %{hearings: hearings}, %{
          date: date_format,
          time: time_format
        }) do
-    params
-    |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format, :strftime))
-    |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format, :strftime))
+    hearings =
+      Enum.map(hearings, fn
+        hearing = %{date: date, time: time} ->
+          hearing
+          |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format, :strftime))
+          |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format, :strftime))
+      end)
+
+    Map.merge(params, %{hearings: hearings})
   end
 
-  defp process({:ok, params = %{date_and_time: date_and_time, case_number: _}}, %{
+  defp format_dates(params = %{hearings: hearings}, %{
          date_and_time: date_and_time_format
        }) do
-    params
-    |> Map.put(
-      :date,
-      date_and_time
-      |> String.trim()
-      |> Timex.parse!(date_and_time_format, :strftime)
-      |> DateTime.to_date()
-    )
-    |> Map.put(
-      :time,
-      date_and_time
-      |> String.trim()
-      |> Timex.parse!(date_and_time_format, :strftime)
-      |> DateTime.to_time()
-    )
+    hearings =
+      Enum.map(hearings, fn
+        hearing = %{date_and_time: date_and_time} ->
+          hearing
+          |> Map.put(
+            :date,
+            date_and_time
+            |> String.trim()
+            |> Timex.parse!(date_and_time_format, :strftime)
+            |> DateTime.to_date()
+          )
+          |> Map.put(
+            :time,
+            date_and_time
+            |> String.trim()
+            |> Timex.parse!(date_and_time_format, :strftime)
+            |> DateTime.to_time()
+          )
+      end)
+
+    Map.merge(params, %{hearings: hearings})
   end
 
-  defp process({:ok, _}, %{}),
+  defp format_dates(_, _),
     do: Logger.error("Unable to process row. Mappings for date and time are required")
 
-  defp process({:ok, row}, _),
-    do: Logger.error("Unable to process row date, time, and case_number are required #{row}")
-
-  defp process({:error, message}, _), do: Logger.error("Row failed to import because #{message}")
-
   defp cast(case) do
-    combined =
-      case
-      |> Map.put(
-        :hearings,
-        [case]
-      )
-
     %Case{}
-    |> Case.changeset(combined)
-    |> Repo.insert()
+    |> Case.changeset(case)
   end
 end
