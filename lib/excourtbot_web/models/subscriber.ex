@@ -12,7 +12,7 @@ defmodule ExCourtbotWeb.Subscriber do
   schema "subscribers" do
     belongs_to(:case, Case)
 
-    field(:phone_number, :binary)
+    field(:phone_number, ExCourtbot.Encrypted.Binary)
     field(:locale, :string)
 
     has_many(:notifications, Notification, on_delete: :delete_all)

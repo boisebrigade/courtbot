@@ -17,23 +17,24 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
   load_from_system_env: true,
   url: [
     scheme: "https",
-    port: String.to_integer(System.get_env("PORT") || "443")
+    port: String.to_integer(System.get_env("PORT") || "443"),
+    host: System.get_env("HOST") |> String.replace("https://", "") |> String.replace("http://", "") || "localhost"
   ],
-  force_ssl: [rewrite_on: [:x_forwarded_proto]],
-  secret_key_base: Map.fetch!(System.get_env(), "SECRET_KEY_BASE")
+  force_ssl: [rewrite_on: [:x_forwarded_proto]]
 
 # Do not print debug messages in production
 config :logger, level: :info
 
-#config :rollbax,
-#  access_token: {:system, "ROLLBAR_ACCESS_TOKEN"},
-#  enable_crash_reports: true,
-#  environment: "production"
+config :rollbax,
+  config_callback: {ExCourtbot.Rollbar, :init},
+  enable_crash_reports: true,
+  environment: "production"
 
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
+  load_from_system_env: true,
   adapter: Ecto.Adapters.Postgres,
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "9"),
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5"),
   ssl: true
 
 # ## SSL Support

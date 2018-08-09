@@ -24,13 +24,6 @@ config :logger, :console,
 # Disable automatic timezone updates
 config :tzdata, :autoupdate, :disabled
 
-# Configure the field encryption.
-# TODO(ts): Have the CLOAK_ENCRYPTION_KEY environment variable be provided via init callback in the repo.
-config :cloak, Cloak.AES.CTR,
-  default: true,
-  tag: "AES",
-  keys: [%{tag: <<1>>, key: {:system, "CLOAK_ENCRYPTION_KEY"}, default: true}]
-
 config :ex_twilio,
   account_sid: {:system, "TWILIO_ACCOUNT_SID"},
   auth_token: {:system, "TWILIO_AUTH_TOKEN"}

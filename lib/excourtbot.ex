@@ -27,7 +27,7 @@ defmodule ExCourtbot do
     Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings", [])
 
     imported =
-      Application.get_env(:excourtbot, ExCourtbot)
+      Application.get_env(:excourtbot, ExCourtbot, %{})
       |> Map.new()
       |> Map.take([:importer, :types])
       |> case do
@@ -65,7 +65,7 @@ defmodule ExCourtbot do
     Logger.info("Starting notifications")
 
     locales =
-      Application.get_env(:excourtbot, ExCourtbot)
+      Application.get_env(:excourtbot, ExCourtbot, %{})
       |> Map.new()
       |> Map.take([:locales])
 

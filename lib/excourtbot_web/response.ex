@@ -11,12 +11,11 @@ defmodule ExCourtbotWeb.Response do
   def message(type, params) do
     # Add config values to our params so our response can vary based on settings.
     config =
-      Application.get_env(:excourtbot, ExCourtbot)
+      Application.get_env(:excourtbot, ExCourtbot, %{})
       |> Map.new()
       |> Map.take([:court_url, :queued_ttl_days, :subscribe_limit])
 
     response(type, Map.merge(config, params))
-    |> IO.inspect()
   end
 
   defp response(:unsubscribe, %{"locale" => locale}) do

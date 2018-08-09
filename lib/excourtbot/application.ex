@@ -16,7 +16,7 @@ defmodule ExCourtbot.Application do
 
     # Grab our scheduled times and append them to our children if they are defined.
     scheduled =
-      Application.get_env(:excourtbot, ExCourtbot)
+      Application.get_env(:excourtbot, ExCourtbot, %{})
       |> Map.new()
       |> Map.take([:import_time, :notify_time])
       |> Enum.map(fn
