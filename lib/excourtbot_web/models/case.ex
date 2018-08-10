@@ -29,6 +29,10 @@ defmodule ExCourtbotWeb.Case do
     |> update_change(:county, &clean_county/1)
     |> cast_assoc(:hearings)
     |> validate_required([:case_number])
+    |> unique_constraint(:case_number, name: :cases_case_number_index)
+    |> unique_constraint(:case_number, name: :cases_case_number_type_index)
+    |> unique_constraint(:case_number, name: :cases_case_number_county_index)
+    |> unique_constraint(:case_number, name: :cases_case_number_county_type_index)
   end
 
   def find_by_case_number(case_number) do

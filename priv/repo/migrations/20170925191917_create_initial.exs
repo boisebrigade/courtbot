@@ -23,7 +23,10 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
       timestamps()
     end
 
-    create unique_index(:cases, [:case_number, :county])
+    create index(:cases, [:case_number], unique: true, where: "type is null and county is null")
+    create index(:cases, [:case_number, :county], unique: true, where: "type is null")
+    create index(:cases, [:case_number, :type], unique: true, where: "county is null")
+    create unique_index(:cases, [:case_number, :county, :type])
 
     create table(:hearings, primary_key: false) do
       add :id, :uuid, primary_key: true
