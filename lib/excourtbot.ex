@@ -4,20 +4,16 @@ defmodule ExCourtbot do
 
   require Logger
 
-  def import(data, {:csv, options}) do
-    Csv.extract(data, options)
-  end
-
-  def import(_data, {:json, _options}) do
-    # TODO(ts): Implement
-    Logger.error("Not implemented yet")
-  end
-
-  def import(_, _) do
-    Logger.error("Parser config has not been defined")
-  end
-
   def import() do
+    import_config =
+      Application.get_env(:excourtbot, ExCourtbot, %{})
+      |> Map.new()
+      |> Map.take([:importer])
+
+    if import_config == %{} do
+      raise "Importer must be configured, see documentation for configuration options"
+    end
+
     Logger.info("Starting import")
 
     Logger.info("Creating backup hearings table")
@@ -27,18 +23,16 @@ defmodule ExCourtbot do
     Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings", [])
 
     imported =
-      Application.get_env(:excourtbot, ExCourtbot, %{})
-      |> Map.new()
-      |> Map.take([:importer, :types])
+      import_config
       |> case do
         %{importer: %{url: url, type: type}} when is_function(url) ->
-          request(url.(), type) |> ExCourtbot.import(type)
+          run_import(request(url.(), type), type)
 
         %{importer: %{url: url, type: type}} ->
-          request(url, type) |> ExCourtbot.import(type)
+          run_import(request(url, type), type)
 
         %{importer: %{file: file, type: type}} ->
-          file |> File.stream!() |> ExCourtbot.import(type)
+          run_import(File.stream!(file), type)
 
         _ ->
           Logger.error("Parser source has not been defined")
@@ -61,6 +55,19 @@ defmodule ExCourtbot do
     imported
   end
 
+  defp run_import(data, {:csv, options}) do
+    Csv.extract(data, options)
+  end
+
+  defp run_import(_data, {:json, _options}) do
+    # TODO(ts): Implement
+    Logger.error("Not implemented yet")
+  end
+
+  defp run_import(_, _) do
+    Logger.error("Parser config has not been defined")
+  end
+
   def notify() do
     Logger.info("Starting notifications")
 
@@ -68,6 +75,13 @@ defmodule ExCourtbot do
       Application.get_env(:excourtbot, ExCourtbot, %{})
       |> Map.new()
       |> Map.take([:locales])
+
+    if locales == %{} do
+      raise "Locales must be defined for notifications, see documentation for configuration options"
+    end
+
+    %{locales: locales} = locales
+    #
 
     Enum.map(
       Subscriber.all_pending_notifications(),
@@ -81,11 +95,15 @@ defmodule ExCourtbot do
 
         response = Response.message(:reminder, params)
 
-        {:ok, _} = ExTwilio.Message.create(to: to_number, from: from_number, body: response)
+        case ExTwilio.Message.create(to: to_number, from: from_number, body: response) do
+          {:ok, _} ->
+            %Notification{}
+            |> Notification.changeset(%{subscriber_id: subscriber_id})
+            |> Repo.insert()
 
-        %Notification{}
-        |> Notification.changeset(%{subscriber_id: subscriber_id})
-        |> Repo.insert()
+          {:error, message} ->
+            Logger.error(message)
+        end
       end
     )
 
@@ -95,7 +113,7 @@ defmodule ExCourtbot do
   defp request(url, type) do
     case Tesla.get(url, follow_redirect: true) do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
-        ExCourtbot.import(body, type)
+        run_import(body, type)
 
       {:ok, %Tesla.Env{status: status}} ->
         Logger.error("Unhandled status code received: #{status}, while fetching #{url}")
