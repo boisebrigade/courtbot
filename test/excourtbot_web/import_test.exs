@@ -1,5 +1,5 @@
 defmodule ExCourtbotWeb.ImportTest do
-  use ExCourtbotWeb.ConnCase
+  use ExCourtbotWeb.ConnCase, asyc: true
 
   @boise_import_config [
     types: %{
