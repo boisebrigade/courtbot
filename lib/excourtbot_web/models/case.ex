@@ -32,39 +32,43 @@ defmodule ExCourtbotWeb.Case do
   end
 
   def find_by_case_number(case_number) do
-    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
-
     from(
       c in Case,
-      where: c.case_number == ^case_number,
-      preload: [hearings: ^latest_hearing]
+      where: c.case_number == ^case_number
     )
+    |> latest_hearing()
     |> Repo.all()
   end
 
   def find(id) do
-    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
     from(
       c in Case,
-      where: c.id == ^id,
-      preload: [hearings: ^latest_hearing]
+      where: c.id == ^id
     )
+    |> latest_hearing()
     |> Repo.one()
   end
 
   def find_with_county(case_number, county) do
-    latest_hearing = from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
     from(
       c in Case,
       where: c.case_number == ^case_number,
-      where: c.county == ^county,
-      preload: [hearings: ^latest_hearing]
+      where: c.county == ^county
     )
+    |> latest_hearing()
     |> Repo.all()
   end
 
   def all_counties() do
     from(c in Case, select: c.county) |> Repo.all()
+  end
+
+  defp latest_hearing(query) do
+    latest_hearing =
+      from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
+
+    query
+    |> preload(hearings: ^latest_hearing)
   end
 
   defp clean_county(county) do
