@@ -46,7 +46,13 @@ defmodule ExCourtbotWeb.Subscriber do
   def all_pending_notifications() do
     today = Date.utc_today()
     tomorrow = Date.add(today, 1)
-    today_native = NaiveDateTime.utc_now()
+
+    notified = from(
+      n in Notification,
+      where: n.inserted_at >= ^Timex.beginning_of_day(DateTime.utc_now),
+      where: n.inserted_at <= ^Timex.end_of_day(DateTime.utc_now),
+      select: n.subscriber_id
+    )
 
     from(
       s in Subscriber,
@@ -54,8 +60,9 @@ defmodule ExCourtbotWeb.Subscriber do
       on: s.case_id == c.id,
       join: h in Hearing,
       on: h.case_id == s.case_id,
-      left_join: n in Notification,
-      on: n.subscriber_id == s.id and n.inserted_at != ^today_native,
+      left_join: n in subquery(notified),
+      on: n.subscriber_id == s.id,
+      where: is_nil(n.subscriber_id),
       where: h.date == ^tomorrow,
       select: %{
         "subscriber_id" => s.id,
