@@ -24,9 +24,28 @@ defmodule ExCourtbotWeb.Response do
     end)
   end
 
+  defp response(:unsubscribe, %{"locale" => locale, "case_number" => case_number}) do
+    Gettext.with_locale(locale, fn ->
+      Gettext.dgettext(
+        ExCourtbotWeb.Gettext,
+        "response",
+        "OK. We will stop sending reminders for %{case_number}.",
+        case_number: case_number
+      )
+    end)
+  end
+
+  defp response(:already_subscribed, %{"locale" => locale}) do
+    Gettext.with_locale(locale, fn ->
+      gettext("You are already subscribed to this case. To unsubscribe to this case reply with DELETE.")
+    end)
+  end
+
   defp response(:resubscribe, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext("You will need to resubscribe to the case you are interested in receiving hearing reminders for.")
+      gettext(
+        "You will need to resubscribe to the case you are interested in receiving hearing reminders for."
+      )
     end)
   end
 

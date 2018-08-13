@@ -46,21 +46,24 @@ defmodule ExCourtbot.TwilioController do
 
     # Add our defaults, SMS details, and santized message.
     request =
-      Enum.reduce([@request_defaults, params, session, %{"message" => message}], fn m, acc ->
-        Map.merge(m, acc)
-      end)
+      Enum.reduce([@request_defaults, params, session, %{"message" => message}], &Map.merge/2)
 
-    # If the user wants to unsubscribe handle that up front.
-    cond  do
+    cond do
+      # If the user wants to unsubscribe handle that up front.
       Enum.member?(@unsubscribe_keywords, message) ->
-        Logger.info(log_safe_phone_number(phone_number) <> ": Unsubscribing")
+        Logger.info(log_safe_phone_number(phone_number) <> ": user is unsubscribing")
 
-        subscriptions = Subscriber.find_by_number(phone_number) |> Repo.all()
+        subscriptions = Repo.all(Subscriber.find_by_number(phone_number))
 
+        # User shouldn't recieve this message as Twilio would have blocked the response but try and send it anyway.
         response =
           if Enum.empty?(subscriptions) do
+            Logger.info(log_safe_phone_number(phone_number) <> ": user had no subscriptions")
+
             Response.message(:no_subscriptions, request)
           else
+            Logger.info(log_safe_phone_number(phone_number) <> ": deleting all subscriptions")
+
             Repo.delete_all(Subscriber.find_by_number(phone_number))
             Response.message(:unsubscribe, request)
           end
@@ -68,15 +71,51 @@ defmodule ExCourtbot.TwilioController do
         conn
         |> configure_session(drop: true)
         |> encode(response)
-      message == "start" ->
-        Logger.info(log_safe_phone_number(phone_number) <> ": Unsubscribing")
 
+      message == "start" ->
+        Logger.info(log_safe_phone_number(phone_number) <> ": user has 'unblocked' us")
+
+        # Inform the user we blew away all their subscriptions due to being blocked
         response = Response.message(:resubscribe, request)
 
         conn
         |> configure_session(drop: true)
         |> encode(response)
-      true -> respond(conn, request)
+
+      # Begin the user journey
+      true ->
+        respond(conn, request)
+    end
+  end
+
+  # If they want to delete a subscription to a specific case
+  defp respond(
+         conn,
+         %{
+           "From" => phone_number,
+           "message" => message,
+           "delete" => case_id
+         }
+       ) do
+    cond do
+      message === "delete" ->
+        Logger.info(
+          log_safe_phone_number(phone_number) <> ": user is unsubscribing to a specific case"
+        )
+
+        # Delete the subscription
+        Repo.delete!(Subscriber.find_by_number_and_case(case_id, phone_number))
+
+        conn
+        |> configure_session(drop: true)
+        |> put_status(:ok)
+
+      Enum.member?(@reject_keywords, message) ->
+        Logger.info(log_safe_phone_number(phone_number) <> ": user does not want to unsubscribe")
+        # User does not want us to delete the subscription
+        conn
+        |> configure_session(drop: true)
+        |> put_status(:ok)
     end
   end
 
@@ -89,10 +128,13 @@ defmodule ExCourtbot.TwilioController do
            "requires_county" => case_number
          }
        ) do
-    result = Case.find_with_county(case_number, message)
-
     if Enum.member?(Case.all_counties(), message) do
-      case_response(conn, params, result)
+      {_, params} =
+        params
+        |> Map.merge(%{"county" => message, "case_number" => case_number})
+        |> Map.pop("requires_county")
+
+      respond(conn, params)
     else
       Logger.info(log_safe_phone_number(phone_number) <> ": No county data for #{case_number}")
 
@@ -117,7 +159,9 @@ defmodule ExCourtbot.TwilioController do
        ) do
     cond do
       Enum.member?(@accept_keywords, message) ->
-        Logger.info(log_safe_phone_number(phone_number) <> ": Subscribing")
+        Logger.info(
+          log_safe_phone_number(phone_number) <> ": user is subscribing to case: " <> case_id
+        )
 
         %Subscriber{}
         |> Subscriber.changeset(%{case_id: case_id, phone_number: phone_number, locale: locale})
@@ -130,7 +174,7 @@ defmodule ExCourtbot.TwilioController do
         |> encode(response)
 
       Enum.member?(@reject_keywords, message) ->
-        Logger.info(log_safe_phone_number(phone_number) <> ": Rejected reminder offer")
+        Logger.info(log_safe_phone_number(phone_number) <> ": user rejected reminder offer")
 
         response = Response.message(:reject_reminder, params)
 
@@ -139,7 +183,10 @@ defmodule ExCourtbot.TwilioController do
         |> encode(response)
 
       true ->
-        Logger.info("Unknown reply #{body}")
+        Logger.info(
+          log_safe_phone_number(phone_number) <>
+            ": user has responded with an unknown reply: " <> body
+        )
 
         response = Response.message(:yes_or_no, params)
 
@@ -148,21 +195,47 @@ defmodule ExCourtbot.TwilioController do
     end
   end
 
-  # Typical first time messaging the service
-  defp respond(conn, params = %{"message" => message}) do
-    result = Case.find_by_case_number(clean_case_number(message))
+  # Lets lookup the case based upon the context we're given.
+  defp respond(conn, params = %{"From" => phone_number, "message" => message}) do
+    case_number = clean_case_number(message)
 
-    case_response(conn, params, result)
-  end
+    # We may have several entries points, being a case number or a couple of rounds of back and forth with the user.
+    result =
+      case params do
+        %{"county" => county, "case_number" => case_number} ->
+          Case.find_with_county(case_number, county)
 
-  defp case_response(conn, params, result) do
+        %{"message" => _} ->
+          Case.find_by_case_number(case_number)
+      end
+
     case result do
-      [case = %Case{hearings: []}] -> prompt_no_hearings(conn, params, case)
-      [case = %Case{hearings: _}] -> prompt_remind(conn, params, case)
-      [_ | _] -> prompt_county(conn, params)
-      _ -> prompt_unfound(conn, params)
+      [%Case{id: case_id}] ->
+        if Subscriber.already_subscribed?(case_id, phone_number) do
+          response = Response.message(:already_subscribed, params)
+
+          conn
+          |> put_session(:delete, case_id)
+          |> encode(response)
+        else
+          respond(conn, params, result)
+        end
+
+      _ ->
+        respond(conn, params, result)
     end
   end
+
+  defp respond(conn, params = %{"From" => phone_number, "message" => message, "county" => county}) do
+    IO.inspect(county)
+  end
+
+  defp respond(conn, params, [case = %Case{hearings: []}]),
+    do: prompt_no_hearings(conn, params, case)
+
+  defp respond(conn, params, [case = %Case{hearings: _}]), do: prompt_remind(conn, params, case)
+  defp respond(conn, params, [_ | _]), do: prompt_county(conn, params)
+  defp respond(conn, params, _), do: prompt_unfound(conn, params)
 
   defp prompt_no_hearings(conn, params = %{"From" => phone_number}, case) do
     Logger.info(
@@ -188,8 +261,12 @@ defmodule ExCourtbot.TwilioController do
   end
 
   defp prompt_remind(conn, params = %{"From" => phone_number}, case) do
-    Logger.info(log_safe_phone_number(phone_number) <> ": Asking about reminder")
+    Logger.info(
+      log_safe_phone_number(phone_number) <>
+        ": asking user if they want a reminder about case: " <> case.id
+    )
 
+    # Extract information from our case and hearing data
     %ExCourtbotWeb.Case{
       first_name: first_name,
       last_name: last_name,
@@ -220,7 +297,10 @@ defmodule ExCourtbot.TwilioController do
   end
 
   defp prompt_county(conn, params = %{"From" => phone_number, "message" => case_number}) do
-    Logger.info(log_safe_phone_number(phone_number) <> ": Asking about county")
+    Logger.info(
+      log_safe_phone_number(phone_number) <>
+        ": asking user about which county they are interested in"
+    )
 
     response = Response.message(:requires_county, params)
 

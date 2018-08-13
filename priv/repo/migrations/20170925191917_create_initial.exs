@@ -45,10 +45,13 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
       add :case_id, references(:cases, type: :uuid)
 
       add :phone_number, :binary
+      add :phone_number_hash, :binary
       add :locale, :string
 
       timestamps()
     end
+
+    create unique_index(:subscribers, [:case_id, :phone_number_hash])
 
     create table(:notifications, primary_key: false) do
       add :id, :uuid, primary_key: true

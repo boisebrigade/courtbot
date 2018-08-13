@@ -32,12 +32,16 @@ defmodule ExCourtbotWeb.TwilioResubscribeTest do
       time: ~T[09:00:00.000],
       date: Date.utc_today()
     })
-    |> Multi.insert(:subscriber, %Subscriber{
-      id: @subscriber_id,
-      case_id: @case_id,
-      locale: @locale,
-      phone_number: @phone_number
-    })
+    |> Multi.insert(
+      :subscriber,
+      %Subscriber{}
+      |> Subscriber.changeset(%{
+        id: @subscriber_id,
+        case_id: @case_id,
+        locale: @locale,
+        phone_number: @phone_number
+      })
+    )
     |> Repo.transaction()
 
     :ok
@@ -53,7 +57,8 @@ defmodule ExCourtbotWeb.TwilioResubscribeTest do
 
     assert unsubscribe_conn.resp_body === Twiml.sms(message)
 
-    resubscribe_conn = post(unsubscribe_conn, "/sms", %{"From" => @phone_number, "Body" => "start"})
+    resubscribe_conn =
+      post(unsubscribe_conn, "/sms", %{"From" => @phone_number, "Body" => "start"})
 
     params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
     message = Response.message(:resubscribe, params)

@@ -64,6 +64,7 @@ defmodule ExCourtbotWeb.Case do
   end
 
   def all_counties() do
+    # TODO(ts): Case sensitivity?
     from(c in Case, select: c.county) |> Repo.all()
   end
 
