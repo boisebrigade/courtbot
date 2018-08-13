@@ -18,7 +18,9 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
   url: [
     scheme: "https",
     port: String.to_integer(System.get_env("PORT") || "443"),
-    host: System.get_env("HOST") |> String.replace("https://", "") |> String.replace("http://", "") || "localhost"
+    host:
+      System.get_env("HOST") |> String.replace("https://", "") |> String.replace("http://", "") ||
+        "localhost"
   ],
   force_ssl: [rewrite_on: [:x_forwarded_proto]]
 
