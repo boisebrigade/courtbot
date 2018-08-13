@@ -40,4 +40,4 @@ config :phoenix, :stacktrace_depth, 20
 config :excourtbot, ExCourtbot.Repo,
   load_from_system_env: true,
   adapter: Ecto.Adapters.Postgres,
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")

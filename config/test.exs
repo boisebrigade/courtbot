@@ -16,5 +16,4 @@ config :excourtbot, ExCourtbot.Repo,
   load_from_system_env: true,
   adapter: Ecto.Adapters.Postgres,
   pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "6"),
-  timeout: 60_000
+  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
