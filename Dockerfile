@@ -1,21 +1,35 @@
-FROM elixir:1.6-alpine
+FROM elixir:1.7.2-alpine
 
-EXPOSE 4000
+ARG MIX_ENV=prod
+ARG APP_VERSION=0.0.1
+ENV COOKIE="courtbot"
+ENV POOL_SIZE=10
+ENV HOST=localhost
 ENV PORT=4000
+ENV MIX_ENV ${MIX_ENV}
+ENV APP_VERSION ${APP_VERSION}
+
+WORKDIR /opt/app
+
+RUN apk update
+
+RUN mix local.rebar --force
+RUN mix local.hex --force
 
 COPY . .
-RUN \
-    mix do deps.get, deps.compile && \
-    mix do compile, release --verbose --env=prod && \
-    mkdir -p /opt/myapp/log && \
-    cp rel/excourtbot/releases/0.0.1/excourtbot.tar.gz /opt/excourtbot/ && \
-    cd /opt/excourtbot && \
-    tar -xzf excourtbot.tar.gz && \
-    rm excourtbot.tar.gz && \
-    rm -rf /opt/app/* && \
-    chmod -R 777 /opt/app && \
-    chmod -R 777 /opt/excourtbot
 
-WORKDIR /opt/excourtbot
+RUN mix deps.get
+RUN mix deps.compile
+RUN mix compile
 
-CMD ./bin/excourtbot foreground
+RUN mix release --env=${MIX_ENV} --verbose \
+  && mv _build/${MIX_ENV}/rel/excourtbot /opt/release \
+  && mv /opt/release/bin/excourtbot /opt/release/bin/start_server
+
+FROM alpine:3.8
+
+RUN apk update && apk --no-cache --update add bash openssl-dev
+ENV REPLACE_OS_VARS true
+WORKDIR /opt/app
+COPY --from=0 /opt/release .
+CMD ["/opt/app/bin/start_server", "foreground"]
