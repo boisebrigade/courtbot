@@ -45,50 +45,65 @@ defmodule ExCourtbotWeb.Csv do
       end
 
     # Combine multiple records by their case number (and county if mapped)
-    records = Enum.reduce(records, [], fn
-      {:ok, record}, acc ->
-        # Split the case fields from the hearing
-        {case = %{case_number: case_num, county: case_county}, hearing} =
-          Map.split(record, [:case_number, :first_name, :last_name, :county, :type])
+    records =
+      Enum.reduce(records, [], fn
+        {:ok, record}, acc ->
+          # Split the case fields from the hearing
 
-        # Check if we find a previously interated over case with the same case number and or county
-        found =
-          Enum.find_index(acc, fn
-            {:ok, rec} ->
-              case rec do
-                %{case_number: case_number, county: county}
-                when case_number == case_num and county == case_county ->
-                  rec
+          {detail, case, hearing} =
+            case Map.split(record, [:case_number, :first_name, :last_name, :county, :type]) do
+              {case = %{case_number: _, county: _}, hearing} ->
+                {:with_county, case, hearing}
 
-                %{case_number: case_number} when case_number == case_num ->
-                  rec
+              {case = %{case_number: _}, hearing} ->
+                {:without_county, case, hearing}
+            end
 
-                _ ->
-                  false
-              end
+          # Check if we find a previously interated over case with the same case number and or county
+          found =
+            Enum.find_index(acc, fn
+              {:ok, rec} ->
+                case rec do
+                  %{case_number: case_number, county: county} when detail == :with_county ->
+                    if case_number == case[:case_number] and county == case[:county] do
+                      rec
+                    else
+                      false
+                    end
 
-            _ ->
-              true
-          end)
+                  %{case_number: case_number} when detail == :without_county ->
+                    if case_number == case[:case_number] do
+                      rec
+                    else
+                      false
+                    end
 
-        # If we have a previous case, add hearings to it or add our semi-formatted record and continue
-        # TODO(ts): Compare hearings and discard duplicates
-        if found do
-          {:ok, rec} = Enum.at(acc, found)
+                  _ ->
+                    false
+                end
 
-          {_, %{hearings: hearings}} =
-            Map.split(rec, [:case_number, :first_name, :last_name, :county, :type])
+              _ ->
+                true
+            end)
 
-          {_, acc} = List.pop_at(acc, found)
-          [{:ok, Map.merge(case, %{hearings: [hearing | hearings]})} | acc]
-        else
-          [{:ok, Map.merge(case, %{hearings: [hearing]})} | acc]
-        end
+          # If we have a previous case, add hearings to it or add our semi-formatted record and continue
+          # TODO(ts): Compare hearings and discard duplicates
+          if found do
+            {:ok, rec} = Enum.at(acc, found)
 
-      # Don't attempt to catch any import errors at this stage
-      record, acc ->
-        acc ++ [record]
-    end)
+            {_, %{hearings: hearings}} =
+              Map.split(rec, [:case_number, :first_name, :last_name, :county, :type])
+
+            {_, acc} = List.pop_at(acc, found)
+            [{:ok, Map.merge(case, %{hearings: [hearing | hearings]})} | acc]
+          else
+            [{:ok, Map.merge(case, %{hearings: [hearing]})} | acc]
+          end
+
+        # Don't attempt to catch any import errors at this stage
+        record, acc ->
+          acc ++ [record]
+      end)
 
     Enum.map(records, fn
       {:ok, row = %{case_number: _}} ->
