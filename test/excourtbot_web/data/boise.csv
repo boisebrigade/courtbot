@@ -1,7 +1,61 @@
-PartyID,PartyFirstName,PartyLastName,PhoneNumber,CaseNumber,JudgeName,Next_Hearing,HearingDate,HearingTime,TimeFormatted
-595096,Johnnie,Mcgee,208-555-5555,ID01-18-00001,"Name, Judge",Pre-trial Conference,7/20/2018,8:15:00,8:15 AM
-2007488,George,Larson,208-555-5555,ID01-18-00002,"Name, Judge.",Pre-trial Conference,8/02/2018,8:15:00,8:15 AM
-1893172,Lisa,Jennings,208-555-5555,ID01-18-00003,"Name, Judge",Pre-trial Conference,8/06/2018,10:30:00,10:30 AM
-2724844,Steve,Yates,208-555-5555,ID01-18-00004,"Name, Judge",Pro-se Arraignment,8/07/2018,13:30:00,1:30 PM
-2128028,Leigh,Boyd,208-555-5555,ID-MD-2016-0000,"Name, Judge",Pre-trial Conference,8/10/2018,10:15:00,10:15 AM
-1416169,Bill,Myers,208-555-5555,ID01-18-00005,"Name, Judge",Court Trial,8/11/2018,15:00:00,3:00 PM
+CaseNumber,LastName,FirstName,MiddleName,PartyNameFull,HearingType,HearingDate,HearingTime,Court,County
+ID28-18-6950,Akins,Kenneth,Wayne,"Akins, Kenneth Wayne",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-6943,Alaby,Dominique,Antoine,"Alaby, Dominique Antoine",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2018-2445,Armstrong,Christopher,R,"Armstrong, Christopher R",Sentencing,5/15/2018,10:30,Kootenai County Magistrate Court,Kootenai
+ID-2016-11684,Barnes,Scott,,"Barnes, Scott",Probation Violation - Admit/Deny,5/15/2018,10:30,Kootenai County Magistrate Court,Kootenai
+ID-2017-19422,Brennecke,Cody,D,"Brennecke, Cody D",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID28-18-7458,Brennecke,Cody,D,"Brennecke, Cody D",Video Arraignment,5/15/2018,14:00,Kootenai County District Court,Kootenai
+ID-2017-21829,Brock,Eric,Melvin,"Brock, Eric Melvin",Preliminary Hearing,5/15/2018,8:30,Kootenai County Magistrate Court,Kootenai
+ID-2018-3403,Burke,James,D,"Burke, James D",Preliminary Hearing,5/15/2018,13:30,Kootenai County Magistrate Court,Kootenai
+ID28-18-7460,Cox,Kyle,James,"Cox, Kyle James",Video Arraignment,5/15/2018,14:00,Kootenai County District Court,Kootenai
+ID-2018-2654,Davis,Kyle,Lee,"Davis, Kyle Lee",Preliminary Hearing,5/15/2018,13:30,Kootenai County Magistrate Court,Kootenai
+ID-2018-4370,Day,Sarah,Beth,"Day, Sarah Beth",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2017-21229,Desantis,Blane,Corey,"Desantis, Blane Corey",Preliminary Hearing,5/15/2018,8:30,Kootenai County Magistrate Court,Kootenai
+ID28-18-6940,Dixon,John,Arnold,"Dixon, John Arnold, II",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2015-5493,Douglas,Deana,Marie,"Douglas, Deana Marie",Jurisdictional Review Hearing,5/15/2018,15:30,Kootenai County District Court,Kootenai
+ID-2015-6056,Douglas,Deana,Marie,"Douglas, Deana Marie",Jurisdictional Review Hearing,5/15/2018,15:30,Kootenai County District Court,Kootenai
+ID-2017-10620,Finlay,Tyler,Matthew,"Finlay, Tyler Matthew",Judge Set Hearing,5/15/2018,16:00,Kootenai County District Court,Kootenai
+ID-2017-15528,Fraga,Daniel,P,"Fraga, Daniel P, Jr",Evidentiary Hearing,5/15/2018,10:30,Kootenai County Magistrate Court,Kootenai
+ID-2017-20295,Gohl,Craig,Michael,"Gohl, Craig Michael",Arraignment - District Court,5/15/2018,15:00,Kootenai County District Court,Kootenai
+ID28-18-6929,Guerrero Jimenez,Alfredo,,"Guerrero Jimenez, Alfredo",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2018-3925,Hartdegen,George,,"Hartdegen, George, III",Motion Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2018-3925,Hartdegen,George,,"Hartdegen, George, III",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-6857,Hetzler,Kenton,Jr,"Hetzler, Kenton Jr",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2018-47,Horne,Gregory,Douglas,"Horne, Gregory Douglas",Sentencing,5/15/2018,10:30,Kootenai County Magistrate Court,Kootenai
+ID28-18-6272,Ivins,Carl,Edward,"Ivins, Carl Edward",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2017-21450,Jacobs,Nicholas,Allen,"Jacobs, Nicholas Allen",Motion for Revocation of Bond,5/15/2018,14:30,Kootenai County District Court,Kootenai
+ID-2017-21450,Jacobs,Nicholas,Allen,"Jacobs, Nicholas Allen",Change of Plea,5/15/2018,14:30,Kootenai County District Court,Kootenai
+ID-2017-20544,Jacobs,Nicholas,Allen,"Jacobs, Nicholas Allen",Change of Plea,5/15/2018,14:30,Kootenai County District Court,Kootenai
+ID-2017-22708,Jacobs,Nicholas,Allen,"Jacobs, Nicholas Allen",Change of Plea,5/15/2018,14:30,Kootenai County District Court,Kootenai
+ID28-18-6910,Jones,Joseph,Frederick,"Jones, Joseph Frederick",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2017-22259,Kegley,William,R,"Kegley, William R",Arraignment - District Court,5/15/2018,15:00,Kootenai County District Court,Kootenai
+ID-2018-3342,Kegley,William,R,"Kegley, William R",Arraignment - District Court,5/15/2018,15:00,Kootenai County District Court,Kootenai
+ID-2017-22705,Lewis,Antron,Devon,"Lewis, Antron Devon",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID28-18-6944,Lingo,Nicholas,Edward,"Lingo, Nicholas Edward",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2018-4919,Martin,Jarrid,Riley,"Martin, Jarrid Riley",Preliminary Hearing,5/15/2018,8:30,Kootenai County Magistrate Court,Kootenai
+ID-2018-5366,Matheny,Nathan,Scott,"Matheny, Nathan Scott",Arraignment - District Court,5/15/2018,15:00,Kootenai County District Court,Kootenai
+ID28-18-6617,May,Wales,Edgewood,"May, Wales Edgewood",Preliminary Hearing,5/15/2018,13:30,Kootenai County District Court,Kootenai
+ID28-18-6848,McNeil,Trina,Rae,"McNeil, Trina Rae",Prel  iminary Hearing,5/15/2018,8:30,Kootenai County Magistrate Court,Kootenai
+ID28-18-6854,Nesbitt,Danielle,Nichole,"Nesbitt, Danielle Nichole",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-7450,Nguyen,Tai,Van,"Nguyen, Tai Van",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID28-18-7457,Nielsen,Justin,Wayne,"Nielsen, Justin Wayne",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID28-18-5883,Nirk,Ashley,Lee,"Nirk, Ashley Lee",Motion to Withdraw as Attorney,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-5883,Nirk,Ashley,Lee,"Nirk, Ashley Lee",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-5952,Nirk,Ashley,Lee,"Nirk, Ashley Lee",Motion to Withdraw as Attorney,5/15/2018,8:30,Kootenai County Magistrate Court,Kootenai
+ID-2017-17611,Parker,Isaiah,Chandler,"Parker, Isaiah Chandler",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID-2015-4302,Parker,Isaiah,Chandler,"Parker, Isaiah Chandler",Video Arraignment,5/15/2018,14:00,Kootenai County District Court,Kootenai
+ID-2017-12522,Parker,Isaiah,Chandler,"Parker, Isaiah Chandler",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID28-18-6851,Peralta,Ebony,Christine,"Peralta, Ebony Christine",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-6949,Rankin,Brittany,E,"Rankin, Brittany E",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2017-20902,Renkert-Schafer,Vonne,Andrew,"Renkert-Schafer, Vonne Andrew",Motion to Quash Warrant,5/15/2018,15:00,Kootenai County District Court,Kootenai
+ID28-18-6850,Richardson,Teresa,M,"Richardson, Teresa M",Preliminary Hearing,5/15/2018,8:30,Kootenai County Magistrate Court,Kootenai
+ID28-18-6931,Rubio,Joseph,Roman,"Rubio, Joseph Roman",Motion to Amend,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-6931,Rubio,Joseph,Roman,"Rubio, Joseph Roman",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID-2017-14472,Smith,Jeffrey,Allen,"Smith, Jeffrey Allen",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID-2017-20535,Spring,Christopher,Scott,"Spring, Christopher Scott",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID28-18-7455,Spring,Christopher,Scott,"Spring, Christopher Scott",Video Arraignment,5/15/2018,14:00,Kootenai County District Court,Kootenai
+ID-2017-4763,Swenson,Megain,Ashley,"Swenson, Megain Ashley",Order to Show Cause Hearing,5/15/2018,15:00,Kootenai County District Court,Kootenai
+ID28-18-6942,Thibault,Joseph,Ronald,"Thibault, Joseph Ronald",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
+ID28-18-7451,Thompson,Camile,Aline,"Thompson, Camile Aline",Video Arraignment,5/15/2018,14:00,Kootenai County Magistrate Court,Kootenai
+ID-2017-4836,Vacante,Joseph,Michael,"Vacante, Joseph Michael",Jurisdictional Review Hearing,5/15/2018,15:30,Kootenai County District Court,Kootenai
+ID28-18-6932,Williams,Siriene,Lynn,"Williams, Siriene Lynn",Preliminary Hearing,5/15/2018,8:30,Kootenai County District Court,Kootenai
