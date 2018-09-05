@@ -40,9 +40,6 @@ environment :prod do
   set config_providers: [
     {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.exs"]}
   ]
-  set overlays: [
-    {:copy, "config/courtbot.exs", "etc/courtbot.exs"}
-  ]
 end
 
 # You may define one or more releases in this file.
