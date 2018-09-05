@@ -37,7 +37,7 @@ defmodule ExCourtbot.Mixfile do
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_ecto, "~> 3.2"},
       {:postgrex, ">= 0.0.0"},
-      {:cloak, "~> 0.7.0-alpha"},
+      {:cloak, "~> 0.7.0"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:csv, "~> 2.0.0"},
@@ -50,7 +50,7 @@ defmodule ExCourtbot.Mixfile do
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 0.6", only: [:dev, :test], runtime: false},
-      {:distillery, "~> 2.0-rc", runtime: false}
+      {:distillery, "~> 2.0", runtime: false}
     ]
   end
 
