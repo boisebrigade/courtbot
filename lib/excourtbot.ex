@@ -1,6 +1,6 @@
 defmodule ExCourtbot do
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Csv, Response, Subscriber, Notification}
+  alias ExCourtbot.{Csv, Repo, Subscriber, Notification}
+  alias ExCourtbotWeb.Response
 
   require Logger
 

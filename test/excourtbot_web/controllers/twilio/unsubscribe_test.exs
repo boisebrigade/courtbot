@@ -3,8 +3,8 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
 
   alias Ecto.Multi
 
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
+  alias ExCourtbot.{Case, Hearing, Repo, Subscriber}
+  alias ExCourtbotWeb.{Response, Twiml}
 
   @case_id Ecto.UUID.generate()
   @case_two_id Ecto.UUID.generate()
@@ -38,7 +38,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
     })
     |> Multi.insert(:case_three, %Case{
       id: @case_three_id,
-      case_number: @case_number_two,
+      case_number: @case_number_two
     })
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
@@ -63,15 +63,15 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
       })
     )
     |> Multi.insert(
-         :subscriber_two,
-         %Subscriber{}
-         |> Subscriber.changeset(%{
-           id: @subscriber_id,
-           case_id: @case_three_id,
-           locale: @locale,
-           phone_number: @phone_number
-         })
-       )
+      :subscriber_two,
+      %Subscriber{}
+      |> Subscriber.changeset(%{
+        id: @subscriber_id,
+        case_id: @case_three_id,
+        locale: @locale,
+        phone_number: @phone_number
+      })
+    )
     |> Repo.transaction()
 
     :ok
@@ -110,7 +110,8 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
 
     assert unsubscribe_conn.resp_body === Twiml.sms(message)
 
-    delete_prompt_conn = post(unsubscribe_conn, "/sms", %{"From" => @phone_number, "Body" => "DELETE"})
+    delete_prompt_conn =
+      post(unsubscribe_conn, "/sms", %{"From" => @phone_number, "Body" => "DELETE"})
 
     assert delete_prompt_conn.status == 200
   end
@@ -128,5 +129,4 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
 
     assert delete_prompt_conn.status == 200
   end
-
 end

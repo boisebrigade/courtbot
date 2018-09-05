@@ -3,8 +3,8 @@ defmodule ExCourtbotWeb.TwilioResubscribeTest do
 
   alias Ecto.Multi
 
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Response, Twiml, Subscriber}
+  alias ExCourtbot.{Case, Hearing, Repo, Subscriber}
+  alias ExCourtbotWeb.{Response, Twiml}
 
   @case_id Ecto.UUID.generate()
 

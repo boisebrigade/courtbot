@@ -37,7 +37,9 @@ defmodule ExCourtbotWeb.Response do
 
   defp response(:already_subscribed, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext("You are already subscribed to this case. To unsubscribe to this case reply with DELETE.")
+      gettext(
+        "You are already subscribed to this case. To unsubscribe to this case reply with DELETE."
+      )
     end)
   end
 

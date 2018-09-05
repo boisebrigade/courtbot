@@ -3,8 +3,8 @@ defmodule ExCourtbot.TwilioController do
 
   require Logger
 
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Response, Case, Twiml, Subscriber}
+  alias ExCourtbot.{Case, Hearing, Repo, Subscriber}
+  alias ExCourtbotWeb.{Response, Twiml}
 
   @accept_keywords [
     gettext("y"),
@@ -267,11 +267,11 @@ defmodule ExCourtbot.TwilioController do
     )
 
     # Extract information from our case and hearing data
-    %ExCourtbotWeb.Case{
+    %Case{
       first_name: first_name,
       last_name: last_name,
       hearings: [
-        %ExCourtbotWeb.Hearing{
+        %Hearing{
           time: time,
           date: date,
           location: location

@@ -1,6 +1,5 @@
-defmodule ExCourtbotWeb.Csv do
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.Case
+defmodule ExCourtbot.Csv do
+  alias ExCourtbot.{Case, Repo}
 
   require Logger
 

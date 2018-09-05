@@ -3,13 +3,15 @@ defmodule ExCourtbot.Vault do
   @impl Cloak.Vault
 
   def init(config) do
-    cloak_encryption_key = System.get_env("CLOAK_ENCRYPTION_KEY") |> Base.decode64! || raise "expected the CLOAK_ENCRYPTION_KEY environment variable to be set"
+    cloak_encryption_key =
+      System.get_env("CLOAK_ENCRYPTION_KEY") |> Base.decode64!() ||
+        raise "expected the CLOAK_ENCRYPTION_KEY environment variable to be set"
 
     config =
       config
-      |> Keyword.put(:ciphers, [
+      |> Keyword.put(:ciphers,
         default: {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: cloak_encryption_key}
-      ])
+      )
 
     {:ok, config}
   end
