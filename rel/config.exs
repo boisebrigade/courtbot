@@ -30,7 +30,7 @@ environment :dev do
   # dev mode.
   set dev_mode: true
   set include_erts: false
-  set cookie: :test
+  set cookie: :dev
 end
 
 environment :prod do
@@ -49,6 +49,9 @@ end
 
 release :excourtbot do
   set version: current_version(:excourtbot)
+  set commands: [
+    migrate: "rel/commands/migrate.sh"
+  ]
   set applications: [
     :runtime_tools
   ]

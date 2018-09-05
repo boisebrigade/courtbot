@@ -23,8 +23,7 @@ RUN mix deps.compile
 RUN mix compile
 
 RUN mix release --env=${MIX_ENV} --verbose \
-  && mv _build/${MIX_ENV}/rel/excourtbot /opt/release \
-  && mv /opt/release/bin/excourtbot /opt/release/bin/start_server
+  && mv _build/${MIX_ENV}/rel/excourtbot /opt/release
 
 FROM alpine:3.8
 
@@ -32,4 +31,4 @@ RUN apk update && apk --no-cache --update add bash openssl-dev
 ENV REPLACE_OS_VARS true
 WORKDIR /opt/app
 COPY --from=0 /opt/release .
-CMD ["/opt/app/bin/start_server", "foreground"]
+CMD ["/opt/app/bin/excourtbot", "migrate", "foreground"]
