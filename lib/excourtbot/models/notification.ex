@@ -1,7 +1,7 @@
-defmodule ExCourtbotWeb.Notification do
+defmodule ExCourtbot.Notification do
   use Ecto.Schema
 
-  alias ExCourtbotWeb.Subscriber
+  alias ExCourtbot.Subscriber
 
   import Ecto.Changeset
 
@@ -10,6 +10,9 @@ defmodule ExCourtbotWeb.Notification do
 
   schema "notifications" do
     belongs_to(:subscriber, Subscriber)
+
+    field(:sid, :string)
+    field(:body, :string)
 
     timestamps()
   end

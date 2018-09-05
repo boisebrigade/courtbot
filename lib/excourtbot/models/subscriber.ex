@@ -1,8 +1,7 @@
-defmodule ExCourtbotWeb.Subscriber do
+defmodule ExCourtbot.Subscriber do
   use Ecto.Schema
 
-  alias ExCourtbot.Repo
-  alias ExCourtbotWeb.{Case, Hearing, Notification, Subscriber}
+  alias ExCourtbot.{Case, Hearing, Notification, Subscriber, Repo}
 
   import Ecto.{Changeset, Query}
 
@@ -29,6 +28,7 @@ defmodule ExCourtbotWeb.Subscriber do
     |> hash_phone_number
     |> unique_constraint(:case_id, name: :subscribers_case_id_phone_number_hash_index)
   end
+
 
   def count_by_number(phone_number) do
     from(
