@@ -1,0 +1,8 @@
+# App artifacts
+/_build
+/db
+/deps
+/*.ez
+
+# Environment specific files
+.env*
