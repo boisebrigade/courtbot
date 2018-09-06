@@ -1,0 +1,3 @@
+#!/bin/sh
+
+release_remote_ctl eval --mfa "ExCourtbot.notify/0"
