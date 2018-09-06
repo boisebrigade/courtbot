@@ -1,12 +1,12 @@
-defmodule ExCourtbotWeb.ImportTest do
-  use ExCourtbotWeb.ConnCase, asyc: true
+defmodule ExCourtbot.ImportTest do
+  use ExCourtbot.DataCase, asyc: true
 
   @boise_import_config [
     types: %{
       "Criminal" => ~r/^[A-Z]{2}\d{0,2}?-\d{2,4}-\d{2,}/
     },
     importer: %{
-      file: "data/boise.csv" |> Path.expand(__DIR__),
+      file: Path.expand("../data/boise.csv", __DIR__),
       type:
         {:csv,
          [
@@ -30,7 +30,7 @@ defmodule ExCourtbotWeb.ImportTest do
 
   @anchorage_import_config [
     importer: %{
-      file: "data/anchorage.csv" |> Path.expand(__DIR__),
+      file: Path.expand("../data/anchorage.csv", __DIR__),
       type:
         {:csv,
          [
@@ -56,7 +56,7 @@ defmodule ExCourtbotWeb.ImportTest do
 
   @atlanta_import_config [
     importer: %{
-      file: "data/atlanta.csv" |> Path.expand(__DIR__),
+      file: Path.expand("../data/atlanta.csv", __DIR__),
       type:
         {:csv,
          [
