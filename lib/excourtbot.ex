@@ -18,8 +18,12 @@ defmodule ExCourtbot do
 
     Logger.info("Creating backup hearings table")
 
-    backup_table = "hearing_" <> (Date.add(Date.utc_today(), -1) |> Date.to_string())
+    backup_table = "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
 
+    # Drop backup table if it has previously been created.
+    Repo.query("DROP TABLE IF EXISTS #{backup_table}", [])
+
+    # Create a new backup table based upon the current hearings table.
     Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings", [])
 
     imported =
