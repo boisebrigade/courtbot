@@ -31,4 +31,4 @@ RUN apk update && apk --no-cache --update add bash openssl-dev
 ENV REPLACE_OS_VARS true
 WORKDIR /opt/app
 COPY --from=0 /opt/release .
-CMD ["/opt/app/bin/excourtbot", "migrate", "foreground"]
+CMD ["/opt/app/bin/excourtbot", "foreground"]

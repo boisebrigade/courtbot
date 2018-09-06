@@ -3,7 +3,8 @@ defmodule ExCourtbot.ReleaseTasks do
     :crypto,
     :ssl,
     :postgrex,
-    :ecto
+    :ecto,
+    :timex
   ]
 
   @repos Application.get_env(:excourtbot, :ecto_repos, [])
@@ -12,6 +13,22 @@ defmodule ExCourtbot.ReleaseTasks do
     start_services()
 
     run_migrations()
+
+    stop_services()
+  end
+
+  def import() do
+    start_services()
+
+    ExCourtbot.import()
+
+    stop_services()
+  end
+
+  def notify() do
+    start_services()
+
+    ExCourtbot.notify()
 
     stop_services()
   end
