@@ -6,9 +6,9 @@ defmodule ExCourtbot.ReleaseTasks do
     :ecto
   ]
 
-  @repos Application.get_env(:my_app, :ecto_repos, [])
+  @repos Application.get_env(:excourtbot, :ecto_repos, [])
 
-  def migrate(_argv) do
+  def migrate() do
     start_services()
 
     run_migrations()
