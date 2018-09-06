@@ -23,6 +23,13 @@ defmodule ExCourtbot.Csv do
       |> Keyword.take([:date, :time, :date_and_time])
       |> Enum.into(types)
 
+    # If the CSV file has headings then drop the first row
+    raw_data = if has_headers do
+        Stream.drop(raw_data, 1)
+      else
+        raw_data
+      end
+
     # Remove formats from the headings
     headings =
       Enum.map(headers, fn
@@ -33,15 +40,7 @@ defmodule ExCourtbot.Csv do
         nil -> nil
       end)
 
-    decoded_csv = CSV.decode(raw_data, headers: headings, separator: delimiter)
-
-    # If the CSV file has headings then drop the first element in the list
-    records =
-      if has_headers do
-        Enum.drop(decoded_csv, 1)
-      else
-        decoded_csv
-      end
+    records = CSV.decode(raw_data, headers: headings, separator: delimiter) |> Enum.to_list()
 
     # Combine multiple records by their case number (and county if mapped)
     records =
