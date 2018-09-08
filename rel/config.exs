@@ -30,7 +30,7 @@ environment :dev do
   # dev mode.
   set dev_mode: true
   set include_erts: false
-  set cookie: :test
+  set cookie: :dev
 end
 
 environment :prod do
@@ -40,9 +40,7 @@ environment :prod do
   set config_providers: [
     {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.exs"]}
   ]
-  set overlays: [
-    {:copy, "config/courtbot.exs", "etc/courtbot.exs"}
-  ]
+  set pre_start_hooks: "rel/hooks/pre_start.d"
 end
 
 # You may define one or more releases in this file.
@@ -52,6 +50,10 @@ end
 
 release :excourtbot do
   set version: current_version(:excourtbot)
+  set commands: [
+    import: "rel/commands/import",
+    notify: "rel/commands/notify"
+  ]
   set applications: [
     :runtime_tools
   ]
