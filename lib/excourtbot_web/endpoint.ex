@@ -40,8 +40,8 @@ defmodule ExCourtbotWeb.Endpoint do
   """
   def init(_key, config) do
     if config[:load_from_system_env] do
-      port = System.get_env("PORT") || raise "expected the PORT environment variable to be set"
-      host = System.get_env("HOST") || raise "expected the HOST environment variable to be set"
+      port = System.get_env("PORT") || 4000
+      host = System.get_env("HOST") || "localhost"
 
       secret_key_base =
         System.get_env("SECRET_KEY_BASE") ||
