@@ -7,7 +7,8 @@ use Mix.Config
 # watchers to your application. For example, we use it
 # with brunch.io to recompile .js and .css sources.
 config :excourtbot, ExCourtbotWeb.Endpoint,
-  http: [port: String.to_integer(System.get_env("PORT") || "4000")],
+  load_from_system_env: true,
+  http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
   check_origin: false,
@@ -40,4 +41,4 @@ config :phoenix, :stacktrace_depth, 20
 config :excourtbot, ExCourtbot.Repo,
   load_from_system_env: true,
   adapter: Ecto.Adapters.Postgres,
-  pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+  pool_size: 10

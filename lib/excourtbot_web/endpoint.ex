@@ -40,7 +40,8 @@ defmodule ExCourtbotWeb.Endpoint do
   """
   def init(_key, config) do
     if config[:load_from_system_env] do
-      port = System.get_env("PORT") || raise "expected the PORT environment variable to be set"
+      port = System.get_env("PORT") || 4000
+      host = System.get_env("HOST") || "localhost"
 
       secret_key_base =
         System.get_env("SECRET_KEY_BASE") ||
@@ -48,8 +49,17 @@ defmodule ExCourtbotWeb.Endpoint do
 
       config =
         config
-        |> Keyword.put(:http, [:inet6, port: port])
+        |> Keyword.put(:http, [:inet6, port: port, host: host])
         |> Keyword.put(:secret_key_base, secret_key_base)
+
+      # If we are trying to mount to 443 then set HTTPS specific settings
+      config = if port === 443 do
+        config
+        |> Keyword.put(:url, [scheme: "https"])
+        |> Keyword.put(:force_ssl, [rewrite_on: [:x_forwarded_proto]])
+      else
+        config
+      end
 
       {:ok, config}
     else

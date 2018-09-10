@@ -12,7 +12,6 @@ config :excourtbot,
 # Configures the endpoint
 config :excourtbot, ExCourtbotWeb.Endpoint,
   url: [host: "localhost"],
-  secret_key_base: "l6LmTpsVPApJUcAfgxa8o+DellNKx1G9QLFzlG17Iu+soyWomSoTfW2dS3a3OcK+",
   render_errors: [view: ExCourtbotWeb.ErrorView, accepts: ~w(json)],
   pubsub: [name: ExCourtbot.PubSub, adapter: Phoenix.PubSub.PG2]
 
@@ -20,9 +19,6 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
-
-# Disable automatic timezone updates
-config :tzdata, :autoupdate, :disabled
 
 config :ex_twilio,
   account_sid: {:system, "TWILIO_ACCOUNT_SID"},
