@@ -226,10 +226,6 @@ defmodule ExCourtbot.TwilioController do
     end
   end
 
-  defp respond(conn, params = %{"From" => phone_number, "message" => message, "county" => county}) do
-    IO.inspect(county)
-  end
-
   defp respond(conn, params, [case = %Case{hearings: []}]),
     do: prompt_no_hearings(conn, params, case)
 
