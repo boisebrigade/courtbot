@@ -36,7 +36,7 @@ end
 environment :prod do
   set include_erts: true
   set include_src: false
-  set cookie: :crypto.hash(:sha256, System.get_env("COOKIE")) |> Base.encode16 |> String.to_atom
+  set cookie: :crypto.hash(:sha256, :crypto.strong_rand_bytes(32)) |> Base.encode16 |> String.to_atom
   set config_providers: [
     {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.exs"]}
   ]
