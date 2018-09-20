@@ -1,4 +1,5 @@
 %{
+  "absinthe": {:hex, :absinthe, "1.4.13", "81eb2ff41f1b62cd6e992955f62c22c042d1079b7936c27f5f7c2c806b8fc436", [:mix], [{:dataloader, "~> 1.0.0", [hex: :dataloader, repo: "hexpm", optional: true]}, {:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},
   "aes256": {:hex, :aes256, "0.5.1", "bf8a21c2d5642da93e181d3494636507e78f40e479c7df3d49e577e2cf352517", [:mix], [], "hexpm"},
   "artificery": {:hex, :artificery, "0.2.6", "f602909757263f7897130cbd006b0e40514a541b148d366ad65b89236b93497a", [:mix], [], "hexpm"},
   "base64url": {:hex, :base64url, "0.0.1", "36a90125f5948e3afd7be97662a1504b934dd5dac78451ca6e9abf85a10286be", [:rebar], [], "hexpm"},
