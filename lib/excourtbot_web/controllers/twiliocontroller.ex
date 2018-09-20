@@ -1,4 +1,4 @@
-defmodule ExCourtbot.TwilioController do
+defmodule ExCourtbotWeb.TwilioController do
   use ExCourtbotWeb, :controller
 
   require Logger
