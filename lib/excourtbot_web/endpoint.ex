@@ -1,6 +1,15 @@
 defmodule ExCourtbotWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :excourtbot
 
+  # Serve at "/" the static files from "priv/static" directory.
+  plug(
+    Plug.Static,
+    at: "/",
+    from: :excourtbot,
+    gzip: false,
+    only: ~w(index.html favicon.ico robots.txt index.js styles.css courtbot.png)
+  )
+
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do
@@ -53,13 +62,14 @@ defmodule ExCourtbotWeb.Endpoint do
         |> Keyword.put(:secret_key_base, secret_key_base)
 
       # If we are trying to mount to 443 then set HTTPS specific settings
-      config = if port === 443 do
-        config
-        |> Keyword.put(:url, [scheme: "https"])
-        |> Keyword.put(:force_ssl, [rewrite_on: [:x_forwarded_proto]])
-      else
-        config
-      end
+      config =
+        if port === 443 do
+          config
+          |> Keyword.put(:url, scheme: "https")
+          |> Keyword.put(:force_ssl, rewrite_on: [:x_forwarded_proto])
+        else
+          config
+        end
 
       {:ok, config}
     else
