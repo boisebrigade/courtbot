@@ -7,14 +7,13 @@ Path.join(["rel", "plugins", "*.exs"])
 |> Enum.map(&Code.eval_file(&1))
 
 use Mix.Releases.Config,
-    # This sets the default release built by `mix release`
-    default_release: :default,
-    # This sets the default environment used by `mix release`
-    default_environment: Mix.env()
+  # This sets the default release built by `mix release`
+  default_release: :default,
+  # This sets the default environment used by `mix release`
+  default_environment: Mix.env()
 
 # For a full list of config options for both releases
 # and environments, visit https://hexdocs.pm/distillery/configuration.html
-
 
 # You may define one or more environments in this file,
 # an environment's settings will override those of a release
@@ -28,19 +27,14 @@ environment :dev do
   # It is recommended that you build with MIX_ENV=prod and pass
   # the --env flag to Distillery explicitly if you want to use
   # dev mode.
-  set dev_mode: true
-  set include_erts: false
-  set cookie: :dev
+  set(dev_mode: true)
+  set(include_erts: false)
+  set(cookie: :dev)
 end
 
 environment :prod do
-  set include_erts: true
-  set include_src: false
-  set cookie: :crypto.hash(:sha256, :crypto.strong_rand_bytes(32)) |> Base.encode16 |> String.to_atom
-  set config_providers: [
-    {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.exs"]}
-  ]
-  set pre_start_hooks: "rel/hooks/pre_start.d"
+  set(include_erts: true)
+  set(include_src: false)
 end
 
 # You may define one or more releases in this file.
@@ -49,13 +43,34 @@ end
 # will be used by default
 
 release :excourtbot do
-  set version: current_version(:excourtbot)
-  set commands: [
-    import: "rel/commands/import",
-    notify: "rel/commands/notify"
-  ]
-  set applications: [
-    :runtime_tools
-  ]
-end
+  set(version: current_version(:excourtbot))
 
+  set(
+    commands: [
+      import: "rel/commands/import",
+      notify: "rel/commands/notify"
+    ]
+  )
+
+  set(overlays: [{:copy, "priv", "excourtbot"}])
+
+  set(
+    applications: [
+      :runtime_tools
+    ]
+  )
+
+  set(
+    cookie:
+      :crypto.hash(:sha256, :crypto.strong_rand_bytes(32)) |> Base.encode16() |> String.to_atom()
+  )
+
+  set(
+    config_providers: [
+      {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.exs"]}
+    ]
+  )
+
+  set(pre_configure_hooks: "rel/hooks/pre_configure.d")
+  set(pre_start_hooks: "rel/hooks/pre_start.d")
+end

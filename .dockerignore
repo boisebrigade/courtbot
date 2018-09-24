@@ -1,8 +1,13 @@
 # App artifacts
-/_build
-/db
-/deps
-/*.ez
+_build/
+deps/
+.git/
+.gitignore
+Dockerfile
+Makefile
+README*
+test/
+priv/static
 
 # Environment specific files
 .env*
