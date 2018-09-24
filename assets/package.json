@@ -27,6 +27,7 @@
     "react": "^16.2.0",
     "react-apollo": "^2.1.11",
     "react-dom": "^16.2.0",
+    "reason-apollo": "^0.14.0",
     "reason-react": ">=0.4.0",
     "subscriptions-transport-ws": "^0.9.15"
   },
