@@ -1,30 +1,34 @@
 # ExCourtbot
 [![Build Status](https://travis-ci.org/boisebrigade/ExCourtbot.svg?branch=development)](https://travis-ci.org/boisebrigade/ExCourtbot)
 
-ExCourtbot is a simple web service that provides a SMS interface for subscribing to cases for hearing details.
+ExCourtbot is a simple web service for subscribing to case hearing details via SMS.
 
 ## Development Setup
 
-- Clone the repo
-- Install Elixir: preferred to use `asdf`
+- Clone the repo: `git clone https://github.com/boisebrigade/ExCourtbot.git`
+- Install Elixir and NodeJS: `# asdf is the preferred version manager`
   - Install [asdf](https://github.com/asdf-vm/asdf#setup)
   - Add Elixir asdf plugin: [asdf-elixir](https://github.com/asdf-vm/asdf-elixir) 
+  - Add NodeJS asdf plugin: [asdf-nodejs](https://github.com/asdf-vm/asdf-nodejs)
   - Goto where you've cloned the repo and run: `asdf install`
 - Copy `.env.example` to `.env`: `cp .env.example .env`
   - Tweak default environment variables as needed
   - Take a look at the [external dependencies](https://github.com/boisebrigade/ExCourtbot/wiki/External-Dependencies#external-dependencies) as they their credentials will need to be configured for a full development setup 
 - Start docker: `docker-compose up -d`
-- Install dependencies: `env $(cat .env | xargs) mix deps.get`
-- Initialize database: `env $(cat .env | xargs) mix ecto.reset`
-- Start Phoenix: `env $(cat .env | xargs) mix phx.server`
+- Install dependencies: `mix deps.get`
+- Install frontend dependencies: `cd assets && npm install && cd -`
+- Initialize database: `mix ecto.reset`
+- Start Phoenix: `mix phx.server`
+  - In development mode, `MIX_ENV` is `dev`, Phoenix will run both `npm run start` and `npm run webpack` for you.
 
-Upon issuing `mix phx.server` Phoenix is started the REST API will be accessible. Local modifications to code will hot-reload.
+After `mix phx.server` Phoenix will running and you should be able to access the frontend by hitting http://localhost:4001 in your browser of choice. For next steps in setting up Courtbot see [here](https://github.com/boisebrigade/ExCourtbot/wiki/Configuration) for additional details.
 
 ## Documentation
-Documentation is available [here.](https://github.com/boisebrigade/ExCourtbot/wiki)
-
-## Contributing
-Before issuing a PR please run the formatter via `mix format`.
+- [Overview](https://github.com/boisebrigade/ExCourtbot/wiki)
+- [External Dependencies](https://github.com/boisebrigade/ExCourtbot/wiki/External-Dependencies)
+- [Configuration](https://github.com/boisebrigade/ExCourtbot/wiki/Configuration)
+- [Deployment](https://github.com/boisebrigade/ExCourtbot/wiki/Deployment)
+- [Code Overview](https://github.com/boisebrigade/ExCourtbot/wiki/Code-Overview)
 
 ## License
 ISC, 2018, Code for America
