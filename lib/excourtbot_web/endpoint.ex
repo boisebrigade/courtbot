@@ -7,7 +7,7 @@ defmodule ExCourtbotWeb.Endpoint do
     at: "/",
     from: :excourtbot,
     gzip: false,
-    only: ~w(index.html favicon.ico robots.txt index.js styles.css courtbot.png)
+    only: ~w(index.html favicon.ico robots.txt index.js styles.css courtbot.png favicon.png tachyons.min.css question-solid.svg)
   )
 
   # Code reloading can be explicitly enabled under the
