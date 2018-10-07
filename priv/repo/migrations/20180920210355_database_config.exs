@@ -12,6 +12,8 @@ defmodule ExCourtbot.Repo.Migrations.DatabaseConfig do
       timestamps()
     end
 
+    create unique_index(:configuration, [:name])
+
     create table(:importer, primary_key: false) do
       add :id, :uuid, primary_key: true
 
@@ -34,6 +36,8 @@ defmodule ExCourtbot.Repo.Migrations.DatabaseConfig do
 
       timestamps()
     end
+
+    create unique_index(:users, [:user_name])
 
   end
 end
