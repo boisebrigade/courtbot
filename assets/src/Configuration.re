@@ -45,7 +45,11 @@ let make = (~twilioSid="", ~twilioToken="", ~rollbarToken="", _children) => {
       <SetConfigurationMutation>
         ...{
              (mutation, _result) =>
-               /* TODO(ts): Use the result to */
+               /* TODO(ts): Use the result in the value prop for inputs */
+               /* TODO(ts): Error handling for when the GQL mutation fails */
+               /* TODO(ts): HTML5 validation, and make twilio components requried */
+               /* TODO(ts): Add phone number + locale configuration options */
+               /* TODO(ts): Merge with Initial Configuration component */
                <form
                  onSubmit={
                    e => {
