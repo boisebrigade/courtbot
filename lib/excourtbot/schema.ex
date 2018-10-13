@@ -11,14 +11,14 @@ defmodule ExCourtbot.Schema do
   end
 
   node object(:dashboard) do
-    field(:twilio_sid, non_null(:bool))
-    field(:twilio_token, non_null(:bool))
+    field(:twilio_sid, non_null(:boolean))
+    field(:twilio_token, non_null(:boolean))
 
-    field(:rollbar_token, non_null(:bool))
+    field(:rollbar_token, non_null(:boolean))
 
-    field(:kind, non_null(:bool))
-    field(:origin, non_null(:bool))
-    field(:source, non_null(:bool))
+    field(:kind, non_null(:boolean))
+    field(:origin, non_null(:boolean))
+    field(:source, non_null(:boolean))
   end
 
   node object(:conf) do
