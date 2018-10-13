@@ -35,9 +35,9 @@ defmodule ExCourtbot.Schema do
   end
 
   node object(:importer_field) do
-    field(:from, :string)
-    field(:to, :string)
-    field(:type, :string)
+    field(:source, :string)
+    field(:destination, :string)
+    field(:kind, :string)
     field(:format, :string)
     field(:order, :integer)
   end
