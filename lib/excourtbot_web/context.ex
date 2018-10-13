@@ -7,7 +7,8 @@ defmodule ExCourtbotWeb.Context do
   def init(opts), do: opts
 
   def call(conn, _) do
-    case build_context(conn) do
+    build_context(conn)
+    |> case do
       {:ok, context} ->
         put_private(conn, :absinthe, %{context: context})
 
@@ -27,14 +28,16 @@ defmodule ExCourtbotWeb.Context do
   end
 
   defp authorize(token) do
-    case Guardian.decode_and_verify(token) do
+    Guardian.decode_and_verify(token)
+    |> case do
       {:ok, claims} -> return_user(claims)
       {:error, reason} -> {:error, reason}
     end
   end
 
   defp return_user(claims) do
-    case Guardian.serializer().from_token(Map.get(claims, "sub")) do
+    Guardian.serializer().from_token(Map.get(claims, "sub"))
+    |> case do
       {:ok, resource} -> {:ok, resource}
       {:error, reason} -> {:error, reason}
     end

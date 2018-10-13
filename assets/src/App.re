@@ -1,4 +1,5 @@
 type route =
+  | Dashboard
   | Configuration
   | Importer
   | Stats
@@ -11,11 +12,12 @@ type state = {
 };
 
 type action =
-  | ChangeRoute(route);
+  | ChangeRoute(route)
+  | Authenticated;
 
 let mapPathToRoute = (url: ReasonReact.Router.url) =>
   switch (url.path) {
-  | [] => Configuration
+  | [] => Dashboard
   | ["configuration"] => Configuration
   | ["importer"] => Importer
   | ["account"] => Account
@@ -23,11 +25,11 @@ let mapPathToRoute = (url: ReasonReact.Router.url) =>
   | _ => NotFound
   };
 
-let component = ReasonReact.reducerComponent("App");
+let component = ReasonReact.reducerComponent(__MODULE__);
 
 let make = _children => {
   ...component,
-  initialState: () => {route: ReasonReact.Router.dangerouslyGetInitialUrl() |> mapPathToRoute(), needsLogin: false},
+  initialState: () => {route: mapPathToRoute(ReasonReact.Router.dangerouslyGetInitialUrl()), needsLogin: true},
   didMount: self => {
     let watcherId = ReasonReact.Router.watchUrl(url => self.send(ChangeRoute(url |> mapPathToRoute)));
 
@@ -36,17 +38,23 @@ let make = _children => {
   reducer: (action, _state) =>
     switch (action) {
     | ChangeRoute(route) => ReasonReact.Update({route, needsLogin: false})
+    | Authenticated => ReasonReact.Update({route: Dashboard, needsLogin: false})
     },
-  render: self =>
+  render: self => {
+    let successfulLogin = () => {
+      ReasonReact.(self.send(Authenticated));
+      ReasonReact.Router.push("/");
+    };
     <>
       {
         self.state.needsLogin ?
-          <Login /> :
+          <Login successfulLogin /> :
           <>
             <Aside />
             {
               switch (self.state.route) {
-              | Configuration => <Configuration />
+              | Dashboard => <Dashboard />
+              | Configuration => <ConfigurationInit />
               | Importer => <Importer />
               | Account => <Account />
               | Stats => <Stats />
@@ -55,5 +63,6 @@ let make = _children => {
             }
           </>
       }
-    </>,
+    </>;
+  },
 };

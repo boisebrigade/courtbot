@@ -1,6 +1,8 @@
 defmodule ExCourtbot.Resolver.User do
   alias ExCourtbot.{Repo, User}
 
+  import Ecto.Query
+
   def login(params, _) do
     with {:ok, user} <- User.authenticate(params),
          {:ok, jwt, _} <- Guardian.encode_and_sign(user, :access),
@@ -13,5 +15,9 @@ defmodule ExCourtbot.Resolver.User do
       {:ok, _} -> User.change_details(user, params)
       {:error, _} -> {:error, "Current password must be correct"}
     end
+  end
+
+  def edit(_, _context) do
+    {:error, "Requires authentication"}
   end
 end

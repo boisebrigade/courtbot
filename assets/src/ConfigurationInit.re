@@ -1,13 +1,13 @@
 module GetConfiguration = [%graphql
   {|
-      query ConfigurationQuery {
-        configuration {
-          twilioSid,
-          twilioToken,
-          rollbarToken
-        }
+    query ConfigurationQuery {
+      configuration {
+        twilioSid,
+        twilioToken,
+        rollbarToken
       }
-    |}
+    }
+  |}
 ];
 
 module GetConfigurationQuery = ReasonApollo.CreateQuery(GetConfiguration);

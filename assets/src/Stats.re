@@ -1,10 +1,6 @@
-let component = ReasonReact.statelessComponent("Stats");
+let component = ReasonReact.statelessComponent(__MODULE__);
 
-let make = (_children) => {
+let make = _children => {
   ...component,
-  render: _self => {
-    <Main title="Stats">
-      (ReasonReact.string("testing"))
-    </Main>
-  },
+  render: _self => <Main title="Stats"> {ReasonReact.string("Coming Soon!")} </Main>,
 };
