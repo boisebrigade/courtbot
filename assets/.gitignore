@@ -6,3 +6,6 @@ npm-debug.log
 /node_modules/
 src/**/*.js
 src/*.js
+
+.graphql_ppx_cache
+graphql_schema.json
