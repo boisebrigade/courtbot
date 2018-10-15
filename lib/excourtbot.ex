@@ -123,12 +123,12 @@ defmodule ExCourtbot do
 
   # FIXME(ts): Reintroduce functions as URL's or implement variable substitution.
   defp import_from_mix_config(%{importer: %{url: url, type: {type, importer_config}}}),
-    do: run_import(type, request(url), importer_config)
+    do: run_import(type, request(url), format_importer_config(importer_config))
 
   defp import_from_mix_config(%{importer: %{file: file, type: {type, importer_config}}}),
-    do: run_import(type, File.stream!(file), importer_config)
+    do: run_import(type, File.stream!(file), format_importer_config(importer_config))
 
-  def format_importer_config(config) do
+  defp format_importer_config(config) do
     {_, configuration} =
       Keyword.get_and_update!(config, :field_mapping, fn field_mapping ->
         mapping =
@@ -164,10 +164,10 @@ defmodule ExCourtbot do
     configuration
   end
 
-  def run_import(:csv, data, importer_config),
+  defp run_import(:csv, data, importer_config),
     do: Csv.extract(data, importer_config)
 
-  def run_import(_, _, _),
+  defp run_import(_, _, _),
     do: Logger.error("Importer has been supplied invalid configuration.")
 
   def notify() do

@@ -86,7 +86,7 @@ defmodule ExCourtbot.ImportTest do
     end)
   end
 
-  test "imports Anchorage data" do
+  test "imports Anchorage data from mix config" do
     Application.put_env(:excourtbot, ExCourtbot, @anchorage_import_config)
 
     records = ExCourtbot.import()
@@ -96,7 +96,7 @@ defmodule ExCourtbot.ImportTest do
     Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
-  test "imports Atlanta data" do
+  test "imports Atlanta data from mix config" do
     Application.put_env(:excourtbot, ExCourtbot, @atlanta_import_config)
 
     records = ExCourtbot.import()
@@ -106,7 +106,7 @@ defmodule ExCourtbot.ImportTest do
     Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
-  test "imports Boise data" do
+  test "imports Boise data from mix config" do
     Application.put_env(:excourtbot, ExCourtbot, @boise_import_config)
 
     records = ExCourtbot.import()
@@ -116,6 +116,9 @@ defmodule ExCourtbot.ImportTest do
     Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
+  # TODO(ts): Property Testing
+  # TODO(ts): Verify data is inserted correctly based upon the configured input
   # TODO(ts): Add tests for url sources
   # TODO(ts): Add tests for reoccuring imports
+  # TODO(ts): Add tests for DB configuration
 end
