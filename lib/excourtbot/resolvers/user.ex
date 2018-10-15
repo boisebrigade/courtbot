@@ -1,7 +1,5 @@
 defmodule ExCourtbot.Resolver.User do
-  alias ExCourtbot.{Repo, User}
-
-  import Ecto.Query
+  alias ExCourtbot.User
 
   def login(params, _) do
     with {:ok, user} <- User.authenticate(params),

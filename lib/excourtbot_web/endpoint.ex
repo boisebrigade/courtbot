@@ -7,7 +7,8 @@ defmodule ExCourtbotWeb.Endpoint do
     at: "/",
     from: :excourtbot,
     gzip: false,
-    only: ~w(index.html favicon.ico robots.txt index.js styles.css courtbot.png favicon.png tachyons.min.css question-solid.svg)
+    only:
+      ~w(index.html favicon.ico robots.txt index.js styles.css courtbot.png favicon.png tachyons.min.css question-solid.svg)
   )
 
   # Code reloading can be explicitly enabled under the
@@ -62,8 +63,8 @@ defmodule ExCourtbotWeb.Endpoint do
 
       config =
         config
-        |> Keyword.put(:http, [port: port])
-        |> Keyword.put(:url, [port: port, host: host])
+        |> Keyword.put(:http, port: port)
+        |> Keyword.put(:url, port: port, host: host)
         |> Keyword.put(:secret_key_base, secret_key_base)
 
       # If we are trying to mount to 443 then set HTTPS specific settings

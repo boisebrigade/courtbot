@@ -11,7 +11,6 @@ defmodule Mix.Tasks.Courtbot.User.Password do
 
     User.reset_password("admin", password)
 
-    IO.puts "New password: #{password}"
-
+    IO.puts("New password: #{password}")
   end
 end

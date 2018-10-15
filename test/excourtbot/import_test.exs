@@ -11,7 +11,7 @@ defmodule ExCourtbot.ImportTest do
         {:csv,
          [
            {:has_headers, true},
-           {:headers,
+           {:field_mapping,
             [
               :case_number,
               :last_name,
@@ -36,7 +36,7 @@ defmodule ExCourtbot.ImportTest do
          [
            {:has_headers, false},
            {
-             :headers,
+             :field_mapping,
              [
                {:date, "%-m/%e/%Y"},
                :last_name,
@@ -61,7 +61,7 @@ defmodule ExCourtbot.ImportTest do
         {:csv,
          [
            {:has_headers, true},
-           {:headers,
+           {:field_mapping,
             [
               {:date, "%-m/%e/%Y"},
               nil,

@@ -29,7 +29,6 @@ defmodule ExCourtbot.Subscriber do
     |> unique_constraint(:case_id, name: :subscribers_case_id_phone_number_hash_index)
   end
 
-
   def count_by_number(phone_number) do
     from(
       s in Subscriber,

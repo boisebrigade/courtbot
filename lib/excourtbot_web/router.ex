@@ -20,6 +20,8 @@ defmodule ExCourtbotWeb.Router do
   end
 
   scope "/graphiql" do
+    pipe_through(:api)
+
     forward("/", Absinthe.Plug.GraphiQL, schema: ExCourtbot.Schema, interface: :playground)
   end
 

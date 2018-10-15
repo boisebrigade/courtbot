@@ -17,16 +17,17 @@ defmodule ExCourtbot.Repo.Migrations.DatabaseConfig do
     create table(:importer, primary_key: false) do
       add :id, :uuid, primary_key: true
 
-      add :from, :string
-      add :to, :string
-      add :type, :string
+      add :index, :integer
+      add :pointer, :integer
+      add :destination, :string
+      add :kind, :string
       add :format, :string
-      add :order, :integer
 
       timestamps()
     end
 
-    create unique_index(:importer, [:order])
+    create unique_index(:importer, [:index])
+    create unique_index(:importer, [:destination])
 
     create table(:users, primary_key: false) do
       add :id, :uuid, primary_key: true

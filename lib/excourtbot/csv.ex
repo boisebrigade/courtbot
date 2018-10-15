@@ -6,38 +6,21 @@ defmodule ExCourtbot.Csv do
   def extract(raw_data, options) do
     delimiter = Keyword.get(options, :delimiter, ?,)
     has_headers = Keyword.get(options, :has_headers, false)
-    headers = Keyword.get(options, :headers)
-
-    # Check if we have defined types, if so we'll attempt to match them
-    types =
-      Application.get_env(:excourtbot, ExCourtbot, %{})
-      |> Map.new()
-      |> Map.take([:types])
-
-    # Certain fields can have custom formats defined that need to be used to extract specific data from the fields.
-    formats =
-      Enum.filter(headers, fn
-        {_, v} -> v
-        _ -> false
-      end)
-      |> Keyword.take([:date, :time, :date_and_time])
-      |> Enum.into(types)
+    field_mapping = Keyword.get(options, :field_mapping)
 
     # If the CSV file has headings then drop the first row
-    raw_data = if has_headers do
+    raw_data =
+      if has_headers do
         Stream.drop(raw_data, 1)
       else
         raw_data
       end
 
-    # Remove formats from the headings
     headings =
-      Enum.map(headers, fn
-        {:date, _} -> :date
-        {:time, _} -> :time
-        {:date_and_time, _} -> :date_and_time
-        mapping when is_atom(mapping) -> mapping
-        nil -> nil
+      field_mapping
+      |> Enum.sort(&(&1.index < &2.index))
+      |> Enum.map(fn
+        %{destination: destination} -> destination
       end)
 
     records = CSV.decode(raw_data, headers: headings, separator: delimiter) |> Enum.to_list()
@@ -103,11 +86,14 @@ defmodule ExCourtbot.Csv do
           acc ++ [record]
       end)
 
+    type_formats = get_field_mapping_format(field_mapping, "type")
+    date_formats = get_field_mapping_format(field_mapping, "date")
+
     Enum.map(records, fn
       {:ok, row = %{case_number: _}} ->
         row
-        |> add_type(formats)
-        |> format_dates(formats)
+        |> add_type(type_formats)
+        |> format_dates(date_formats)
         |> cast()
         |> Repo.insert()
 
@@ -133,6 +119,17 @@ defmodule ExCourtbot.Csv do
 
   # Noop if no types are defined
   defp add_type(row, _), do: row
+
+  defp get_field_mapping_format(field_mapping, field_kind) do
+    Enum.reduce(field_mapping, %{}, fn
+      %{kind: kind, format: format, destination: destination} = _params, acc
+      when kind == field_kind ->
+        Map.merge(%{destination => format}, acc)
+
+      _, acc ->
+        acc
+    end)
+  end
 
   defp format_dates(params = %{hearings: hearings}, %{
          date: date_format,
