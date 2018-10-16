@@ -50,6 +50,7 @@ defmodule ExCourtbot.Mixfile do
       {:absinthe, "~> 1.4"},
       {:guardian, "~> 0.14"},
       {:comeonin, "~> 4.0"},
+      {:rollbax, ">= 0.0.0"},
       {:bcrypt_elixir, "~> 0.12.0"},
       {:absinthe_relay, "~> 1.4"},
       {:absinthe_plug, "~> 1.4"},
