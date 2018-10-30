@@ -33,7 +33,7 @@ defmodule ExCourtbotWeb.Router do
         "user_ip" => List.to_string(:inet.ntoa(conn.remote_ip)),
         "headers" => Enum.into(conn.req_headers, %{}),
         "method" => conn.method,
-        "params" => params,
+        "params" => params
       }
     }
 

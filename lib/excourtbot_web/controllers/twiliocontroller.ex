@@ -82,7 +82,6 @@ defmodule ExCourtbotWeb.TwilioController do
         |> configure_session(drop: true)
         |> encode(response)
 
-
       true ->
         # Begin the response state machine
         respond(conn, request)

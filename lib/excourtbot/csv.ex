@@ -90,12 +90,20 @@ defmodule ExCourtbot.Csv do
     date_formats = get_field_mapping_format(field_mapping, "date")
 
     # TODO(ts): Investigate if querying for inserted data is worth it.
-    fragment = cond do
-      ExCourtbot.has_mapped_county() and ExCourtbot.has_mapped_type() -> "(case_number, county, type)"
-      ExCourtbot.has_mapped_county() -> "(case_number, county) WHERE type IS NULL"
-      ExCourtbot.has_mapped_type() ->  "(case_number, type) WHERE county IS NULL"
-      true -> "(case_number) WHERE county IS NULL AND type IS NULL"
-     end
+    fragment =
+      cond do
+        ExCourtbot.has_mapped_county() and ExCourtbot.has_mapped_type() ->
+          "(case_number, county, type)"
+
+        ExCourtbot.has_mapped_county() ->
+          "(case_number, county) WHERE type IS NULL"
+
+        ExCourtbot.has_mapped_type() ->
+          "(case_number, type) WHERE county IS NULL"
+
+        true ->
+          "(case_number) WHERE county IS NULL AND type IS NULL"
+      end
 
     Enum.map(records, fn
       {:ok, row = %{case_number: _}} ->
@@ -103,7 +111,11 @@ defmodule ExCourtbot.Csv do
         |> add_type(type_formats)
         |> format_dates(date_formats)
         |> cast()
-        |> Repo.insert(returning: true, on_conflict: :replace_all_except_primary_key, conflict_target: {:unsafe_fragment, fragment})
+        |> Repo.insert(
+          returning: true,
+          on_conflict: :replace_all_except_primary_key,
+          conflict_target: {:unsafe_fragment, fragment}
+        )
 
       {:ok, _} ->
         Logger.error("Unable to process row because case_number is not mapped")

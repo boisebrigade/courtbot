@@ -45,7 +45,6 @@ defmodule ExCourtbot do
       _ ->
         raise "Unsupported import type"
     end
-
   end
 
   def import, do: ExCourtbot.import(get_import_configuration())
@@ -59,7 +58,6 @@ defmodule ExCourtbot do
         :url -> request(source)
         _ -> raise "Unsupported import origin: #{origin}"
       end
-
 
     backup_and_truncate_hearings()
 
@@ -78,18 +76,17 @@ defmodule ExCourtbot do
   end
 
   def database_config(%{
-         import_kind: "JSON",
-         import_origin: _origin,
-         import_source: _source
-       }),
-       do: Logger.error("Not implemented yet")
+        import_kind: "JSON",
+        import_origin: _origin,
+        import_source: _source
+      }),
+      do: Logger.error("Not implemented yet")
 
   def database_config(%{
-         import_kind: "CSV",
-         import_origin: origin,
-         import_source: source
-       }) do
-
+        import_kind: "CSV",
+        import_origin: origin,
+        import_source: source
+      }) do
     field_mapping =
       Importer.mapped()
       |> Enum.reduce([], fn field, acc ->
@@ -116,21 +113,24 @@ defmodule ExCourtbot do
         "import_has_headers"
       ])
 
-    origin = case origin do
-      "URL" -> :url
-      "FILE" -> :file
-    end
+    origin =
+      case origin do
+        "URL" -> :url
+        "FILE" -> :file
+      end
 
     # FIXME(ts): Make this use the DB value.
-    delimiter = case delimiter do
-      "" -> ?,
-      _ -> ?,
-    end
+    delimiter =
+      case delimiter do
+        "" -> ?,
+        _ -> ?,
+      end
 
-    has_headers = case has_headers do
-      "" -> false
-      has_headers -> String.to_existing_atom(has_headers)
-    end
+    has_headers =
+      case has_headers do
+        "" -> false
+        has_headers -> String.to_existing_atom(has_headers)
+      end
 
     %{
       kind: :csv,
@@ -138,7 +138,7 @@ defmodule ExCourtbot do
       source: source,
       settings: %{
         has_headers: has_headers,
-        delimiter: delimiter,
+        delimiter: delimiter
       },
       fields: field_mapping
     }
@@ -148,7 +148,6 @@ defmodule ExCourtbot do
   def mix_config(%{importer: %{url: _url, type: {:json, _importer_config}}}),
     do: Logger.error("Not implemented yet")
 
-
   def mix_config(%{importer: %{type: {type, importer_config}} = config}) do
     default = %{
       has_headers: false,
@@ -156,10 +155,11 @@ defmodule ExCourtbot do
     }
 
     # FIXME(ts): Reintroduce functions as URL's or implement variable substitution.
-    {origin, source} = case config do
-      %{file: src} -> {:file, src}
-      %{url: src} -> {:url, src}
-    end
+    {origin, source} =
+      case config do
+        %{file: src} -> {:file, src}
+        %{url: src} -> {:url, src}
+      end
 
     settings = importer_config |> Keyword.take([:delimiter, :has_headers]) |> Enum.into(%{})
     settings = Map.merge(default, settings)
@@ -295,32 +295,38 @@ defmodule ExCourtbot do
     end
   end
 
-
   def test_import(kind, origin, source) do
-    data = case origin do
-      :file -> File.stream!(source)
-      :url -> request(source)
-      _ -> Logger.error("Origin not supported")
-    end
+    data =
+      case origin do
+        :file -> File.stream!(source)
+        :url -> request(source)
+        _ -> Logger.error("Origin not supported")
+      end
 
     # TODO(ts): Test URL -> CSV
     case kind do
       :csv ->
         [headers] = Stream.take(data, 1) |> Enum.to_list()
         headers |> String.replace("\n", "") |> String.split(",")
-     :json -> Logger.error("Has not been implemented")
-      _ -> Logger.error("Type #{kind} not supported")
+
+      :json ->
+        Logger.error("Has not been implemented")
+
+      _ ->
+        Logger.error("Type #{kind} not supported")
     end
   end
 
   def has_mapped_county() do
     case get_import_configuration() do
       %{fields: fields} ->
-          case Enum.find(fields, fn field -> field[:destination] == :county end) do
-            field when is_map(field) -> true
-            _ -> false
-          end
-      _ -> false
+        case Enum.find(fields, fn field -> field[:destination] == :county end) do
+          field when is_map(field) -> true
+          _ -> false
+        end
+
+      _ ->
+        false
     end
   end
 
@@ -331,7 +337,9 @@ defmodule ExCourtbot do
           field when is_map(field) -> true
           _ -> false
         end
-      _ -> false
+
+      _ ->
+        false
     end
   end
 end
