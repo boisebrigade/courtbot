@@ -15,9 +15,7 @@ ExCourtbot is a simple web service for subscribing to case hearing details via S
   - Tweak default environment variables as needed
   - Take a look at the [external dependencies](https://github.com/boisebrigade/ExCourtbot/wiki/External-Dependencies#external-dependencies) as they their credentials will need to be configured for a full development setup 
 - Start docker: `docker-compose up -d`
-- Install dependencies: `mix deps.get`
-- Install frontend dependencies: `cd assets && npm install && cd -`
-- Initialize database: `mix ecto.reset`
+- Run Setup: `mix setup`
 - Start Phoenix: `mix phx.server`
   - In development mode, `MIX_ENV` is `dev`, Phoenix will run both `npm run start` and `npm run webpack` for you.
 
