@@ -48,6 +48,8 @@ defmodule ExCourtbot do
 
   end
 
+  def import, do: ExCourtbot.import(get_import_configuration())
+
   def import(%{kind: _kind, origin: origin, source: source, fields: fields, settings: settings}) do
     Logger.info("Starting import")
 
@@ -74,7 +76,6 @@ defmodule ExCourtbot do
 
     imported
   end
-
 
   def database_config(%{
          import_kind: "JSON",
@@ -120,9 +121,10 @@ defmodule ExCourtbot do
       "FILE" -> :file
     end
 
+    # FIXME(ts): Make this use the DB value.
     delimiter = case delimiter do
       "" -> ?,
-      delimiter -> ?,
+      _ -> ?,
     end
 
     has_headers = case has_headers do
