@@ -28,17 +28,5 @@ defmodule ExCourtbot.Repo.Migrations.DatabaseConfig do
 
     create unique_index(:importer, [:index])
     create unique_index(:importer, [:destination])
-
-    create table(:users, primary_key: false) do
-      add :id, :uuid, primary_key: true
-
-      add :user_name, :string
-      add :password_hash, :string
-
-      timestamps()
-    end
-
-    create unique_index(:users, [:user_name])
-
   end
 end

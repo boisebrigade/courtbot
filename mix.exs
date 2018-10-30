@@ -49,13 +49,7 @@ defmodule ExCourtbot.Mixfile do
       {:timex, "~> 3.1"},
       {:ex_twilio, "~> 0.6.0", runtime: false},
       {:ex_twiml, "~> 2.1.3"},
-      {:absinthe, "~> 1.4"},
-      {:guardian, "~> 0.14"},
-      {:comeonin, "~> 4.0"},
       {:rollbax, ">= 0.0.0", runtime: false},
-      {:bcrypt_elixir, "~> 0.12.0"},
-      {:absinthe_relay, "~> 1.4"},
-      {:absinthe_plug, "~> 1.4"},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 0.6", only: [:dev, :test], runtime: false},
@@ -71,14 +65,10 @@ defmodule ExCourtbot.Mixfile do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", &setup_npm/0],
+      setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate", "test"]
     ]
-  end
-
-  defp setup_npm() do
-    System.cmd("npm", ["install"], cd: "assets")
   end
 end

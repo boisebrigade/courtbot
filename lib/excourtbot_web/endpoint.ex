@@ -1,16 +1,6 @@
 defmodule ExCourtbotWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :excourtbot
 
-  # Serve at "/" the static files from "priv/static" directory.
-  plug(
-    Plug.Static,
-    at: "/",
-    from: :excourtbot,
-    gzip: false,
-    only:
-      ~w(index.html favicon.ico robots.txt index.js styles.css courtbot.png favicon.png tachyons.min.css question-solid.svg)
-  )
-
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
   if code_reloading? do

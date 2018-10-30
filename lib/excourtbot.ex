@@ -48,8 +48,6 @@ defmodule ExCourtbot do
 
   end
 
-#  def import(), do: import(get_import_configuration())
-
   def import(%{kind: kind, origin: origin, source: source, fields: fields, settings: settings}) do
     Logger.info("Starting import")
 
