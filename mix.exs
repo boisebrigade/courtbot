@@ -34,7 +34,6 @@ defmodule ExCourtbot.Mixfile do
   defp deps do
     [
       {:phoenix, "~> 1.3.2"},
-      {:phoenix_pubsub, "~> 1.0"},
       {:ecto, "~> 3.0-pre", override: true},
       {:ecto_sql, "~> 3.0-pre"},
       {:phoenix_ecto, "~> 3.5"},
