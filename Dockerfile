@@ -5,9 +5,8 @@ ENV MIX_ENV ${MIX_ENV}
 
 WORKDIR /opt/app
 
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash -
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install build-essential erlang-dev nodejs -y
+RUN apt-get install build-essential erlang-dev -y
 
 RUN mix local.rebar --force
 RUN mix local.hex --force
