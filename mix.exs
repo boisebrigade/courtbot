@@ -35,8 +35,10 @@ defmodule ExCourtbot.Mixfile do
     [
       {:phoenix, "~> 1.3.2"},
       {:phoenix_pubsub, "~> 1.0"},
-      {:phoenix_ecto, "~> 3.2"},
-      {:postgrex, ">= 0.0.0"},
+      {:ecto, "~> 3.0-pre", override: true},
+      {:ecto_sql, "~> 3.0-pre"},
+      {:phoenix_ecto, "~> 3.5"},
+      {:postgrex, ">= 0.0.0-pre"},
       {:cloak, "~> 0.7.0"},
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
