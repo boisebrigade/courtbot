@@ -52,6 +52,10 @@ release :excourtbot do
     ]
   )
 
+  set overlays: [
+    {:copy, "rel/config/courtbot.exs", "etc/courtbot.exs"}
+  ]
+
   set(
     applications: [
       :runtime_tools

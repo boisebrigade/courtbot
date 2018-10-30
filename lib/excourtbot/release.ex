@@ -3,7 +3,7 @@ defmodule ExCourtbot.ReleaseTasks do
     :crypto,
     :ssl,
     :postgrex,
-    :ecto,
+    :ecto_sql,
     :timex
   ]
 
@@ -40,7 +40,7 @@ defmodule ExCourtbot.ReleaseTasks do
 
     # Start the Repo(s) for app
     IO.puts("Starting repos..")
-    Enum.each(@repos, & &1.start_link(pool_size: 1))
+    Enum.each(@repos, & &1.start_link(pool_size: 2))
   end
 
   defp stop_services do
