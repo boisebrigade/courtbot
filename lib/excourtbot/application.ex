@@ -14,6 +14,8 @@ defmodule ExCourtbot.Application do
       supervisor(ExCourtbotWeb.Endpoint, [])
     ]
 
+    # TODO(ts): Add rollbax and ex_twilio if we have their configuration
+
     # Grab our scheduled times and append them to our children if they are defined.
     scheduled =
       Application.get_env(:excourtbot, ExCourtbot, %{})

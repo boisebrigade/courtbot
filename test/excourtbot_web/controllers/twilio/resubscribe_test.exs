@@ -29,7 +29,7 @@ defmodule ExCourtbotWeb.TwilioResubscribeTest do
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,
       case_id: @case_id,
-      time: ~T[09:00:00.000],
+      time: ~T[09:00:00],
       date: Date.utc_today()
     })
     |> Multi.insert(

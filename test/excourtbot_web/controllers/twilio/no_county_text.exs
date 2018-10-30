@@ -6,6 +6,30 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
   alias ExCourtbot.{Case, Hearing, Repo}
   alias ExCourtbotWeb.{Response, Twiml}
 
+  @boise_import_config [
+    importer: %{
+      file: Path.expand("../../../data/boise.csv", __DIR__),
+      type:
+        {:csv,
+        [
+          {:has_headers, true},
+          {:field_mapping,
+            [
+              :case_number,
+              :last_name,
+              :first_name,
+              nil,
+              nil,
+              nil,
+              {:date, "%-m/%e/%Y"},
+              {:time, "%k:%M"},
+              nil,
+              :county
+            ]}
+        ]}
+    }
+  ]
+
   @case_id Ecto.UUID.generate()
   @case_two_id Ecto.UUID.generate()
 
@@ -89,7 +113,7 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
 
     message =
       Response.message(:hearing_details, params) <>
-        " " <> Response.message(:prompt_reminder, params)
+      " " <> Response.message(:prompt_reminder, params)
 
     assert county_conn.status === 200
 
@@ -121,7 +145,7 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
 
     message =
       Response.message(:hearing_details, params) <>
-        " " <> Response.message(:prompt_reminder, params)
+      " " <> Response.message(:prompt_reminder, params)
 
     assert county_conn.status === 200
 
@@ -149,5 +173,13 @@ defmodule ExCourtbotWeb.TwilioCountyTest do
     assert county_conn.status === 200
 
     assert county_conn.resp_body === Twiml.sms(message)
+  end
+
+  test "if there is no counties mapped then you do not get prompted" do
+
+  end
+
+  test "if there are counties mapped then you get prompted for county" do
+
   end
 end

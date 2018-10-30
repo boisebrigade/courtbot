@@ -20,7 +20,7 @@ defmodule ExCourtbotWeb.TwilioRemindTest do
 
   @locale "en"
 
-  @time ~T[09:00:00.000]
+  @time ~T[09:00:00]
   @date Date.utc_today()
 
   setup do

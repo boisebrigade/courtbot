@@ -12,8 +12,8 @@ defmodule ExCourtbot do
 
   require Logger
 
-  def import do
-    # Fetch configuration from the database.
+  def get_import_configuration() do
+    # Fetch configuration from the database. Database configuration takes priority over file.
     database_config =
       Configuration.get([
         "import_kind",
@@ -21,65 +21,75 @@ defmodule ExCourtbot do
         "import_source"
       ])
 
+    # We need to check if we have a configured importer from the database.
+    case database_config do
+      # We have at least the type configured, lets march on and see if we have enough.
+      %{import_kind: kind} when kind == "CSV" or kind == "JSON" ->
+        database_config(database_config)
+
+      # We do not have database configuration, perhaps our configuration is in mix config.
+      %{import_kind: kind} when kind == "" ->
+        import_config =
+          Application.get_env(:excourtbot, ExCourtbot, %{})
+          |> Map.new()
+          |> Map.take([:importer])
+
+        # Nope, no configuration.
+        if import_config == %{} do
+          # TODO(ts): Add a perma link to documentation.
+          raise "Importer must be configured, see documentation for configuration options"
+        end
+
+        mix_config(import_config)
+
+      _ ->
+        raise "Unsupported import type"
+    end
+
+  end
+
+#  def import(), do: import(get_import_configuration())
+
+  def import(%{kind: kind, origin: origin, source: source, fields: fields, settings: settings}) do
     Logger.info("Starting import")
 
-    Logger.info("Creating backup hearings table")
-
-    backup_hearings()
-
-    # We need to check if we have a configured importer from the database.
-    imported =
-      case database_config do
-        # We have at least the type configured, lets march on and see if we have enough.
-        %{import_kind: kind} when kind == "CSV" or kind == "JSON" ->
-          import_from_database_config(database_config)
-
-        # We do not have database configuration, perhaps our configuration is in mix config.
-        %{import_kind: kind} when kind == "" ->
-          import_config =
-            Application.get_env(:excourtbot, ExCourtbot, %{})
-            |> Map.new()
-            |> Map.take([:importer])
-
-          # Nope, no configuration.
-          if import_config == %{} do
-            # TODO(ts): Add a perma link to documentation.
-            raise "Importer must be configured, see documentation for configuration options"
-          end
-
-          import_from_mix_config(import_config)
-
-        _ ->
-          raise "Unsupported import type"
+    data =
+      case origin do
+        :file -> File.stream!(source)
+        :url -> request(source)
+        _ -> raise "Unsupported import origin: #{origin}"
       end
 
-    Logger.info("Cleaning up hearing data")
 
-    replace_hearings()
+    backup_and_truncate_hearings()
+
+    imported =
+      run_import(
+        :csv,
+        data,
+        delimiter: settings.delimiter,
+        has_headers: settings.has_headers,
+        field_mapping: fields
+      )
 
     Logger.info("Finished Import")
 
     imported
   end
 
-  defp import_from_database_config(%{
+
+  def database_config(%{
          import_kind: "JSON",
          import_origin: _origin,
          import_source: _source
        }),
        do: Logger.error("Not implemented yet")
 
-  defp import_from_database_config(%{
+  def database_config(%{
          import_kind: "CSV",
          import_origin: origin,
          import_source: source
        }) do
-    data =
-      case origin do
-        "FILE" -> File.stream!(source)
-        "URL" -> request(source)
-        _ -> raise "Unsupported import origin: #{origin}"
-      end
 
     field_mapping =
       Importer.mapped()
@@ -98,70 +108,101 @@ defmodule ExCourtbot do
         [mapping | acc]
       end)
 
-    # FIXME(ts): Default these?
     %{
       import_delimiter: delimiter,
-      import_has_headers: has_headings
+      import_has_headers: has_headers
     } =
       Configuration.get([
         "import_delimiter",
         "import_has_headers"
       ])
 
-    run_import(
-      :csv,
-      data,
-      delimiter: delimiter,
-      has_headings: has_headings,
-      field_mapping: field_mapping
-    )
+    origin = case origin do
+      "URL" -> :url
+      "FILE" -> :file
+    end
+
+    delimiter = case delimiter do
+      "" -> ?,
+      delimiter -> ?,
+    end
+
+    has_headers = case has_headers do
+      "" -> false
+      has_headers -> String.to_existing_atom(has_headers)
+    end
+
+    %{
+      kind: :csv,
+      origin: origin,
+      source: source,
+      settings: %{
+        has_headers: has_headers,
+        delimiter: delimiter,
+      },
+      fields: field_mapping
+    }
   end
 
   # TODO(ts): Implement
-  defp import_from_mix_config(%{importer: %{url: _url, type: {:json, _importer_config}}}),
+  def mix_config(%{importer: %{url: _url, type: {:json, _importer_config}}}),
     do: Logger.error("Not implemented yet")
 
-  # FIXME(ts): Reintroduce functions as URL's or implement variable substitution.
-  defp import_from_mix_config(%{importer: %{url: url, type: {type, importer_config}}}),
-    do: run_import(type, request(url), format_importer_config(importer_config))
 
-  defp import_from_mix_config(%{importer: %{file: file, type: {type, importer_config}}}),
-    do: run_import(type, File.stream!(file), format_importer_config(importer_config))
+  def mix_config(%{importer: %{type: {type, importer_config}} = config}) do
+    default = %{
+      has_headers: false,
+      delimiter: ?,
+    }
+
+    # FIXME(ts): Reintroduce functions as URL's or implement variable substitution.
+    {origin, source} = case config do
+      %{file: src} -> {:file, src}
+      %{url: src} -> {:url, src}
+    end
+
+    settings = importer_config |> Keyword.take([:delimiter, :has_headers]) |> Enum.into(%{})
+    settings = Map.merge(default, settings)
+
+    fields = format_importer_config(importer_config)
+
+    %{
+      kind: type,
+      origin: origin,
+      source: source,
+      fields: fields,
+      settings: settings
+    }
+  end
 
   defp format_importer_config(config) do
-    {_, configuration} =
-      Keyword.get_and_update!(config, :field_mapping, fn field_mapping ->
-        mapping =
-          field_mapping
-          |> Enum.with_index(1)
-          |> Enum.map(fn
-            {{destination, format}, index} ->
-              if destination == :date or destination == :time or destination == :date_and_time do
-                %{
-                  destination: destination,
-                  format: format,
-                  index: index,
-                  kind: "date",
-                  pointer: nil
-                }
-              else
-                %{
-                  destination: destination,
-                  format: format,
-                  index: index,
-                  kind: "type",
-                  pointer: nil
-                }
-              end
+    field_mapping = Keyword.take(config, [:field_mapping])
 
-            {destination, index} ->
-              %{destination: destination, format: nil, index: index, kind: "string", pointer: nil}
-          end)
+    field_mapping[:field_mapping]
+    |> Enum.with_index(1)
+    |> Enum.map(fn
+      {{destination, format}, index} ->
+        if destination == :date or destination == :time or destination == :date_and_time do
+          %{
+            destination: destination,
+            format: format,
+            index: index,
+            kind: "date",
+            pointer: nil
+          }
+        else
+          %{
+            destination: destination,
+            format: format,
+            index: index,
+            kind: "type",
+            pointer: nil
+          }
+        end
 
-        {field_mapping, mapping}
-      end)
-
-    configuration
+      {destination, index} ->
+        %{destination: destination, format: nil, index: index, kind: "string", pointer: nil}
+    end)
   end
 
   defp run_import(:csv, data, importer_config),
@@ -211,7 +252,9 @@ defmodule ExCourtbot do
     Logger.info("Finished notifications")
   end
 
-  defp backup_hearings do
+  defp backup_and_truncate_hearings do
+    Logger.info("Creating backup hearings table")
+
     backup_table =
       "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
 
@@ -219,10 +262,12 @@ defmodule ExCourtbot do
     Repo.query("DROP TABLE IF EXISTS #{backup_table}", [])
 
     # Create a new backup table based upon the current hearings table.
-    Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings", [])
+    Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings;", [])
+
+    Repo.query("TRUNCATE hearings;", [])
   end
 
-  defp replace_hearings do
+  def restore_hearings do
     backup_table =
       "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
 
@@ -247,6 +292,46 @@ defmodule ExCourtbot do
 
       {:error, err} ->
         Logger.error("Unable to fetch #{url} because of: #{err}")
+    end
+  end
+
+
+  def test_import(kind, origin, source) do
+    data = case origin do
+      :file -> File.stream!(source)
+      :url -> request(source)
+      _ -> Logger.error("Origin not supported")
+    end
+
+    # TODO(ts): Test URL -> CSV
+    case kind do
+      :csv ->
+        [headers] = Stream.take(data, 1) |> Enum.to_list()
+        headers |> String.replace("\n", "") |> String.split(",")
+     :json -> Logger.error("Has not been implemented")
+      _ -> Logger.error("Type #{kind} not supported")
+    end
+  end
+
+  def has_mapped_county() do
+    case get_import_configuration() do
+      %{fields: fields} ->
+          case Enum.find(fields, fn field -> field[:destination] == :county end) do
+            field when is_map(field) -> true
+            _ -> false
+          end
+      _ -> false
+    end
+  end
+
+  def has_mapped_type() do
+    case get_import_configuration() do
+      %{fields: fields} ->
+        case Enum.find(fields, fn field -> field[:destination] == :type end) do
+          field when is_map(field) -> true
+          _ -> false
+        end
+      _ -> false
     end
   end
 end
