@@ -15,6 +15,5 @@ config :logger, level: :warn
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
   load_from_system_env: true,
-  adapter: Ecto.Adapters.Postgres,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10

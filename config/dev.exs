@@ -11,24 +11,7 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
   http: [port: 4000],
   debug_errors: true,
   code_reloader: true,
-  check_origin: false,
-  watchers: [
-    npm: [
-      "run",
-      "start",
-      cd: Path.expand("../assets", __DIR__)
-    ],
-    npm: [
-      "run",
-      "webpack",
-      cd: Path.expand("../assets", __DIR__)
-    ]
-  ],
-  live_reload: [
-    patterns: [
-      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$}
-    ]
-  ]
+  check_origin: false
 
 # ## SSL Support
 #
@@ -56,5 +39,4 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
   load_from_system_env: true,
-  adapter: Ecto.Adapters.Postgres,
   pool_size: 10
