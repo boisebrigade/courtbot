@@ -1,6 +1,5 @@
 type kinds =
-  | CSV
-  | JSON;
+  | CSV;
 
 type origins =
   | URL
@@ -10,6 +9,7 @@ type importer = {
   kind: kinds,
   origin: origins,
   source: string,
+  headers: option(array(string)),
   fields: option(array(Fields.field)),
 };
 
@@ -47,7 +47,6 @@ type format =
 let toKind = kind =>
   switch (kind) {
   | "CSV" => CSV
-  | "JSON" => JSON
   | _ => CSV
   };
 
@@ -86,6 +85,7 @@ module GetImporter = [%graphql
         kind @bsDecoder(fn: "toKind")
         origin @bsDecoder(fn: "toOrigin")
         source
+        headers
         fields {
           index
           pointer
@@ -99,6 +99,24 @@ module GetImporter = [%graphql
 ];
 
 module GetImporterQuery = ReasonApollo.CreateQuery(GetImporter);
+
+module SetConfiguration = [%graphql
+  {|
+    mutation SetConfiguration($twilioSid: String!, $twilioToken: String!, $rollbarToken: String!, $importTime: String!, $notificationTime: String!, $timezone: String!, $courtUrl: String!) {
+      setConfiguration(input: {twilioSid: $twilioSid, twilioToken: $twilioToken, rollbarToken: $rollbarToken, importTime: $importTime, notificationTime: $notificationTime, timezone: $timezone, courtUrl: $courtUrl}) {
+        twilioSid
+        twilioToken
+        rollbarToken
+        importTime
+        notificationTime
+        timezone
+        courtUrl
+      }
+    }
+  |}
+];
+
+module SetConfigurationMutation = ReasonApollo.CreateMutation(SetConfiguration);
 
 module Destination = {
   let component = ReasonReact.statelessComponent(__MODULE__);
@@ -251,19 +269,6 @@ module Configuration = {
               <label className="pl2" htmlFor="csv"> {ReasonReact.string("CSV")} </label>
             </div>
           </div>
-          <div>
-            <div>
-              <input
-                type_="radio"
-                id="json"
-                name="data_type"
-                disabled=true
-                checked={self.state.dataKind == JSON}
-                onChange={_e => self.send(UpdateType(JSON))}
-              />
-              <label className="pl2" htmlFor="json"> {ReasonReact.string("JSON")} </label>
-            </div>
-          </div>
         </Setting>
         <Setting title="Data Origin" help="/">
           <div>
@@ -319,7 +324,6 @@ module Settings = {
       </Setting>,
   };
 };
-
 let component = ReasonReact.statelessComponent(__MODULE__);
 
 let make = _children => {
@@ -335,12 +339,17 @@ let make = _children => {
                | Error(_error) => <div> {ReasonReact.string("Error")} </div>
                | Data(data) =>
                  switch (data##importer) {
-                 | Some({origin, kind, source, fields}) =>
+                 | Some({origin, kind, source, fields, headers}) =>
                    <form>
                      <Configuration kind origin source />
                      <Settings kind origin />
+                     {
+                       switch (headers) {
+                       | Some(_headers) => <FieldMapper fields />
+                       | None => ReasonReact.null
+                       }
+                     }
                      <input type_="submit" className="db mt3 ml3" name="submit" value="Test Import" id="submit" />
-                     <FieldMapper fields />
                      <input type_="submit" className="db mt3 ml3" name="submit" value="Save" id="submit" />
                    </form>
                  | None => ReasonReact.null

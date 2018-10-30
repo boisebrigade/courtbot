@@ -2,8 +2,6 @@ type route =
   | Dashboard
   | Configuration
   | Importer
-  | Stats
-  | Account
   | NotFound;
 
 type state = {
@@ -20,8 +18,6 @@ let mapPathToRoute = (url: ReasonReact.Router.url) =>
   | [] => Dashboard
   | ["configuration"] => Configuration
   | ["importer"] => Importer
-  | ["account"] => Account
-  | ["stats"] => Stats
   | _ => NotFound
   };
 
@@ -29,7 +25,7 @@ let component = ReasonReact.reducerComponent(__MODULE__);
 
 let make = _children => {
   ...component,
-  initialState: () => {route: mapPathToRoute(ReasonReact.Router.dangerouslyGetInitialUrl()), needsLogin: true},
+  initialState: () => {route: mapPathToRoute(ReasonReact.Router.dangerouslyGetInitialUrl()), needsLogin: false},
   didMount: self => {
     let watcherId = ReasonReact.Router.watchUrl(url => self.send(ChangeRoute(url |> mapPathToRoute)));
 
@@ -54,10 +50,8 @@ let make = _children => {
             {
               switch (self.state.route) {
               | Dashboard => <Dashboard />
-              | Configuration => <ConfigurationInit />
+              | Configuration => <Configuration />
               | Importer => <Importer />
-              | Account => <Account />
-              | Stats => <Stats />
               | _ => <NotFound />
               }
             }

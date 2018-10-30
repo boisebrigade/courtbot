@@ -1,13 +1,14 @@
 module GetDashboard = [%graphql
   {|
-      query DashboardQuery {
-        configuration {
-          twilioSid,
-          twilioToken,
-          rollbarToken
-        }
+    query DashboardQuery {
+      dashboard {
+        twilio
+        rollbar
+        locales
+        importer
       }
-    |}
+    }
+  |}
 ];
 
 module GetDashboardQuery = ReasonApollo.CreateQuery(GetDashboard);

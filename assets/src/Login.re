@@ -75,8 +75,6 @@ let make = (~successfulLogin, _children) => {
                        let userLogin =
                          UserLogin.make(~username=self.state.username, ~password=self.state.password, ());
 
-                       userLogin |> Js.log;
-
                        mutation(~variables=userLogin##variables, ()) |> ignore;
                      }
                    }>

@@ -46,7 +46,7 @@ defmodule ExCourtbotWeb.TwilioController do
 
     # Add our defaults, SMS details, and santized message.
     request =
-      Enum.reduce([@request_defaults, params, session, %{"message" => message}], &Map.merge/2)
+      Enum.reduce([@request_defaults, params, session, %{"message" => message, "always_prompt_county" => ExCourtbot.has_mapped_county()}], &Map.merge/2)
 
     cond do
       # If the user wants to unsubscribe handle that up front.
@@ -82,8 +82,9 @@ defmodule ExCourtbotWeb.TwilioController do
         |> configure_session(drop: true)
         |> encode(response)
 
-      # Begin the user journey
+
       true ->
+        # Begin the response state machine
         respond(conn, request)
     end
   end

@@ -1,7 +1,7 @@
 defmodule ExCourtbot.Resolver.Importer do
   alias ExCourtbot.{Configuration, Repo, Importer}
 
-  def get_conf(_, _, %{context: %{current_user: _user}}) do
+  def get(_, _, %{context: %{current_user: _user}}) do
     config =
       Configuration.get([
         "import_kind",
@@ -9,15 +9,32 @@ defmodule ExCourtbot.Resolver.Importer do
         "import_source"
       ])
 
-    {:ok, config}
+
+    fields =
+      Importer.mapped()
+      |> Enum.reduce([], fn field, acc ->
+        mapping = Map.take(field, [:index, :pointer, :destination, :kind, :format, :order])
+
+        [mapping | acc]
+      end)
+      |> Enum.sort(&(&1.index < &2.index))
+
+
+    {:ok, %{
+      kind: config.import_kind,
+      origin: config.import_origin,
+      source: config.import_source,
+      fields: fields
+      }
+    }
   end
 
-  def get_conf(_, _, _) do
+  def get(_, _, _) do
     {:error, "Requires authentication"}
   end
 
-  def edit_conf(
-        %{kind: import_kind, origin: import_origin, source: import_source},
+  def edit(
+        %{kind: import_kind, origin: import_origin, source: import_source, fields: fields},
         %{context: %{current_user: _user}}
       ) do
     # TODO(ts): Validate kind, origin, and source
@@ -55,52 +72,14 @@ defmodule ExCourtbot.Resolver.Importer do
      ]}
   end
 
-  def get_fields(_, _, %{context: %{current_user: _user}}) do
-    fields =
-      Importer.mapped()
-      |> Enum.reduce([], fn field, acc ->
-        mapping = Map.take(field, [:index, :pointer, :destination, :kind, :format, :order])
-
-        [mapping | acc]
-      end)
-
-    {:ok,
-     %{
-       fields: fields
-     }}
-  end
-
-  def get_fields(_, _, _) do
+  def edit(_, _, _) do
     {:error, "Requires authentication"}
   end
 
-  # FIXME(ts): Check if both pointer and index exist and err out
-  def edit_field(
-        %{
-          index: _index,
-          pointer: _pointer,
-          destination: _destination,
-          kind: _kind,
-          format: _format,
-          order: _order
-        } = params,
-        %{context: %{current_user: _user}}
-      ) do
-    case Repo.insert(Importer.changeset(%Importer{}, params)) do
-      %Importer{} = field ->
-        {:ok,
-         %{
-           fields: [
-             field
-           ]
-         }}
+  def test(%{kind: kind, origin: origin, source: source} = input, %{context: %{current_user: _user}}) do
+    # TODO(ts): Error handling
 
-      _ ->
-        {:error, "Unable to create import field"}
-    end
-  end
-
-  def test(_, _) do
-    {:ok, %{}}
+    headers = ExCourtbot.test_import(kind, origin, source)
+    {:ok, %{headers: headers}}
   end
 end

@@ -27,12 +27,29 @@ defmodule ExCourtbot.Schema do
     field(:notification_time, non_null(:string))
 
     field(:timezone, non_null(:string))
+
+    field(:court_url, non_null(:string))
   end
 
-  node object(:importer_conf) do
+  object(:csv) do
+    field(:has_headers, :boolean)
+    field(:delimiter, :string)
+  end
+
+  union :settings do
+    types [:csv]
+    resolve_type fn
+      _, _ -> :csv
+    end
+  end
+
+  node object(:importer) do
     field(:kind, non_null(:string))
     field(:origin, non_null(:string))
     field(:source, non_null(:string))
+    field(:settings, :settings)
+    field(:headers, list_of(non_null(:string)))
+    field(:fields, list_of(non_null(:field)))
   end
 
   object(:field) do
@@ -41,11 +58,15 @@ defmodule ExCourtbot.Schema do
     field(:destination, :string)
     field(:kind, :string)
     field(:format, :string)
-    field(:order, :integer)
   end
 
-  node object(:importer_field) do
-    field(:fields, non_null(list_of(:field)))
+
+  input_object(:input_field) do
+    field(:index, :integer)
+    field(:pointer, non_null(:string))
+    field(:destination, :string)
+    field(:kind, non_null(:string))
+    field(:format, non_null(:string))
   end
 
   query do
@@ -57,12 +78,8 @@ defmodule ExCourtbot.Schema do
       resolve(&ExCourtbot.Resolver.Configuration.get/3)
     end
 
-    field :importer_configuration, :importer_conf do
-      resolve(&ExCourtbot.Resolver.Importer.get_conf/3)
-    end
-
-    field :importer_fields, :importer_field do
-      resolve(&ExCourtbot.Resolver.Importer.get_fields/3)
+    field :importer, :importer do
+      resolve(&ExCourtbot.Resolver.Importer.get/3)
     end
   end
 
@@ -101,6 +118,13 @@ defmodule ExCourtbot.Schema do
         field(:twilio_token, non_null(:string))
 
         field(:rollbar_token, non_null(:string))
+
+        field(:import_time, non_null(:string))
+        field(:notification_time, non_null(:string))
+
+        field(:timezone, non_null(:string))
+
+        field(:court_url, non_null(:string))
       end
 
       output do
@@ -108,12 +132,19 @@ defmodule ExCourtbot.Schema do
         field(:twilio_token, non_null(:string))
 
         field(:rollbar_token, non_null(:string))
+
+        field(:import_time, non_null(:string))
+        field(:notification_time, non_null(:string))
+
+        field(:timezone, non_null(:string))
+
+        field(:court_url, non_null(:string))
       end
 
       resolve(&ExCourtbot.Resolver.Configuration.edit/2)
     end
 
-    payload field(:set_importer_configuration) do
+    payload field(:set_importer) do
       input do
         field(:kind, non_null(:string))
         field(:origin, non_null(:string))
@@ -125,32 +156,21 @@ defmodule ExCourtbot.Schema do
         field(:fields, :string)
       end
 
-      resolve(&ExCourtbot.Resolver.Importer.edit_conf/2)
-    end
-
-    payload field(:set_importer_field) do
-      input do
-        field(:index, :integer)
-        field(:pointer, :string)
-        field(:destination, :string)
-        field(:kind, :string)
-        field(:format, :string)
-      end
-
-      output do
-        field(:fields, non_null(list_of(:field)))
-      end
-
-      resolve(&ExCourtbot.Resolver.Importer.edit_field/2)
+      resolve(&ExCourtbot.Resolver.Importer.edit/2)
     end
 
     payload field(:test_import) do
-      output do
-        field(:kind, :string)
-        field(:origin, :string)
-        field(:source, :string)
-        field(:rows, list_of(:string))
+      input do
+        field(:kind, non_null(:string))
+        field(:origin, non_null(:string))
+        field(:source, non_null(:string))
       end
+
+      output do
+        field(:headers, list_of(non_null(:string)))
+      end
+
+      resolve(&ExCourtbot.Resolver.Importer.test/2)
     end
   end
 end
