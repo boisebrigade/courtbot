@@ -38,15 +38,15 @@ defmodule ExCourtbotWeb.TwilioController do
   def sms(conn, params = %{"From" => phone_number, "Body" => body}) do
     %Plug.Conn{private: %{plug_session: session}} = conn
 
-    # Preprocess our SMS message to make it a bit friendier to use.
+    # Preprocess our SMS message to make it a bit friendlier to use.
     message =
       body
       |> String.trim()
       |> String.downcase()
 
-    # Add our defaults, SMS details, and santized message.
+    # Add our defaults, SMS details, and sanitized message.
     request =
-      Enum.reduce([@request_defaults, params, session, %{"message" => message, "always_prompt_county" => ExCourtbot.has_mapped_county()}], &Map.merge/2)
+      Enum.reduce([@request_defaults, params, session, %{"message" => message}], &Map.merge/2)
 
     cond do
       # If the user wants to unsubscribe handle that up front.
@@ -55,7 +55,7 @@ defmodule ExCourtbotWeb.TwilioController do
 
         subscriptions = Repo.all(Subscriber.find_by_number(phone_number))
 
-        # User shouldn't recieve this message as Twilio would have blocked the response but try and send it anyway.
+        # User shouldn't receive this message as Twilio would have blocked the response but try and send it anyway.
         response =
           if Enum.empty?(subscriptions) do
             Logger.info(log_safe_phone_number(phone_number) <> ": user had no subscriptions")
