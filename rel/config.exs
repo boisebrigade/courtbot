@@ -52,8 +52,6 @@ release :excourtbot do
     ]
   )
 
-  set(overlays: [{:copy, "priv", "excourtbot"}])
-
   set(
     applications: [
       :runtime_tools

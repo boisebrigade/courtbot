@@ -48,7 +48,7 @@ defmodule ExCourtbot do
 
   end
 
-  def import(%{kind: kind, origin: origin, source: source, fields: fields, settings: settings}) do
+  def import(%{kind: _kind, origin: origin, source: source, fields: fields, settings: settings}) do
     Logger.info("Starting import")
 
     data =
