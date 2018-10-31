@@ -7,6 +7,9 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
   http: [port: 4001],
   server: false
 
+config :rollbax,
+  enabled: false
+
 config :tesla, MyApi, adapter: Tesla.Mock
 
 # Print only warnings and errors during test
