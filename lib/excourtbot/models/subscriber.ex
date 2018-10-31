@@ -68,6 +68,7 @@ defmodule ExCourtbot.Subscriber do
   end
 
   def all_pending_notifications() do
+    # FIXME(ts): Figure out best way to determine timezone in this context.
     today = Date.utc_today()
     tomorrow = Date.add(today, 1)
 
