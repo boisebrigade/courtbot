@@ -243,8 +243,11 @@ defmodule ExCourtbot do
             |> Notification.changeset(%{subscriber_id: subscriber_id})
             |> Repo.insert()
 
+          {:error, message, error_code} ->
+            Logger.error("Failed to send notification because:" <> message <> " with code " <> Integer.to_string(error_code))
+
           {:error, message} ->
-            Logger.error(message)
+            Logger.error("Failed to send notification because:" <> message)
         end
       end
     )
