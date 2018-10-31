@@ -27,7 +27,6 @@ config :rollbax,
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
   load_from_system_env: true,
-  adapter: Ecto.Adapters.Postgres,
   pool_size: 10,
   ssl: true
 

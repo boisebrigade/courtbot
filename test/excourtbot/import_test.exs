@@ -1,17 +1,14 @@
 defmodule ExCourtbot.ImportTest do
   use ExCourtbot.DataCase, asyc: true
 
-  @boise_import_config [
-    types: %{
-      "Criminal" => ~r/^[A-Z]{2}\d{0,2}?-\d{2,4}-\d{2,}/
-    },
+  @boise_import_config %{
     importer: %{
       file: Path.expand("../data/boise.csv", __DIR__),
       type:
         {:csv,
          [
            {:has_headers, true},
-           {:headers,
+           {:field_mapping,
             [
               :case_number,
               :last_name,
@@ -26,9 +23,9 @@ defmodule ExCourtbot.ImportTest do
             ]}
          ]}
     }
-  ]
+  }
 
-  @anchorage_import_config [
+  @anchorage_import_config %{
     importer: %{
       file: Path.expand("../data/anchorage.csv", __DIR__),
       type:
@@ -36,7 +33,7 @@ defmodule ExCourtbot.ImportTest do
          [
            {:has_headers, false},
            {
-             :headers,
+             :field_mapping,
              [
                {:date, "%-m/%e/%Y"},
                :last_name,
@@ -52,16 +49,16 @@ defmodule ExCourtbot.ImportTest do
            }
          ]}
     }
-  ]
+  }
 
-  @atlanta_import_config [
+  @atlanta_import_config %{
     importer: %{
       file: Path.expand("../data/atlanta.csv", __DIR__),
       type:
         {:csv,
          [
            {:has_headers, true},
-           {:headers,
+           {:field_mapping,
             [
               {:date, "%-m/%e/%Y"},
               nil,
@@ -76,7 +73,7 @@ defmodule ExCourtbot.ImportTest do
            {:delimiter, ?|}
          ]}
     }
-  ]
+  }
 
   def count_fails(records) do
     records
@@ -86,36 +83,34 @@ defmodule ExCourtbot.ImportTest do
     end)
   end
 
-  test "imports Anchorage data" do
-    Application.put_env(:excourtbot, ExCourtbot, @anchorage_import_config)
+  test "imports Anchorage data from mix config" do
+    config = ExCourtbot.mix_config(@anchorage_import_config)
 
-    records = ExCourtbot.import()
-
-    assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
-
-    Application.delete_env(:excourtbot, ExCourtbot.Import)
-  end
-
-  test "imports Atlanta data" do
-    Application.put_env(:excourtbot, ExCourtbot, @atlanta_import_config)
-
-    records = ExCourtbot.import()
+    records = ExCourtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
-
-    Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
-  test "imports Boise data" do
-    Application.put_env(:excourtbot, ExCourtbot, @boise_import_config)
+  test "imports Atlanta data from mix config" do
+    config = ExCourtbot.mix_config(@atlanta_import_config)
 
-    records = ExCourtbot.import()
+    records = ExCourtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
-
-    Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
+  test "imports Boise data from mix config" do
+    config = ExCourtbot.mix_config(@boise_import_config)
+
+    records = ExCourtbot.import(config)
+
+    assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
+  end
+
+  # TODO(ts): Property test input data
+  # TODO(ts): Verify data is inserted correctly based upon the configured input
+  # TODO(ts): Test that types and county apply
   # TODO(ts): Add tests for url sources
-  # TODO(ts): Add tests for reoccuring imports
+  # TODO(ts): Add tests for reoccurring imports
+  # TODO(ts): Add tests for DB configuration
 end

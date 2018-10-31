@@ -56,7 +56,6 @@ defmodule ExCourtbot.Repo.Migrations.CreateInitial do
     create table(:notifications, primary_key: false) do
       add :id, :uuid, primary_key: true
       add :subscriber_id, references(:subscribers, type: :uuid)
-      add :hearing_id, references(:hearings, type: :uuid)
 
       timestamps()
     end

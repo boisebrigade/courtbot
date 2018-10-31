@@ -7,6 +7,9 @@ config :excourtbot, ExCourtbotWeb.Endpoint,
   http: [port: 4001],
   server: false
 
+config :rollbax,
+  enabled: false
+
 config :tesla, MyApi, adapter: Tesla.Mock
 
 # Print only warnings and errors during test
@@ -15,6 +18,5 @@ config :logger, level: :warn
 # Configure your database
 config :excourtbot, ExCourtbot.Repo,
   load_from_system_env: true,
-  adapter: Ecto.Adapters.Postgres,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10

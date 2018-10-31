@@ -4,8 +4,8 @@ defmodule ExCourtbot.Mixfile do
   def project do
     [
       app: :excourtbot,
-      version: "0.0.1",
-      elixir: "~> 1.6",
+      version: "0.2.0",
+      elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -20,7 +20,7 @@ defmodule ExCourtbot.Mixfile do
   def application do
     [
       mod: {ExCourtbot.Application, []},
-      extra_applications: [:logger, :runtime_tools, :ex_twilio, :httpoison]
+      extra_applications: [:logger, :runtime_tools]
     ]
   end
 
@@ -33,20 +33,22 @@ defmodule ExCourtbot.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.3.2"},
-      {:phoenix_pubsub, "~> 1.0"},
-      {:phoenix_ecto, "~> 3.2"},
+      {:phoenix, "~> 1.4-pre", override: true},
+      {:ecto, "~> 3.0-pre", override: true},
+      {:ecto_sql, "~> 3.0-pre"},
+      {:phoenix_ecto, "~> 4.0"},
       {:postgrex, ">= 0.0.0"},
       {:cloak, "~> 0.7.0"},
       {:gettext, "~> 0.11"},
-      {:cowboy, "~> 1.0"},
       {:csv, "~> 2.0.0"},
       {:aes256, "~> 0.5.0"},
       {:sched_ex, "~> 1.0"},
       {:tesla, "~> 1.0.0"},
       {:timex, "~> 3.1"},
-      {:ex_twilio, "~> 0.6.0"},
+      {:plug_cowboy, "~> 2.0"},
+      {:ex_twilio, "~> 0.6.0", runtime: false},
       {:ex_twiml, "~> 2.1.3"},
+      {:rollbax, ">= 0.0.0"},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 0.6", only: [:dev, :test], runtime: false},
@@ -62,6 +64,7 @@ defmodule ExCourtbot.Mixfile do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
+      setup: ["deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate", "test"]

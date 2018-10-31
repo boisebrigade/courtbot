@@ -1,76 +1,215 @@
 defmodule ExCourtbot do
-  alias ExCourtbot.{Csv, Repo, Subscriber, Notification}
+  alias ExCourtbot.{
+    Csv,
+    Repo,
+    Subscriber,
+    Notification,
+    Configuration,
+    Importer
+  }
+
   alias ExCourtbotWeb.Response
 
   require Logger
 
-  def import() do
-    import_config =
-      Application.get_env(:excourtbot, ExCourtbot, %{})
-      |> Map.new()
-      |> Map.take([:importer])
+  def get_import_configuration() do
+    # Fetch configuration from the database. Database configuration takes priority over file.
+    database_config =
+      Configuration.get([
+        "import_kind",
+        "import_origin",
+        "import_source"
+      ])
 
-    if import_config == %{} do
-      raise "Importer must be configured, see documentation for configuration options"
+    # We need to check if we have a configured importer from the database.
+    case database_config do
+      # We have at least the type configured, lets march on and see if we have enough.
+      %{import_kind: kind} when kind == "CSV" or kind == "JSON" ->
+        database_config(database_config)
+
+      # We do not have database configuration, perhaps our configuration is in mix config.
+      %{import_kind: kind} when kind == "" ->
+        import_config =
+          Application.get_env(:excourtbot, ExCourtbot, %{})
+          |> Map.new()
+          |> Map.take([:importer])
+
+        # Nope, no configuration.
+        if import_config == %{} do
+          # TODO(ts): Add a perma link to documentation.
+          raise "Importer must be configured, see documentation for configuration options"
+        end
+
+        mix_config(import_config)
+
+      _ ->
+        raise "Unsupported import type"
     end
+  end
 
+  def import, do: ExCourtbot.import(get_import_configuration())
+
+  def import(%{kind: _kind, origin: origin, source: source, fields: fields, settings: settings}) do
     Logger.info("Starting import")
 
-    Logger.info("Creating backup hearings table")
-
-    backup_table = "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
-
-    # Drop backup table if it has previously been created.
-    Repo.query("DROP TABLE IF EXISTS #{backup_table}", [])
-
-    # Create a new backup table based upon the current hearings table.
-    Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings", [])
-
-    imported =
-      import_config
-      |> case do
-        %{importer: %{url: url, type: type}} when is_function(url) ->
-          run_import(request(url.(), type), type)
-
-        %{importer: %{url: url, type: type}} ->
-          run_import(request(url, type), type)
-
-        %{importer: %{file: file, type: type}} ->
-          run_import(File.stream!(file), type)
-
-        _ ->
-          Logger.error("Parser source has not been defined")
+    data =
+      case origin do
+        :file -> File.stream!(source)
+        :url -> request(source)
+        _ -> raise "Unsupported import origin: #{origin}"
       end
 
-    Logger.info("Cleaning up hearing data")
+    backup_and_truncate_hearings()
 
-    Repo.query(
-      """
-      BEGIN;
-      DROP TABLE hearings;
-      ALTER TABLE #{backup_table} RENAME TO hearings;
-      COMMIT;
-      """,
-      []
-    )
+    imported =
+      run_import(
+        :csv,
+        data,
+        delimiter: settings.delimiter,
+        has_headers: settings.has_headers,
+        field_mapping: fields
+      )
 
     Logger.info("Finished Import")
 
     imported
   end
 
-  defp run_import(data, {:csv, options}) do
-    Csv.extract(data, options)
+  def database_config(%{
+        import_kind: "JSON",
+        import_origin: _origin,
+        import_source: _source
+      }),
+      do: Logger.error("Not implemented yet")
+
+  def database_config(%{
+        import_kind: "CSV",
+        import_origin: origin,
+        import_source: source
+      }) do
+    field_mapping =
+      Importer.mapped()
+      |> Enum.reduce([], fn field, acc ->
+        mapping = Map.take(field, [:index, :pointer, :destination, :kind, :format, :order])
+
+        mapping =
+          case mapping do
+            %{destination: destination} when not is_nil(destination) ->
+              Map.put(mapping, :destination, String.to_atom(field.destination))
+
+            _ ->
+              mapping
+          end
+
+        [mapping | acc]
+      end)
+
+    %{
+      import_delimiter: delimiter,
+      import_has_headers: has_headers
+    } =
+      Configuration.get([
+        "import_delimiter",
+        "import_has_headers"
+      ])
+
+    origin =
+      case origin do
+        "URL" -> :url
+        "FILE" -> :file
+      end
+
+    # FIXME(ts): Make this use the DB value.
+    delimiter =
+      case delimiter do
+        "" -> ?,
+        _ -> ?,
+      end
+
+    has_headers =
+      case has_headers do
+        "" -> false
+        has_headers -> String.to_existing_atom(has_headers)
+      end
+
+    %{
+      kind: :csv,
+      origin: origin,
+      source: source,
+      settings: %{
+        has_headers: has_headers,
+        delimiter: delimiter
+      },
+      fields: field_mapping
+    }
   end
 
-  defp run_import(_data, {:json, _options}) do
-    # TODO(ts): Implement
-    Logger.error("Not implemented yet")
+  # TODO(ts): Implement
+  def mix_config(%{importer: %{url: _url, type: {:json, _importer_config}}}),
+    do: Logger.error("Not implemented yet")
+
+  def mix_config(%{importer: %{type: {type, importer_config}} = config}) do
+    default = %{
+      has_headers: false,
+      delimiter: ?,
+    }
+
+    # FIXME(ts): Reintroduce functions as URL's or implement variable substitution.
+    {origin, source} =
+      case config do
+        %{file: src} -> {:file, src}
+        %{url: src} -> {:url, src}
+      end
+
+    settings = importer_config |> Keyword.take([:delimiter, :has_headers]) |> Enum.into(%{})
+    settings = Map.merge(default, settings)
+
+    fields = format_importer_config(importer_config)
+
+    %{
+      kind: type,
+      origin: origin,
+      source: source,
+      fields: fields,
+      settings: settings
+    }
   end
 
-  defp run_import(_, _) do
-    Logger.error("Parser config has not been defined")
+  defp format_importer_config(config) do
+    field_mapping = Keyword.take(config, [:field_mapping])
+
+    field_mapping[:field_mapping]
+    |> Enum.with_index(1)
+    |> Enum.map(fn
+      {{destination, format}, index} ->
+        if destination == :date or destination == :time or destination == :date_and_time do
+          %{
+            destination: destination,
+            format: format,
+            index: index,
+            kind: "date",
+            pointer: nil
+          }
+        else
+          %{
+            destination: destination,
+            format: format,
+            index: index,
+            kind: "type",
+            pointer: nil
+          }
+        end
+
+      {destination, index} ->
+        %{destination: destination, format: nil, index: index, kind: "string", pointer: nil}
+    end)
   end
+
+  defp run_import(:csv, data, importer_config),
+    do: Csv.extract(data, importer_config)
+
+  defp run_import(_, _, _),
+    do: Logger.error("Importer has been supplied invalid configuration.")
 
   def notify() do
     Logger.info("Starting notifications")
@@ -85,7 +224,6 @@ defmodule ExCourtbot do
     end
 
     %{locales: locales} = locales
-    #
 
     Enum.map(
       Subscriber.all_pending_notifications(),
@@ -114,16 +252,94 @@ defmodule ExCourtbot do
     Logger.info("Finished notifications")
   end
 
-  defp request(url, type) do
+  defp backup_and_truncate_hearings do
+    Logger.info("Creating backup hearings table")
+
+    backup_table =
+      "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
+
+    # Drop backup table if it has previously been created.
+    Repo.query("DROP TABLE IF EXISTS #{backup_table}", [])
+
+    # Create a new backup table based upon the current hearings table.
+    Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings;", [])
+
+    Repo.query("TRUNCATE hearings;", [])
+  end
+
+  def restore_hearings do
+    backup_table =
+      "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
+
+    Repo.query(
+      """
+      BEGIN;
+      DROP TABLE hearings;
+      ALTER TABLE #{backup_table} RENAME TO hearings;
+      COMMIT;
+      """,
+      []
+    )
+  end
+
+  defp request(url) do
     case Tesla.get(url, follow_redirect: true) do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
-        run_import(body, type)
+        body
 
       {:ok, %Tesla.Env{status: status}} ->
         Logger.error("Unhandled status code received: #{status}, while fetching #{url}")
 
       {:error, err} ->
         Logger.error("Unable to fetch #{url} because of: #{err}")
+    end
+  end
+
+  def test_import(kind, origin, source) do
+    data =
+      case origin do
+        :file -> File.stream!(source)
+        :url -> request(source)
+        _ -> Logger.error("Origin not supported")
+      end
+
+    # TODO(ts): Test URL -> CSV
+    case kind do
+      :csv ->
+        [headers] = Stream.take(data, 1) |> Enum.to_list()
+        headers |> String.replace("\n", "") |> String.split(",")
+
+      :json ->
+        Logger.error("Has not been implemented")
+
+      _ ->
+        Logger.error("Type #{kind} not supported")
+    end
+  end
+
+  def has_mapped_county() do
+    case get_import_configuration() do
+      %{fields: fields} ->
+        case Enum.find(fields, fn field -> field[:destination] == :county end) do
+          field when is_map(field) -> true
+          _ -> false
+        end
+
+      _ ->
+        false
+    end
+  end
+
+  def has_mapped_type() do
+    case get_import_configuration() do
+      %{fields: fields} ->
+        case Enum.find(fields, fn field -> field[:destination] == :type end) do
+          field when is_map(field) -> true
+          _ -> false
+        end
+
+      _ ->
+        false
     end
   end
 end
