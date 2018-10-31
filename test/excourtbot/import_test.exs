@@ -89,8 +89,6 @@ defmodule ExCourtbot.ImportTest do
     records = ExCourtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
-
-    Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
   test "imports Atlanta data from mix config" do
@@ -99,8 +97,6 @@ defmodule ExCourtbot.ImportTest do
     records = ExCourtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
-
-    Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
   test "imports Boise data from mix config" do
@@ -109,8 +105,6 @@ defmodule ExCourtbot.ImportTest do
     records = ExCourtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
-
-    Application.delete_env(:excourtbot, ExCourtbot.Import)
   end
 
   # TODO(ts): Property test input data

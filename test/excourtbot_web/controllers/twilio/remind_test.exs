@@ -6,6 +6,30 @@ defmodule ExCourtbotWeb.TwilioRemindTest do
   alias ExCourtbot.{Case, Hearing, Repo}
   alias ExCourtbotWeb.{Response, Twiml}
 
+  @import_config [
+    importer: %{
+      file: Path.expand("../data/boise.csv", __DIR__),
+      type:
+        {:csv,
+        [
+          {:has_headers, true},
+          {:field_mapping,
+            [
+              :case_number,
+              :last_name,
+              :first_name,
+              nil,
+              nil,
+              nil,
+              {:date, "%-m/%e/%Y"},
+              {:time, "%k:%M"},
+              nil,
+              :county
+            ]}
+        ]}
+    }
+  ]
+
   @case_id Ecto.UUID.generate()
   @case_two_id Ecto.UUID.generate()
 
@@ -24,6 +48,8 @@ defmodule ExCourtbotWeb.TwilioRemindTest do
   @date Date.utc_today()
 
   setup do
+    Application.put_env(:excourtbot, ExCourtbot, @import_config)
+
     Multi.new()
     |> Multi.insert(:case, %Case{
       id: @case_id,
