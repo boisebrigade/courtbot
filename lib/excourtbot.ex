@@ -1,5 +1,5 @@
-defmodule ExCourtbot do
-  alias ExCourtbot.{
+defmodule Courtbot do
+  alias Courtbot.{
     Csv,
     Repo,
     Subscriber,
@@ -8,7 +8,7 @@ defmodule ExCourtbot do
     Importer
   }
 
-  alias ExCourtbotWeb.Response
+  alias CourtbotWeb.Response
 
   require Logger
 
@@ -30,7 +30,7 @@ defmodule ExCourtbot do
       # We do not have database configuration, perhaps our configuration is in mix config.
       %{import_kind: kind} when kind == "" ->
         import_config =
-          Application.get_env(:excourtbot, ExCourtbot, %{})
+          Application.get_env(:courtbot, Courtbot, %{})
           |> Map.new()
           |> Map.take([:importer])
 
@@ -47,7 +47,7 @@ defmodule ExCourtbot do
     end
   end
 
-  def import, do: ExCourtbot.import(get_import_configuration())
+  def import, do: Courtbot.import(get_import_configuration())
 
   def import(%{kind: _kind, origin: origin, source: source, fields: fields, settings: settings}) do
     Logger.info("Starting import")
@@ -215,7 +215,7 @@ defmodule ExCourtbot do
     Logger.info("Starting notifications")
 
     locales =
-      Application.get_env(:excourtbot, ExCourtbot, %{})
+      Application.get_env(:courtbot, Courtbot, %{})
       |> Map.new()
       |> Map.take([:locales])
 

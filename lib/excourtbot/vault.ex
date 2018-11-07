@@ -1,5 +1,5 @@
-defmodule ExCourtbot.Vault do
-  use Cloak.Vault, otp_app: :excourtbot
+defmodule Courtbot.Vault do
+  use Cloak.Vault, otp_app: :courtbot
   @impl Cloak.Vault
 
   def init(config) do
@@ -22,6 +22,6 @@ defmodule ExCourtbot.Vault do
   end
 end
 
-defmodule ExCourtbot.Encrypted.Binary do
-  use Cloak.Fields.Binary, vault: ExCourtbot.Vault
+defmodule Courtbot.Encrypted.Binary do
+  use Cloak.Fields.Binary, vault: Courtbot.Vault
 end

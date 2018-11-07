@@ -4,7 +4,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=excourtbot
+      - POSTGRES_DB=courtbot
     image: postgres:10
     volumes:
       - ${PWD}/local-test-db.sh:/docker-entrypoint-initdb.d/local-test-db.sh

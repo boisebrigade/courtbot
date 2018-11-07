@@ -8,10 +8,10 @@ VAULT_KEY=$(tr -dc 'A-F0-9' < /dev/urandom | head -c32 | base64)
 [ ! -f ${RELEASE_ROOT_DIR}/etc/courtbot.secrets.exs ] && cat > ${RELEASE_ROOT_DIR}/etc/courtbot.secrets.exs <<EOL
 use Mix.Config
 
-config :excourtbot, ExCourtbotWeb.Endpoint,
+config :courtbot, CourtbotWeb.Endpoint,
   secret_key_base: "$SECRET_KEY_BASE"
 
-config :excourtbot, ExCourtbot.Vault,
+config :courtbot, Courtbot.Vault,
   ciphers: [
     default:
       {Cloak.Ciphers.AES.GCM, tag: "AES.GCM.V1", key: Base.decode64!("$VAULT_KEY")}

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-docker build -t codeforboise/excourtbot:latest .
-# docker push codeforboise/excourtbot:latest
+docker build -t codeforboise/courtbot:latest .
+# docker push codeforboise/courtbot:latest

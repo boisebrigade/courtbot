@@ -8,14 +8,14 @@ use Mix.Config
 config :phoenix, :json_library, Jason
 
 # General application configuration
-config :excourtbot,
-  ecto_repos: [ExCourtbot.Repo]
+config :courtbot,
+  ecto_repos: [Courtbot.Repo]
 
 # Configures the endpoint
-config :excourtbot, ExCourtbotWeb.Endpoint,
+config :courtbot, CourtbotWeb.Endpoint,
   url: [host: "localhost"],
-  render_errors: [view: ExCourtbotWeb.ErrorView, accepts: ~w(json)],
-  pubsub: [name: ExCourtbot.PubSub, adapter: Phoenix.PubSub.PG2]
+  render_errors: [view: CourtbotWeb.ErrorView, accepts: ~w(json)],
+  pubsub: [name: Courtbot.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Configures Elixir's Logger
 config :logger, :console,

@@ -1,4 +1,4 @@
-defmodule ExCourtbot.Rollbar do
+defmodule Courtbot.Rollbar do
   def init(config) do
     rollbar_access_token =
       if config[:access_token] do

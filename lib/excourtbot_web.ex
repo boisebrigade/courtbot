@@ -1,12 +1,12 @@
-defmodule ExCourtbotWeb do
+defmodule CourtbotWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, views, channels and so on.
 
   This can be used in your application as:
 
-      use ExCourtbotWeb, :controller
-      use ExCourtbotWeb, :view
+      use CourtbotWeb, :controller
+      use CourtbotWeb, :view
 
   The definitions below will be executed for every view,
   controller, etc, so keep them short and clean, focused
@@ -19,23 +19,23 @@ defmodule ExCourtbotWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller, namespace: ExCourtbotWeb
+      use Phoenix.Controller, namespace: CourtbotWeb
       import Plug.Conn
-      import ExCourtbotWeb.Router.Helpers
-      import ExCourtbotWeb.Gettext
+      import CourtbotWeb.Router.Helpers
+      import CourtbotWeb.Gettext
     end
   end
 
   def view do
     quote do
       use Phoenix.View,
-        root: "lib/excourtbot_web/templates",
-        namespace: ExCourtbotWeb
+        root: "lib/courtbot_web/templates",
+        namespace: CourtbotWeb
 
       # Import convenience functions from controllers
-      import ExCourtbotWeb.Router.Helpers
-      import ExCourtbotWeb.ErrorHelpers
-      import ExCourtbotWeb.Gettext
+      import CourtbotWeb.Router.Helpers
+      import CourtbotWeb.ErrorHelpers
+      import CourtbotWeb.Gettext
     end
   end
 

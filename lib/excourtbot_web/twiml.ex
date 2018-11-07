@@ -1,4 +1,4 @@
-defmodule ExCourtbotWeb.Twiml do
+defmodule CourtbotWeb.Twiml do
   import ExTwiml
 
   def sms(message) do

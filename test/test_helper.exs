@@ -1,3 +1,3 @@
 ExUnit.start()
 
-Ecto.Adapters.SQL.Sandbox.mode(ExCourtbot.Repo, :auto)
+Ecto.Adapters.SQL.Sandbox.mode(Courtbot.Repo, :auto)

@@ -1,7 +1,7 @@
-defmodule ExCourtbot.Case do
+defmodule Courtbot.Case do
   use Ecto.Schema
 
-  alias ExCourtbot.{Case, Hearing, Subscriber, Repo}
+  alias Courtbot.{Case, Hearing, Subscriber, Repo}
 
   import Ecto.{Changeset, Query}
 

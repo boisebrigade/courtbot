@@ -1,10 +1,10 @@
-defmodule ExCourtbotWeb.TwilioController do
-  use ExCourtbotWeb, :controller
+defmodule CourtbotWeb.TwilioController do
+  use CourtbotWeb, :controller
 
   require Logger
 
-  alias ExCourtbot.{Case, Hearing, Repo, Subscriber}
-  alias ExCourtbotWeb.{Response, Twiml}
+  alias Courtbot.{Case, Hearing, Repo, Subscriber}
+  alias CourtbotWeb.{Response, Twiml}
 
   @accept_keywords [
     gettext("y"),

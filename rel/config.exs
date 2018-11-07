@@ -42,8 +42,8 @@ end
 # when running `mix release`, the first release in the file
 # will be used by default
 
-release :excourtbot do
-  set(version: current_version(:excourtbot))
+release :courtbot do
+  set(version: current_version(:courtbot))
 
   set(
     commands: [

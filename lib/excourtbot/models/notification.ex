@@ -1,7 +1,7 @@
-defmodule ExCourtbot.Notification do
+defmodule Courtbot.Notification do
   use Ecto.Schema
 
-  alias ExCourtbot.Subscriber
+  alias Courtbot.Subscriber
 
   import Ecto.Changeset
 

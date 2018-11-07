@@ -1,9 +1,9 @@
-defmodule ExCourtbot.Mixfile do
+defmodule Courtbot.Mixfile do
   use Mix.Project
 
   def project do
     [
-      app: :excourtbot,
+      app: :courtbot,
       version: "0.2.0",
       elixir: "~> 1.7",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -19,7 +19,7 @@ defmodule ExCourtbot.Mixfile do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {ExCourtbot.Application, []},
+      mod: {Courtbot.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end

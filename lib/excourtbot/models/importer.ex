@@ -1,7 +1,7 @@
-defmodule ExCourtbot.Importer do
+defmodule Courtbot.Importer do
   use Ecto.Schema
 
-  alias ExCourtbot.{Importer, Repo}
+  alias Courtbot.{Importer, Repo}
   import Ecto.{Changeset, Query}
 
   @primary_key {:id, :binary_id, autogenerate: true}

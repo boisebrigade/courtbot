@@ -1,6 +1,6 @@
-defmodule ExCourtbot.Repo do
+defmodule Courtbot.Repo do
   use Ecto.Repo,
-    otp_app: :excourtbot,
+    otp_app: :courtbot,
     adapter: Ecto.Adapters.Postgres
 
   @doc """

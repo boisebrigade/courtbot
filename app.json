@@ -7,7 +7,7 @@
     "elixir"
   ],
   "website": "http://www.boisebrigade.org/courtbot",
-  "repository": "https://github.com/boisebrigade/ExCourtbot",
+  "repository": "https://github.com/boisebrigade/courtbot",
   "logo": "https://small-sharp-tool.com/logo.svg",
   "success_url": "/",
   "scripts": {

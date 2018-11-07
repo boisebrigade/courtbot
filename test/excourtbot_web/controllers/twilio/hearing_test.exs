@@ -1,10 +1,10 @@
-defmodule ExCourtbotWeb.TwilioHearingTest do
-  use ExCourtbotWeb.ConnCase, async: true
+defmodule CourtbotWeb.TwilioHearingTest do
+  use CourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
 
-  alias ExCourtbot.{Case, Hearing, Repo}
-  alias ExCourtbotWeb.{Response, Twiml}
+  alias Courtbot.{Case, Hearing, Repo}
+  alias CourtbotWeb.{Response, Twiml}
 
   @import_config [
     importer: %{
@@ -45,7 +45,7 @@ defmodule ExCourtbotWeb.TwilioHearingTest do
   @date Date.utc_today()
 
   setup do
-    Application.put_env(:excourtbot, ExCourtbot, @import_config)
+    Application.put_env(:courtbot, Courtbot, @import_config)
 
     Multi.new()
     |> Multi.insert(:case, %Case{

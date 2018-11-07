@@ -1,5 +1,5 @@
-defmodule ExCourtbotWeb.Endpoint do
-  use Phoenix.Endpoint, otp_app: :excourtbot
+defmodule CourtbotWeb.Endpoint do
+  use Phoenix.Endpoint, otp_app: :courtbot
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.
@@ -25,12 +25,12 @@ defmodule ExCourtbotWeb.Endpoint do
   plug(
     Plug.Session,
     store: :cookie,
-    key: "_excourtbot_key",
+    key: "_courtbot_key",
     signing_salt: "JXkMr3AQ",
     log: :debug
   )
 
-  plug(ExCourtbotWeb.Router)
+  plug(CourtbotWeb.Router)
 
   @doc """
   Callback invoked for dynamically configuring the endpoint.

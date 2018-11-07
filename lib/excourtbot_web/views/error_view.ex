@@ -1,5 +1,5 @@
-defmodule ExCourtbotWeb.ErrorView do
-  use ExCourtbotWeb, :view
+defmodule CourtbotWeb.ErrorView do
+  use CourtbotWeb, :view
 
   # If you want to customize a particular status code
   # for a certain format, you may uncomment below.

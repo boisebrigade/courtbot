@@ -1,5 +1,5 @@
-defmodule ExCourtbotWeb.Router do
-  use ExCourtbotWeb, :router
+defmodule CourtbotWeb.Router do
+  use CourtbotWeb, :router
   use Plug.ErrorHandler
 
   pipeline :twilio do
@@ -7,7 +7,7 @@ defmodule ExCourtbotWeb.Router do
     plug(:accepts, ["json"])
   end
 
-  scope "/", ExCourtbotWeb do
+  scope "/", CourtbotWeb do
     pipe_through(:twilio)
 
     post("/sms", TwilioController, :sms)
