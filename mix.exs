@@ -33,9 +33,9 @@ defmodule Courtbot.Mixfile do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.4-pre", override: true},
-      {:ecto, "~> 3.0-pre", override: true},
-      {:ecto_sql, "~> 3.0-pre"},
+      {:phoenix, "~> 1.4"},
+      {:ecto, "~> 3.0", override: true},
+      {:ecto_sql, "~> 3.0"},
       {:phoenix_ecto, "~> 4.0"},
       {:postgrex, ">= 0.0.0"},
       {:cloak, "~> 0.7.0"},
