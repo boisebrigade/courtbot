@@ -11,9 +11,9 @@ defmodule CourtbotWeb.TwilioHearingTest do
       file: Path.expand("../data/boise.csv", __DIR__),
       type:
         {:csv,
-        [
-          {:has_headers, true},
-          {:field_mapping,
+         [
+           {:has_headers, true},
+           {:field_mapping,
             [
               :case_number,
               :last_name,
@@ -26,7 +26,7 @@ defmodule CourtbotWeb.TwilioHearingTest do
               nil,
               :county
             ]}
-        ]}
+         ]}
     }
   ]
 

@@ -244,7 +244,10 @@ defmodule Courtbot do
             |> Repo.insert()
 
           {:error, message, error_code} ->
-            Logger.error("Failed to send notification because:" <> message <> " with code " <> Integer.to_string(error_code))
+            Logger.error(
+              "Failed to send notification because:" <>
+                message <> " with code " <> Integer.to_string(error_code)
+            )
 
           {:error, message} ->
             Logger.error("Failed to send notification because:" <> message)

@@ -8,9 +8,9 @@ defmodule CourtbotWeb.TwilioQueueTest do
       file: Path.expand("../data/boise.csv", __DIR__),
       type:
         {:csv,
-        [
-          {:has_headers, true},
-          {:field_mapping,
+         [
+           {:has_headers, true},
+           {:field_mapping,
             [
               :case_number,
               :last_name,
@@ -23,7 +23,7 @@ defmodule CourtbotWeb.TwilioQueueTest do
               nil,
               :county
             ]}
-        ]}
+         ]}
     }
   ]
 
