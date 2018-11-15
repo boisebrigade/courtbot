@@ -105,7 +105,7 @@ defmodule Courtbot do
       end)
 
     %{
-      import_delimiter: delimiter,
+      import_delimiter: _,
       import_has_headers: has_headers
     } =
       Configuration.get([
@@ -300,20 +300,19 @@ defmodule Courtbot do
       case origin do
         :file -> File.stream!(source)
         :url -> request(source)
-        _ -> Logger.error("Origin not supported")
+        _ -> raise "Origin not supported:  #{origin}}"
       end
 
-    # TODO(ts): Test URL -> CSV
     case kind do
       :csv ->
         [headers] = Stream.take(data, 1) |> Enum.to_list()
         headers |> String.replace("\n", "") |> String.split(",")
 
       :json ->
-        Logger.error("Has not been implemented")
+        raise "Importing from JSON is not currently supported"
 
       _ ->
-        Logger.error("Type #{kind} not supported")
+        raise "Unsupported import kind: #{kind}"
     end
   end
 
