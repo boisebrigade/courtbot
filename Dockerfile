@@ -11,10 +11,14 @@ RUN apt-get install build-essential erlang-dev -y
 RUN mix local.rebar --force
 RUN mix local.hex --force
 
-COPY . .
+COPY mix.exs .
+COPY mix.lock .
 
 RUN mix deps.get
 RUN mix deps.compile
+
+COPY . .
+
 RUN mix compile
 
 RUN mix release --env=${MIX_ENV} --verbose \
