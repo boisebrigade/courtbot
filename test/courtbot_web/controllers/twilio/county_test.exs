@@ -58,6 +58,7 @@ defmodule CourtbotWeb.TwilioCountyTest do
       first_name: "Case",
       last_name: "One",
       case_number: @case_number,
+      formatted_case_number: @case_number,
       county: @county_one
     })
     |> Multi.insert(:case_two, %Case{
@@ -65,6 +66,7 @@ defmodule CourtbotWeb.TwilioCountyTest do
       first_name: "Case",
       last_name: "Two",
       case_number: @case_number,
+      formatted_case_number: @case_number,
       county: @county_two
     })
     |> Multi.insert(:hearing, %Hearing{

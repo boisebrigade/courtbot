@@ -55,16 +55,19 @@ defmodule CourtbotWeb.TwilioUnsubscribeTest do
     |> Multi.insert(:case, %Case{
       id: @case_id,
       case_number: @case_number,
+      formatted_case_number: @case_number,
       county: "canyon"
     })
     |> Multi.insert(:case_two, %Case{
       id: @case_two_id,
       case_number: @case_number,
+      formatted_case_number: @case_number,
       county: "gym"
     })
     |> Multi.insert(:case_three, %Case{
       id: @case_three_id,
-      case_number: @case_number_two
+      case_number: @case_number_two,
+      formatted_case_number: @case_number_two,
     })
     |> Multi.insert(:hearing, %Hearing{
       id: @hearing_id,

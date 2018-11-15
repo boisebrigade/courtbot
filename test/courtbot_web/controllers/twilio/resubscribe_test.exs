@@ -50,6 +50,7 @@ defmodule CourtbotWeb.TwilioResubscribeTest do
     |> Multi.insert(:case, %Case{
       id: @case_id,
       case_number: @case_number,
+      formatted_case_number: @case_number,
       county: "canyon"
     })
     |> Multi.insert(:hearing, %Hearing{
