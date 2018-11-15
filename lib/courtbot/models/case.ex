@@ -24,13 +24,19 @@ defmodule Courtbot.Case do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:type, :case_number, :formatted_case_number, :first_name, :last_name, :county])
+    |> cast(params, [
+      :type,
+      :case_number,
+      :formatted_case_number,
+      :first_name,
+      :last_name,
+      :county
+    ])
     |> validate_required([:case_number])
     |> put_change(:formatted_case_number, params[:case_number])
     |> update_change(:case_number, &clean_case_number/1)
     |> update_change(:county, &clean_county/1)
     |> cast_assoc(:hearings)
-
     |> unique_constraint(:case_number, name: :cases_case_number_index)
     |> unique_constraint(:case_number, name: :cases_case_number_type_index)
     |> unique_constraint(:case_number, name: :cases_case_number_county_index)
