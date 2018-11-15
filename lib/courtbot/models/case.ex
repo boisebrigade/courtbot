@@ -11,6 +11,7 @@ defmodule Courtbot.Case do
   schema "cases" do
     field(:type, :string)
     field(:case_number, :string)
+    field(:formatted_case_number, :string)
     field(:first_name, :string)
     field(:last_name, :string)
     field(:county, :string)
@@ -23,7 +24,7 @@ defmodule Courtbot.Case do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:type, :case_number, :first_name, :last_name, :county])
+    |> cast(params, [:type, :case_number, :formatted_case_number, :first_name, :last_name, :county])
     |> update_change(:case_number, &clean_case_number/1)
     |> update_change(:county, &clean_county/1)
     |> cast_assoc(:hearings)
@@ -63,7 +64,6 @@ defmodule Courtbot.Case do
   end
 
   def all_counties() do
-    # TODO(ts): Case sensitivity?
     from(c in Case, select: c.county) |> Repo.all()
   end
 
@@ -78,13 +78,11 @@ defmodule Courtbot.Case do
   defp clean_county(county) do
     county
     |> String.trim()
-    |> String.downcase()
   end
 
   defp clean_case_number(case_number) do
     case_number
     |> String.trim()
-    |> String.downcase()
     |> String.replace("-", "")
     |> String.replace("_", "")
     |> String.replace(",", "")
