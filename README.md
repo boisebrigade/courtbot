@@ -5,11 +5,10 @@ Courtbot is a simple web service for subscribing to case hearing details via SMS
 
 ## Development Setup
 
-- Clone the repo: `git clone https://github.com/boisebrigade/Courtbot.git`
-- Install Elixir and NodeJS: `# asdf is the preferred version manager`
+- Clone the repo: `git clone https://github.com/boisebrigade/courtbot.git`
+- Install Elixir: `# asdf is the preferred version manager`
   - Install [asdf](https://github.com/asdf-vm/asdf#setup)
   - Add Elixir asdf plugin: [asdf-elixir](https://github.com/asdf-vm/asdf-elixir) 
-  - Add NodeJS asdf plugin: [asdf-nodejs](https://github.com/asdf-vm/asdf-nodejs)
   - Goto where you've cloned the repo and run: `asdf install`
 - Copy `.env.example` to `.env`: `cp .env.example .env`
   - Tweak default environment variables as needed
