@@ -92,14 +92,6 @@ defmodule CourtbotWeb.Response do
     end)
   end
 
-  # Debug case
-  defp response(:reminder, %{
-    "case_number" => "BEEPBOOP",
-  }) do
-
-    "Beep."
-  end
-
   defp response(:reminder, %{
          "locale" => locale,
          "case_number" => case_number,
