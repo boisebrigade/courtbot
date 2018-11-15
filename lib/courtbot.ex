@@ -36,14 +36,14 @@ defmodule Courtbot do
 
         # Nope, no configuration.
         if import_config == %{} do
-          # TODO(ts): Add a perma link to documentation.
+          # TODO(ts): Add a permanent link to configuration.
           raise "Importer must be configured, see documentation for configuration options"
         end
 
         mix_config(import_config)
 
-      _ ->
-        raise "Unsupported import type"
+      kind ->
+        raise "Unsupported import kind: " <> kind
     end
   end
 
@@ -80,7 +80,7 @@ defmodule Courtbot do
         import_origin: _origin,
         import_source: _source
       }),
-      do: Logger.error("Not implemented yet")
+      do: raise "JSON configuration in the database is not implemented yet"
 
   def database_config(%{
         import_kind: "CSV",
@@ -114,30 +114,19 @@ defmodule Courtbot do
       ])
 
     origin =
-      case origin do
-        "URL" -> :url
-        "FILE" -> :file
-      end
+      origin
+      |> String.downcase()
+      |> String.to_existing_atom()
 
-    # FIXME(ts): Make this use the DB value.
-    delimiter =
-      case delimiter do
-        "" -> ?,
-        _ -> ?,
-      end
-
-    has_headers =
-      case has_headers do
-        "" -> false
-        has_headers -> String.to_existing_atom(has_headers)
-      end
+    # FIXME(ts): use the provided value
+    delimiter = ?,
 
     %{
       kind: :csv,
       origin: origin,
       source: source,
       settings: %{
-        has_headers: has_headers,
+        has_headers: has_headers !== "",
         delimiter: delimiter
       },
       fields: field_mapping
@@ -146,7 +135,7 @@ defmodule Courtbot do
 
   # TODO(ts): Implement
   def mix_config(%{importer: %{url: _url, type: {:json, _importer_config}}}),
-    do: Logger.error("Not implemented yet")
+    do: raise "JSON configuration in mix config is not implemented yet"
 
   def mix_config(%{importer: %{type: {type, importer_config}} = config}) do
     default = %{
@@ -161,7 +150,11 @@ defmodule Courtbot do
         %{url: src} -> {:url, src}
       end
 
-    settings = importer_config |> Keyword.take([:delimiter, :has_headers]) |> Enum.into(%{})
+    settings =
+      importer_config
+      |> Keyword.take([:delimiter, :has_headers])
+      |> Enum.into(%{})
+
     settings = Map.merge(default, settings)
 
     fields = format_importer_config(importer_config)
@@ -209,7 +202,7 @@ defmodule Courtbot do
     do: Csv.extract(data, importer_config)
 
   defp run_import(_, _, _),
-    do: Logger.error("Importer has been supplied invalid configuration.")
+    do: raise "The supplied configuration to the importer is invalid"
 
   def notify() do
     Logger.info("Starting notifications")
@@ -225,6 +218,7 @@ defmodule Courtbot do
 
     %{locales: locales} = locales
 
+    # FIXME(ts): Get a count of pending notifications mod by 100 and use SchEx to schedule batches.
     Enum.map(
       Subscriber.all_pending_notifications(),
       fn params = %{
@@ -323,7 +317,7 @@ defmodule Courtbot do
     end
   end
 
-  def has_mapped_county() do
+  def mapped_county?() do
     case get_import_configuration() do
       %{fields: fields} ->
         case Enum.find(fields, fn field -> field[:destination] == :county end) do
@@ -336,7 +330,7 @@ defmodule Courtbot do
     end
   end
 
-  def has_mapped_type() do
+  def mapped_type?() do
     case get_import_configuration() do
       %{fields: fields} ->
         case Enum.find(fields, fn field -> field[:destination] == :type end) do

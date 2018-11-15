@@ -92,13 +92,13 @@ defmodule Courtbot.Csv do
     # TODO(ts): Investigate if querying for inserted data is worth it.
     fragment =
       cond do
-        Courtbot.has_mapped_county() and Courtbot.has_mapped_type() ->
+        Courtbot.mapped_county?() and Courtbot.mapped_type?() ->
           "(case_number, county, type)"
 
-        Courtbot.has_mapped_county() ->
+        Courtbot.mapped_county?() ->
           "(case_number, county) WHERE type IS NULL"
 
-        Courtbot.has_mapped_type() ->
+        Courtbot.mapped_type?() ->
           "(case_number, type) WHERE county IS NULL"
 
         true ->
