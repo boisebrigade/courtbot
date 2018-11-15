@@ -1,5 +1,6 @@
 defmodule Courtbot do
   alias Courtbot.{
+    Case,
     Csv,
     Repo,
     Subscriber,
@@ -36,14 +37,14 @@ defmodule Courtbot do
 
         # Nope, no configuration.
         if import_config == %{} do
-          # TODO(ts): Add a perma link to documentation.
+          # TODO(ts): Add a permanent link to configuration.
           raise "Importer must be configured, see documentation for configuration options"
         end
 
         mix_config(import_config)
 
-      _ ->
-        raise "Unsupported import type"
+      kind ->
+        raise "Unsupported import kind: " <> kind
     end
   end
 
@@ -80,7 +81,7 @@ defmodule Courtbot do
         import_origin: _origin,
         import_source: _source
       }),
-      do: Logger.error("Not implemented yet")
+      do: raise("JSON configuration in the database is not implemented yet")
 
   def database_config(%{
         import_kind: "CSV",
@@ -105,7 +106,7 @@ defmodule Courtbot do
       end)
 
     %{
-      import_delimiter: delimiter,
+      import_delimiter: _,
       import_has_headers: has_headers
     } =
       Configuration.get([
@@ -114,30 +115,19 @@ defmodule Courtbot do
       ])
 
     origin =
-      case origin do
-        "URL" -> :url
-        "FILE" -> :file
-      end
+      origin
+      |> String.downcase()
+      |> String.to_existing_atom()
 
-    # FIXME(ts): Make this use the DB value.
-    delimiter =
-      case delimiter do
-        "" -> ?,
-        _ -> ?,
-      end
-
-    has_headers =
-      case has_headers do
-        "" -> false
-        has_headers -> String.to_existing_atom(has_headers)
-      end
+    # FIXME(ts): use the provided value
+    delimiter = ?,
 
     %{
       kind: :csv,
       origin: origin,
       source: source,
       settings: %{
-        has_headers: has_headers,
+        has_headers: has_headers !== "",
         delimiter: delimiter
       },
       fields: field_mapping
@@ -146,7 +136,7 @@ defmodule Courtbot do
 
   # TODO(ts): Implement
   def mix_config(%{importer: %{url: _url, type: {:json, _importer_config}}}),
-    do: Logger.error("Not implemented yet")
+    do: raise("JSON configuration in mix config is not implemented yet")
 
   def mix_config(%{importer: %{type: {type, importer_config}} = config}) do
     default = %{
@@ -161,7 +151,11 @@ defmodule Courtbot do
         %{url: src} -> {:url, src}
       end
 
-    settings = importer_config |> Keyword.take([:delimiter, :has_headers]) |> Enum.into(%{})
+    settings =
+      importer_config
+      |> Keyword.take([:delimiter, :has_headers])
+      |> Enum.into(%{})
+
     settings = Map.merge(default, settings)
 
     fields = format_importer_config(importer_config)
@@ -209,7 +203,7 @@ defmodule Courtbot do
     do: Csv.extract(data, importer_config)
 
   defp run_import(_, _, _),
-    do: Logger.error("Importer has been supplied invalid configuration.")
+    do: raise("The supplied configuration to the importer is invalid")
 
   def notify() do
     Logger.info("Starting notifications")
@@ -225,6 +219,7 @@ defmodule Courtbot do
 
     %{locales: locales} = locales
 
+    # FIXME(ts): Get a count of pending notifications mod by 100 and use SchEx to schedule batches.
     Enum.map(
       Subscriber.all_pending_notifications(),
       fn params = %{
@@ -233,29 +228,47 @@ defmodule Courtbot do
            "subscriber_id" => subscriber_id
          } ->
         from_number = Map.fetch!(locales, locale)
-        to_number = phone_number
 
-        response = Response.message(:reminder, params)
-
-        case ExTwilio.Message.create(to: to_number, from: from_number, body: response) do
-          {:ok, _} ->
-            %Notification{}
-            |> Notification.changeset(%{subscriber_id: subscriber_id})
-            |> Repo.insert()
-
-          {:error, message, error_code} ->
-            Logger.error(
-              "Failed to send notification because:" <>
-                message <> " with code " <> Integer.to_string(error_code)
-            )
-
-          {:error, message} ->
-            Logger.error("Failed to send notification because:" <> message)
-        end
+        send_notification(
+          phone_number,
+          from_number,
+          subscriber_id,
+          Response.message(:reminder, params)
+        )
       end
     )
 
+    # Notify debug subscribers
+    [%Case{id: case_id}] = Case.find_by_case_number("BEEPBOOP")
+
+    Enum.map(Subscriber.subscribers_to_case(case_id), fn subscriber ->
+      send_notification(
+        subscriber.phone_number,
+        Map.fetch!(locales, "en"),
+        subscriber.id,
+        "BEEPBOOP"
+      )
+    end)
+
     Logger.info("Finished notifications")
+  end
+
+  defp send_notification(to, from, subscriber_id, body) do
+    case ExTwilio.Message.create(to: to, from: from, body: body) do
+      {:ok, _} ->
+        %Notification{}
+        |> Notification.changeset(%{subscriber_id: subscriber_id})
+        |> Repo.insert()
+
+      {:error, message, error_code} ->
+        Logger.error(
+          "Failed to send notification because: " <>
+            message <> " with code " <> Integer.to_string(error_code)
+        )
+
+      {:error, message} ->
+        Logger.error("Failed to send notification because: " <> message)
+    end
   end
 
   defp backup_and_truncate_hearings do
@@ -306,24 +319,23 @@ defmodule Courtbot do
       case origin do
         :file -> File.stream!(source)
         :url -> request(source)
-        _ -> Logger.error("Origin not supported")
+        _ -> raise "Origin not supported:  #{origin}}"
       end
 
-    # TODO(ts): Test URL -> CSV
     case kind do
       :csv ->
         [headers] = Stream.take(data, 1) |> Enum.to_list()
         headers |> String.replace("\n", "") |> String.split(",")
 
       :json ->
-        Logger.error("Has not been implemented")
+        raise "Importing from JSON is not currently supported"
 
       _ ->
-        Logger.error("Type #{kind} not supported")
+        raise "Unsupported import kind: #{kind}"
     end
   end
 
-  def has_mapped_county() do
+  def mapped_county?() do
     case get_import_configuration() do
       %{fields: fields} ->
         case Enum.find(fields, fn field -> field[:destination] == :county end) do
@@ -336,7 +348,7 @@ defmodule Courtbot do
     end
   end
 
-  def has_mapped_type() do
+  def mapped_type?() do
     case get_import_configuration() do
       %{fields: fields} ->
         case Enum.find(fields, fn field -> field[:destination] == :type end) do

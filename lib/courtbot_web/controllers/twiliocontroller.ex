@@ -6,6 +6,8 @@ defmodule CourtbotWeb.TwilioController do
   alias Courtbot.{Case, Hearing, Repo, Subscriber}
   alias CourtbotWeb.{Response, Twiml}
 
+  @debug_phase "BEEPBOOP"
+
   @accept_keywords [
     gettext("y"),
     gettext("ye"),
@@ -34,6 +36,24 @@ defmodule CourtbotWeb.TwilioController do
   ]
 
   @request_defaults %{"locale" => "en"}
+
+  def sms(conn, _ = %{"From" => phone_number, "Body" => @debug_phase}) do
+    [%Case{id: case_id}] = Case.find_by_case_number(@debug_phase)
+
+    response =
+      if Subscriber.already_subscribed?(case_id, phone_number) do
+        "Boop."
+      else
+        %Subscriber{}
+        |> Subscriber.changeset(%{case_id: case_id, phone_number: phone_number, locale: "en"})
+        |> Repo.insert()
+
+        "Beep."
+      end
+
+    conn
+    |> encode(response)
+  end
 
   def sms(conn, params = %{"From" => phone_number, "Body" => body}) do
     %Plug.Conn{private: %{plug_session: session}} = conn
@@ -308,7 +328,6 @@ defmodule CourtbotWeb.TwilioController do
   defp clean_case_number(case_number) do
     case_number
     |> String.trim()
-    |> String.downcase()
     |> String.replace("-", "")
     |> String.replace("_", "")
     |> String.replace(",", "")

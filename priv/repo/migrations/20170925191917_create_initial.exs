@@ -2,6 +2,8 @@ defmodule Courtbot.Repo.Migrations.CreateInitial do
   use Ecto.Migration
 
   def change do
+    execute "CREATE EXTENSION IF NOT EXISTS citext"
+
     create table(:queued, primary_key: false) do
       add :id, :uuid, primary_key: true
 
@@ -15,10 +17,11 @@ defmodule Courtbot.Repo.Migrations.CreateInitial do
       add :id, :uuid, primary_key: true
 
       add :type, :string
-      add :case_number, :string
+      add :case_number, :citext, null: false
+      add :formatted_case_number, :string, null: false
       add :first_name, :string
       add :last_name, :string
-      add :county, :string
+      add :county, :citext
 
       timestamps()
     end

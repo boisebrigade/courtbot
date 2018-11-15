@@ -54,11 +54,13 @@ defmodule CourtbotWeb.TwilioRemindTest do
     |> Multi.insert(:case, %Case{
       id: @case_id,
       case_number: @case_number,
+      formatted_case_number: @case_number,
       county: "canyon"
     })
     |> Multi.insert(:case_two, %Case{
       id: @case_two_id,
       case_number: @case_two_number,
+      formatted_case_number: @case_two_number,
       county: "canyon"
     })
     |> Multi.insert(:hearing, %Hearing{
