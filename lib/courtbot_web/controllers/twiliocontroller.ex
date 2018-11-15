@@ -308,7 +308,6 @@ defmodule CourtbotWeb.TwilioController do
   defp clean_case_number(case_number) do
     case_number
     |> String.trim()
-    |> String.downcase()
     |> String.replace("-", "")
     |> String.replace("_", "")
     |> String.replace(",", "")
