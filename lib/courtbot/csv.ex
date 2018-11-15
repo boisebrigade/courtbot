@@ -40,7 +40,7 @@ defmodule Courtbot.Csv do
                 {:without_county, case, hearing}
             end
 
-          # Check if we find a previously interated over case with the same case number and or county
+          # Check if we find a previously iterated over case with the same case number and or county
           found =
             Enum.find_index(acc, fn
               {:ok, rec} ->
