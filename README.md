@@ -1,5 +1,5 @@
 # Courtbot
-[![Build Status](https://travis-ci.org/boisebrigade/Courtbot.svg?branch=development)](https://travis-ci.org/boisebrigade/Courtbot)
+[![Build Status](https://travis-ci.org/boisebrigade/courtbot.svg?branch=development)](https://travis-ci.org/boisebrigade/Courtbot)
 
 Courtbot is a simple web service for subscribing to case hearing details via SMS.
 
