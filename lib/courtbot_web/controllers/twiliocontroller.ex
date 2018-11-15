@@ -42,13 +42,13 @@ defmodule CourtbotWeb.TwilioController do
 
     response =
       if Subscriber.already_subscribed?(case_id, phone_number) do
-          "Boop."
-        else
-          %Subscriber{}
-          |> Subscriber.changeset(%{case_id: case_id, phone_number: phone_number, locale: "en"})
-          |> Repo.insert()
+        "Boop."
+      else
+        %Subscriber{}
+        |> Subscriber.changeset(%{case_id: case_id, phone_number: phone_number, locale: "en"})
+        |> Repo.insert()
 
-         "Beep."
+        "Beep."
       end
 
     conn

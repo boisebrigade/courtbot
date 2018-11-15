@@ -53,6 +53,14 @@ defmodule Courtbot.Subscriber do
     end
   end
 
+  def subscribers_to_case(case_id) do
+    from(
+      s in Subscriber,
+      where: s.case_id == ^case_id
+    )
+    |> Repo.all()
+  end
+
   def find_by_number_and_case(case_id, phone_number) do
     from(
       s in Subscriber,

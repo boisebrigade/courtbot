@@ -1,5 +1,6 @@
 defmodule Courtbot do
   alias Courtbot.{
+    Case,
     Csv,
     Repo,
     Subscriber,
@@ -80,7 +81,7 @@ defmodule Courtbot do
         import_origin: _origin,
         import_source: _source
       }),
-      do: raise "JSON configuration in the database is not implemented yet"
+      do: raise("JSON configuration in the database is not implemented yet")
 
   def database_config(%{
         import_kind: "CSV",
@@ -135,7 +136,7 @@ defmodule Courtbot do
 
   # TODO(ts): Implement
   def mix_config(%{importer: %{url: _url, type: {:json, _importer_config}}}),
-    do: raise "JSON configuration in mix config is not implemented yet"
+    do: raise("JSON configuration in mix config is not implemented yet")
 
   def mix_config(%{importer: %{type: {type, importer_config}} = config}) do
     default = %{
@@ -202,7 +203,7 @@ defmodule Courtbot do
     do: Csv.extract(data, importer_config)
 
   defp run_import(_, _, _),
-    do: raise "The supplied configuration to the importer is invalid"
+    do: raise("The supplied configuration to the importer is invalid")
 
   def notify() do
     Logger.info("Starting notifications")
@@ -227,29 +228,47 @@ defmodule Courtbot do
            "subscriber_id" => subscriber_id
          } ->
         from_number = Map.fetch!(locales, locale)
-        to_number = phone_number
 
-        response = Response.message(:reminder, params)
-
-        case ExTwilio.Message.create(to: to_number, from: from_number, body: response) do
-          {:ok, _} ->
-            %Notification{}
-            |> Notification.changeset(%{subscriber_id: subscriber_id})
-            |> Repo.insert()
-
-          {:error, message, error_code} ->
-            Logger.error(
-              "Failed to send notification because:" <>
-                message <> " with code " <> Integer.to_string(error_code)
-            )
-
-          {:error, message} ->
-            Logger.error("Failed to send notification because:" <> message)
-        end
+        send_notification(
+          phone_number,
+          from_number,
+          subscriber_id,
+          Response.message(:reminder, params)
+        )
       end
     )
 
+    # Notify debug subscribers
+    [%Case{id: case_id}] = Case.find_by_case_number("BEEPBOOP")
+
+    Enum.map(Subscriber.subscribers_to_case(case_id), fn subscriber ->
+      send_notification(
+        subscriber.phone_number,
+        Map.fetch!(locales, "en"),
+        subscriber.id,
+        "BEEPBOOP"
+      )
+    end)
+
     Logger.info("Finished notifications")
+  end
+
+  defp send_notification(to, from, subscriber_id, body) do
+    case ExTwilio.Message.create(to: to, from: from, body: body) do
+      {:ok, _} ->
+        %Notification{}
+        |> Notification.changeset(%{subscriber_id: subscriber_id})
+        |> Repo.insert()
+
+      {:error, message, error_code} ->
+        Logger.error(
+          "Failed to send notification because: " <>
+            message <> " with code " <> Integer.to_string(error_code)
+        )
+
+      {:error, message} ->
+        Logger.error("Failed to send notification because: " <> message)
+    end
   end
 
   defp backup_and_truncate_hearings do
