@@ -1,4 +1,4 @@
-defmodule ExCourtbot.Repo.Migrations.CreateInitial do
+defmodule Courtbot.Repo.Migrations.CreateInitial do
   use Ecto.Migration
 
   def change do

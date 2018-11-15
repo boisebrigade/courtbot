@@ -1,19 +1,19 @@
-defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
-  use ExCourtbotWeb.ConnCase, async: true
+defmodule CourtbotWeb.TwilioUnsubscribeTest do
+  use CourtbotWeb.ConnCase, async: true
 
   alias Ecto.Multi
 
-  alias ExCourtbot.{Case, Hearing, Repo, Subscriber}
-  alias ExCourtbotWeb.{Response, Twiml}
+  alias Courtbot.{Case, Hearing, Repo, Subscriber}
+  alias CourtbotWeb.{Response, Twiml}
 
   @import_config [
     importer: %{
       file: Path.expand("../data/boise.csv", __DIR__),
       type:
         {:csv,
-        [
-          {:has_headers, true},
-          {:field_mapping,
+         [
+           {:has_headers, true},
+           {:field_mapping,
             [
               :case_number,
               :last_name,
@@ -26,7 +26,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
               nil,
               :county
             ]}
-        ]}
+         ]}
     }
   ]
 
@@ -49,7 +49,7 @@ defmodule ExCourtbotWeb.TwilioUnsubscribeTest do
   @locale "en"
 
   setup do
-    Application.put_env(:excourtbot, ExCourtbot, @import_config)
+    Application.put_env(:courtbot, Courtbot, @import_config)
 
     Multi.new()
     |> Multi.insert(:case, %Case{

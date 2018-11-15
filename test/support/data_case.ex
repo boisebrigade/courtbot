@@ -1,4 +1,4 @@
-defmodule ExCourtbot.DataCase do
+defmodule Courtbot.DataCase do
   @moduledoc """
   This module defines the setup for tests requiring
   access to the application's data layer.
@@ -16,20 +16,20 @@ defmodule ExCourtbot.DataCase do
 
   using do
     quote do
-      alias ExCourtbot.Repo
+      alias Courtbot.Repo
 
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
-      import ExCourtbot.DataCase
+      import Courtbot.DataCase
     end
   end
 
   setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(ExCourtbot.Repo)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Courtbot.Repo)
 
     unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(ExCourtbot.Repo, {:shared, self()})
+      Ecto.Adapters.SQL.Sandbox.mode(Courtbot.Repo, {:shared, self()})
     end
 
     :ok

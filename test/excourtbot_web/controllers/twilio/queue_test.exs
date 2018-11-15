@@ -1,16 +1,16 @@
-defmodule ExCourtbotWeb.TwilioQueueTest do
-  use ExCourtbotWeb.ConnCase, async: true
+defmodule CourtbotWeb.TwilioQueueTest do
+  use CourtbotWeb.ConnCase, async: true
 
-  alias ExCourtbotWeb.{Response, Twiml}
+  alias CourtbotWeb.{Response, Twiml}
 
   @import_config [
     importer: %{
       file: Path.expand("../data/boise.csv", __DIR__),
       type:
         {:csv,
-        [
-          {:has_headers, true},
-          {:field_mapping,
+         [
+           {:has_headers, true},
+           {:field_mapping,
             [
               :case_number,
               :last_name,
@@ -23,7 +23,7 @@ defmodule ExCourtbotWeb.TwilioQueueTest do
               nil,
               :county
             ]}
-        ]}
+         ]}
     }
   ]
 
@@ -33,7 +33,7 @@ defmodule ExCourtbotWeb.TwilioQueueTest do
   @locale "en"
 
   setup do
-    Application.put_env(:excourtbot, ExCourtbot, @import_config)
+    Application.put_env(:courtbot, Courtbot, @import_config)
   end
 
   test "you get a reponse if the case number is invaild", %{conn: conn} do

@@ -1,5 +1,5 @@
-defmodule ExCourtbot.Csv do
-  alias ExCourtbot.{Case, Repo}
+defmodule Courtbot.Csv do
+  alias Courtbot.{Case, Repo}
 
   require Logger
 
@@ -92,13 +92,13 @@ defmodule ExCourtbot.Csv do
     # TODO(ts): Investigate if querying for inserted data is worth it.
     fragment =
       cond do
-        ExCourtbot.has_mapped_county() and ExCourtbot.has_mapped_type() ->
+        Courtbot.has_mapped_county() and Courtbot.has_mapped_type() ->
           "(case_number, county, type)"
 
-        ExCourtbot.has_mapped_county() ->
+        Courtbot.has_mapped_county() ->
           "(case_number, county) WHERE type IS NULL"
 
-        ExCourtbot.has_mapped_type() ->
+        Courtbot.has_mapped_type() ->
           "(case_number, type) WHERE county IS NULL"
 
         true ->

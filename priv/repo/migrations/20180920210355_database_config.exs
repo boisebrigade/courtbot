@@ -1,4 +1,4 @@
-defmodule ExCourtbot.Repo.Migrations.DatabaseConfig do
+defmodule Courtbot.Repo.Migrations.DatabaseConfig do
   use Ecto.Migration
 
   def change do

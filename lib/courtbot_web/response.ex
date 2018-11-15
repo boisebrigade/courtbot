@@ -1,9 +1,9 @@
-defmodule ExCourtbotWeb.Response do
+defmodule CourtbotWeb.Response do
   @moduledoc """
   Provides `message/2` to provide responses based upon the type given and the params avaliable
   """
 
-  import ExCourtbotWeb.Gettext
+  import CourtbotWeb.Gettext
 
   @date_format "%m/%d/%Y"
   @time_format "%I:%M %p"
@@ -11,7 +11,7 @@ defmodule ExCourtbotWeb.Response do
   def message(type, params) do
     # Add config values to our params so our response can vary based on settings.
     config =
-      Application.get_env(:excourtbot, ExCourtbot, %{})
+      Application.get_env(:courtbot, Courtbot, %{})
       |> Map.new()
       |> Map.take([:court_url, :queued_ttl_days, :subscribe_limit])
 
@@ -27,7 +27,7 @@ defmodule ExCourtbotWeb.Response do
   defp response(:unsubscribe, %{"locale" => locale, "case_number" => case_number}) do
     Gettext.with_locale(locale, fn ->
       Gettext.dgettext(
-        ExCourtbotWeb.Gettext,
+        CourtbotWeb.Gettext,
         "response",
         "OK. We will stop sending reminders for %{case_number}.",
         case_number: case_number
@@ -63,7 +63,7 @@ defmodule ExCourtbotWeb.Response do
 
     Gettext.with_locale(locale, fn ->
       Gettext.dgettext(
-        ExCourtbotWeb.Gettext,
+        CourtbotWeb.Gettext,
         "response",
         "The next hearing is on %{date}, at %{time}.",
         date: date_formated,
@@ -104,7 +104,7 @@ defmodule ExCourtbotWeb.Response do
 
     Gettext.with_locale(locale, fn ->
       Gettext.dgettext(
-        ExCourtbotWeb.Gettext,
+        CourtbotWeb.Gettext,
         "response",
         "This is a reminder for case %{case_number}. The next hearing is on %{date}, at %{time}. You can go to %{court_url} for more information.",
         case_number: case_number,
@@ -126,7 +126,7 @@ defmodule ExCourtbotWeb.Response do
 
     Gettext.with_locale(locale, fn ->
       Gettext.dgettext(
-        ExCourtbotWeb.Gettext,
+        CourtbotWeb.Gettext,
         "response",
         "This is a reminder for case %{case_number}. The next hearing is tomorrow, %{date}, at %{time}.",
         case_number: case_number,

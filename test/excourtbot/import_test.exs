@@ -1,5 +1,5 @@
-defmodule ExCourtbot.ImportTest do
-  use ExCourtbot.DataCase, asyc: true
+defmodule Courtbot.ImportTest do
+  use Courtbot.DataCase, asyc: true
 
   @boise_import_config %{
     importer: %{
@@ -84,25 +84,25 @@ defmodule ExCourtbot.ImportTest do
   end
 
   test "imports Anchorage data from mix config" do
-    config = ExCourtbot.mix_config(@anchorage_import_config)
+    config = Courtbot.mix_config(@anchorage_import_config)
 
-    records = ExCourtbot.import(config)
+    records = Courtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end
 
   test "imports Atlanta data from mix config" do
-    config = ExCourtbot.mix_config(@atlanta_import_config)
+    config = Courtbot.mix_config(@atlanta_import_config)
 
-    records = ExCourtbot.import(config)
+    records = Courtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end
 
   test "imports Boise data from mix config" do
-    config = ExCourtbot.mix_config(@boise_import_config)
+    config = Courtbot.mix_config(@boise_import_config)
 
-    records = ExCourtbot.import(config)
+    records = Courtbot.import(config)
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end

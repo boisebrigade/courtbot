@@ -1,10 +1,10 @@
 defmodule Mix.Tasks.Courtbot.Notify do
   use Mix.Task
 
-  @shortdoc "Run the ExCourtbot notify"
+  @shortdoc "Run the Courtbot notify"
   def run(_) do
     Mix.Task.run("app.start", [])
 
-    ExCourtbot.notify()
+    Courtbot.notify()
   end
 end

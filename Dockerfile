@@ -11,14 +11,18 @@ RUN apt-get install build-essential erlang-dev -y
 RUN mix local.rebar --force
 RUN mix local.hex --force
 
-COPY . .
+COPY mix.exs .
+COPY mix.lock .
 
 RUN mix deps.get
 RUN mix deps.compile
+
+COPY . .
+
 RUN mix compile
 
 RUN mix release --env=${MIX_ENV} --verbose \
-  && mv _build/${MIX_ENV}/rel/excourtbot /opt/release
+  && mv _build/${MIX_ENV}/rel/courtbot /opt/release
 
 FROM debian:stretch
 
@@ -34,4 +38,4 @@ RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 WORKDIR /opt/app
 COPY --from=0 /opt/release .
-CMD trap 'exit' INT; /opt/app/bin/excourtbot foreground
+CMD trap 'exit' INT; /opt/app/bin/courtbot foreground

@@ -1,7 +1,7 @@
-defmodule ExCourtbot.Queue do
+defmodule Courtbot.Queue do
   use Ecto.Schema
 
-  alias ExCourtbot.Case
+  alias Courtbot.Case
 
   import Ecto.Changeset
 
@@ -12,7 +12,7 @@ defmodule ExCourtbot.Queue do
     belongs_to(:case, Case)
 
     field(:case_number, :string)
-    field(:phone_number, ExCourtbot.Encrypted.Binary)
+    field(:phone_number, Courtbot.Encrypted.Binary)
 
     timestamps()
   end

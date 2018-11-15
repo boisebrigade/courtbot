@@ -1,7 +1,7 @@
-defmodule ExCourtbot.Subscriber do
+defmodule Courtbot.Subscriber do
   use Ecto.Schema
 
-  alias ExCourtbot.{Case, Hearing, Notification, Subscriber, Repo}
+  alias Courtbot.{Case, Hearing, Notification, Subscriber, Repo}
 
   import Ecto.{Changeset, Query}
 
@@ -11,7 +11,7 @@ defmodule ExCourtbot.Subscriber do
   schema "subscribers" do
     belongs_to(:case, Case)
 
-    field(:phone_number, ExCourtbot.Encrypted.Binary)
+    field(:phone_number, Courtbot.Encrypted.Binary)
     field(:phone_number_hash, :binary)
     field(:locale, :string)
 
@@ -68,6 +68,7 @@ defmodule ExCourtbot.Subscriber do
   end
 
   def all_pending_notifications() do
+    # FIXME(ts): Figure out best way to determine timezone in this context.
     today = Date.utc_today()
     tomorrow = Date.add(today, 1)
 

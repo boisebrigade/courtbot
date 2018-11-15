@@ -1,4 +1,4 @@
-defmodule ExCourtbot.ReleaseTasks do
+defmodule Courtbot.ReleaseTasks do
   @start_apps [
     :crypto,
     :ssl,
@@ -7,7 +7,7 @@ defmodule ExCourtbot.ReleaseTasks do
     :timex
   ]
 
-  @repos Application.get_env(:excourtbot, :ecto_repos, [])
+  @repos Application.get_env(:courtbot, :ecto_repos, [])
 
   def migrate() do
     start_services()
@@ -20,7 +20,7 @@ defmodule ExCourtbot.ReleaseTasks do
   def import() do
     start_services()
 
-    ExCourtbot.import()
+    Courtbot.import()
 
     stop_services()
   end
@@ -28,7 +28,7 @@ defmodule ExCourtbot.ReleaseTasks do
   def notify() do
     start_services()
 
-    ExCourtbot.notify()
+    Courtbot.notify()
 
     stop_services()
   end
