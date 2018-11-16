@@ -54,7 +54,8 @@ release :courtbot do
   )
 
   set overlays: [
-    {:copy, "rel/config/courtbot.exs", "etc/courtbot.exs"}
+    {:copy, "rel/config/courtbot.exs", "etc/courtbot.exs"},
+    {:copy, "priv", "excourtbot"}
   ]
 
   set(

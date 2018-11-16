@@ -21,6 +21,14 @@ COPY . .
 
 RUN mix compile
 
+RUN cd assets \
+  && npm install \
+  && npm run build \
+  && npm run webpack:production \
+  && cd ..
+
+RUN mix phx.digest
+
 RUN mix release --env=${MIX_ENV} --verbose \
   && mv _build/${MIX_ENV}/rel/courtbot /opt/release
 

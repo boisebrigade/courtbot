@@ -1,4 +1,11 @@
 use Mix.Config
 
-# Import our generated secrets. This file is generated
+# Phoenix configuration
+config :courtbot, CourtbotWeb.Endpoint,
+  server: true,
+  root: ".",
+  version: Mix.Project.config()[:version]
+
+# Import our generated secrets.
+# This file is generated
 import_config "courtbot.secrets.exs"
