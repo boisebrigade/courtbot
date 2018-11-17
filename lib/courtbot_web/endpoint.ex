@@ -40,7 +40,7 @@ defmodule CourtbotWeb.Endpoint do
   """
   def init(_key, config) do
     if config[:load_from_system_env] do
-      port = String.to_integer(System.get_env("PORT")) || 4000
+      port = String.to_integer(System.get_env("PORT") || "4000")
       host = System.get_env("HOST") || "localhost"
 
       secret_key_base =
