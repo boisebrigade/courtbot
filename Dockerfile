@@ -5,8 +5,9 @@ ENV MIX_ENV ${MIX_ENV}
 
 WORKDIR /opt/app
 
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install build-essential erlang-dev -y
+RUN apt-get install build-essential erlang-dev nodejs -y
 
 RUN mix local.rebar --force
 RUN mix local.hex --force
@@ -14,15 +15,23 @@ RUN mix local.hex --force
 COPY mix.exs .
 COPY mix.lock .
 
+RUN mkdir assets
+
+COPY assets/package.json assets/
+COPY assets/package-lock.json assets/
+
 RUN mix deps.get
 RUN mix deps.compile
+
+RUN cd assets \
+  && npm install \
+  && cd ..
 
 COPY . .
 
 RUN mix compile
 
 RUN cd assets \
-  && npm install \
   && npm run build \
   && npm run webpack:production \
   && cd ..
