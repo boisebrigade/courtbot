@@ -49,7 +49,6 @@ defmodule Courtbot.Mixfile do
       {:plug_cowboy, "~> 2.0"},
       {:ex_twilio, "~> 0.6.0"},
       {:ex_twiml, "~> 2.1.3"},
-      {:rollbax, ">= 0.0.0"},
       {:absinthe, "~> 1.4"},
       {:guardian, "~> 0.14"},
       {:comeonin, "~> 4.0"},
