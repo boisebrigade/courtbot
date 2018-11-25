@@ -29,7 +29,8 @@ let reducer = (action, state) =>
   | ChangeUsername(username) => ReasonReact.Update({...state, username})
   | ChangePassword(password) => ReasonReact.Update({...state, password})
   | SubmitLogin =>
-    let query = UserLogin.make(~username=state.username, ~password=state.password, ()) |> ignore;
+    UserLogin.make(~username=state.username, ~password=state.password, ())
+    |> ignore;
 
     ReasonReact.NoUpdate;
   };
@@ -37,20 +38,28 @@ let reducer = (action, state) =>
 let errorDisplayList = errorList =>
   List.filter(errorMessage => String.length(errorMessage) > 0, errorList)
   |> List.mapi((acc, errorMessage) =>
-       <ul className="error-messages" key={string_of_int(acc)}> <li> {ReasonReact.string(errorMessage)} </li> </ul>
+       <ul className="error-messages" key={string_of_int(acc)}>
+         <li> {ReasonReact.string(errorMessage)} </li>
+       </ul>
      );
 
 let component = ReasonReact.reducerComponent(__MODULE__);
 
 let make = (~successfulLogin, _children) => {
   ...component,
-  initialState: () => {username: "", password: "", hasValidationError: false, errorList: []},
+  initialState: () => {
+    username: "",
+    password: "",
+    hasValidationError: false,
+    errorList: [],
+  },
   reducer,
   render: self =>
     <UserLoginMutation>
       ...{
            (mutation, {result}) =>
-             <div className="flex flex-column justify-center items-center w-100 h-100">
+             <div
+               className="flex flex-column justify-center items-center w-100 h-100">
                <div className="bg-near-white pa3">
                  <h3> {ReasonReact.string("Login")} </h3>
                  {
@@ -64,7 +73,8 @@ let make = (~successfulLogin, _children) => {
                        <div />;
                      | None => <div />
                      }
-                   | Error(_) => <div> {ReasonReact.string("Invalid Login")} </div>
+                   | Error(_) =>
+                     <div> {ReasonReact.string("Invalid Login")} </div>
                    | Loading => <div />
                    }
                  }
@@ -73,7 +83,11 @@ let make = (~successfulLogin, _children) => {
                      e => {
                        ReactEvent.Form.preventDefault(e);
                        let userLogin =
-                         UserLogin.make(~username=self.state.username, ~password=self.state.password, ());
+                         UserLogin.make(
+                           ~username=self.state.username,
+                           ~password=self.state.password,
+                           (),
+                         );
 
                        mutation(~variables=userLogin##variables, ()) |> ignore;
                      }
@@ -94,7 +108,12 @@ let make = (~successfulLogin, _children) => {
                      id="password"
                      onChange={e => self.send(ChangePassword(getValue(e)))}
                    />
-                   <input type_="submit" className="db ml-auto" name="submit" id="submit" />
+                   <input
+                     type_="submit"
+                     className="db ml-auto"
+                     name="submit"
+                     id="submit"
+                   />
                  </form>
                </div>
              </div>

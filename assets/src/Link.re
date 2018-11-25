@@ -9,5 +9,9 @@ let handleClick = (href, event) =>
 /* ~props={"href": href, "onClick": handleClick(href)} */
 let make = (~href, children) => {
   ...component,
-  render: _self => <span className="pointer underline-hover" href onClick={handleClick(href)}> ...children </span>,
+  render: _self =>
+    <span
+      className="pointer underline-hover" href onClick={handleClick(href)}>
+      ...children
+    </span>,
 };

@@ -1,4 +1,4 @@
-defmodule ExCourtbot.Resolver.Dashboard do
+defmodule Courtbot.Resolver.Dashboard do
   def get(_, _, %{context: %{current_user: _user}}) do
     {:ok,
      %{

@@ -25,16 +25,23 @@ let component = ReasonReact.reducerComponent(__MODULE__);
 
 let make = _children => {
   ...component,
-  initialState: () => {route: mapPathToRoute(ReasonReact.Router.dangerouslyGetInitialUrl()), needsLogin: false},
+  initialState: () => {
+    route: mapPathToRoute(ReasonReact.Router.dangerouslyGetInitialUrl()),
+    needsLogin: true,
+  },
   didMount: self => {
-    let watcherId = ReasonReact.Router.watchUrl(url => self.send(ChangeRoute(url |> mapPathToRoute)));
+    let watcherId =
+      ReasonReact.Router.watchUrl(url =>
+        self.send(ChangeRoute(url |> mapPathToRoute))
+      );
 
     self.onUnmount(() => ReasonReact.Router.unwatchUrl(watcherId));
   },
   reducer: (action, _state) =>
     switch (action) {
     | ChangeRoute(route) => ReasonReact.Update({route, needsLogin: false})
-    | Authenticated => ReasonReact.Update({route: Dashboard, needsLogin: false})
+    | Authenticated =>
+      ReasonReact.Update({route: Dashboard, needsLogin: false})
     },
   render: self => {
     let successfulLogin = () => {

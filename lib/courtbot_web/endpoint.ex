@@ -5,7 +5,7 @@ defmodule CourtbotWeb.Endpoint do
   plug(
     Plug.Static,
     at: "/",
-    from: :excourtbot,
+    from: :courtbot,
     gzip: false,
     only:
       ~w(index.html favicon.ico robots.txt index.js styles.css courtbot.png favicon.png tachyons.min.css question-solid.svg)

@@ -1,4 +1,4 @@
-defmodule ExCourtbotWeb.Context do
+defmodule CourtbotWeb.Context do
   @behaviour Plug
 
   import Plug.Conn

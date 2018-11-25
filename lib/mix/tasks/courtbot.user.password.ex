@@ -1,7 +1,7 @@
 defmodule Mix.Tasks.Courtbot.User.Password do
   use Mix.Task
 
-  alias ExCourtbot.User
+  alias Courtbot.User
 
   @shortdoc "Reset's Courtbot's admin users password"
   def run(_) do

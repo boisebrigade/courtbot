@@ -1,4 +1,4 @@
-defmodule ExCourtbotWeb.StaticPlug do
+defmodule CourtbotWeb.StaticPlug do
   @behaviour Plug
   import Plug.Conn
 

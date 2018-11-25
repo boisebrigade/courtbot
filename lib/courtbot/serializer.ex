@@ -1,7 +1,7 @@
-defmodule ExCourtbot.GuardianSerializer do
+defmodule Courtbot.GuardianSerializer do
   @behaviour Guardian.Serializer
 
-  alias ExCourtbot.{Repo, User}
+  alias Courtbot.{Repo, User}
 
   def for_token(user = %User{}), do: {:ok, "User:#{user.id}"}
   def for_token(_), do: {:error, "Unknown resource type"}

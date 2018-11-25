@@ -9,11 +9,17 @@ let make = _children => {
       </div>
       <nav className="bt b--black-10 w-70 center">
         <ul className="list pl0 mb3 montserrat">
-          <li className="mt3 mb2 pl1"> <Link href="/"> {ReasonReact.string("Dashboard")} </Link> </li>
           <li className="mt3 mb2 pl1">
-            <Link href="/configuration"> {ReasonReact.string("Configuration")} </Link>
+            <Link href="/"> {ReasonReact.string("Dashboard")} </Link>
           </li>
-          <li className="mt3 mb2 pl1"> <Link href="/importer"> {ReasonReact.string("Importer")} </Link> </li>
+          <li className="mt3 mb2 pl1">
+            <Link href="/configuration">
+              {ReasonReact.string("Configuration")}
+            </Link>
+          </li>
+          <li className="mt3 mb2 pl1">
+            <Link href="/importer"> {ReasonReact.string("Importer")} </Link>
+          </li>
         </ul>
       </nav>
     </div>,

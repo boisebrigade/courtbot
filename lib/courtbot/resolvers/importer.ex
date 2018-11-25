@@ -1,5 +1,5 @@
-defmodule ExCourtbot.Resolver.Importer do
-  alias ExCourtbot.{Configuration, Repo, Importer}
+defmodule Courtbot.Resolver.Importer do
+  alias Courtbot.{Configuration, Repo, Importer}
 
   def get(_, _, %{context: %{current_user: _user}}) do
     config =
@@ -8,7 +8,6 @@ defmodule ExCourtbot.Resolver.Importer do
         "import_origin",
         "import_source"
       ])
-
 
     fields =
       Importer.mapped()
@@ -19,14 +18,13 @@ defmodule ExCourtbot.Resolver.Importer do
       end)
       |> Enum.sort(&(&1.index < &2.index))
 
-
-    {:ok, %{
-      kind: config.import_kind,
-      origin: config.import_origin,
-      source: config.import_source,
-      fields: fields
-      }
-    }
+    {:ok,
+     %{
+       kind: config.import_kind,
+       origin: config.import_origin,
+       source: config.import_source,
+       fields: fields
+     }}
   end
 
   def get(_, _, _) do
@@ -76,10 +74,12 @@ defmodule ExCourtbot.Resolver.Importer do
     {:error, "Requires authentication"}
   end
 
-  def test(%{kind: kind, origin: origin, source: source} = input, %{context: %{current_user: _user}}) do
+  def test(%{kind: kind, origin: origin, source: source} = input, %{
+        context: %{current_user: _user}
+      }) do
     # TODO(ts): Error handling
 
-    headers = ExCourtbot.test_import(kind, origin, source)
+    headers = Courtbot.test_import(kind, origin, source)
     {:ok, %{headers: headers}}
   end
 end

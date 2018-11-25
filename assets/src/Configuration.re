@@ -55,16 +55,21 @@ module SetConfiguration = [%graphql
   |}
 ];
 
-module SetConfigurationMutation = ReasonApollo.CreateMutation(SetConfiguration);
+module SetConfigurationMutation =
+  ReasonApollo.CreateMutation(SetConfiguration);
 
 module Form = {
   let reducer = (action, state) =>
     switch (action) {
     | ChangeTwilioSid(twilioSid) => ReasonReact.Update({...state, twilioSid})
-    | ChangeTwilioToken(twilioToken) => ReasonReact.Update({...state, twilioToken})
-    | ChangeRollbarToken(rollbarToken) => ReasonReact.Update({...state, rollbarToken})
-    | ChangeImportTime(importTime) => ReasonReact.Update({...state, importTime})
-    | ChangeNotificationTime(notificationTime) => ReasonReact.Update({...state, notificationTime})
+    | ChangeTwilioToken(twilioToken) =>
+      ReasonReact.Update({...state, twilioToken})
+    | ChangeRollbarToken(rollbarToken) =>
+      ReasonReact.Update({...state, rollbarToken})
+    | ChangeImportTime(importTime) =>
+      ReasonReact.Update({...state, importTime})
+    | ChangeNotificationTime(notificationTime) =>
+      ReasonReact.Update({...state, notificationTime})
     | ChangeCourtUrl(courtUrl) => ReasonReact.Update({...state, courtUrl})
     | ChangeTimezone(timezone) => ReasonReact.Update({...state, timezone})
     | SaveConfiguration => ReasonReact.NoUpdate
@@ -84,7 +89,15 @@ module Form = {
         _children,
       ) => {
     ...component,
-    initialState: () => {twilioSid, twilioToken, rollbarToken, importTime, notificationTime, timezone, courtUrl},
+    initialState: () => {
+      twilioSid,
+      twilioToken,
+      rollbarToken,
+      importTime,
+      notificationTime,
+      timezone,
+      courtUrl,
+    },
     reducer,
     render: self =>
       <Main title="Configuration">
@@ -116,82 +129,125 @@ module Form = {
                      }
                    }>
                    <Setting title="Twilio API Credentials" help="/">
-                     <label htmlFor="twilio_sid"> {ReasonReact.string("SID: ")} </label>
+                     <label htmlFor="twilio_sid">
+                       {ReasonReact.string("SID: ")}
+                     </label>
                      <input
                        type_="text"
                        className="db mb2 mt1"
                        name="twilio_sid"
                        id="twilio_sid"
                        value={self.state.twilioSid}
-                       onChange={e => ChangeTwilioSid(Dom.getValue(e)) |> self.send}
+                       onChange={
+                         e => ChangeTwilioSid(Dom.getValue(e)) |> self.send
+                       }
                        required=true
                      />
-                     <label htmlFor="twilio_sid"> {ReasonReact.string("Auth Token: ")} </label>
+                     <label htmlFor="twilio_sid">
+                       {ReasonReact.string("Auth Token: ")}
+                     </label>
                      <input
                        type_="text"
                        className="db mt1 mb2"
                        name="password"
                        id="password"
                        value={self.state.twilioToken}
-                       onChange={e => ChangeTwilioToken(Dom.getValue(e)) |> self.send}
+                       onChange={
+                         e => ChangeTwilioToken(Dom.getValue(e)) |> self.send
+                       }
                        required=true
                      />
                    </Setting>
                    <Setting title="Rollbar API Credentials" help="/">
-                     <label htmlFor="twilio_sid"> {ReasonReact.string("Access Token: ")} </label>
+                     <label htmlFor="twilio_sid">
+                       {ReasonReact.string("Access Token: ")}
+                     </label>
                      <input
                        type_="text"
                        className="db mt1"
                        name="twilio_sid"
                        id="twilio_sid"
                        value={self.state.rollbarToken}
-                       onChange={e => ChangeRollbarToken(Dom.getValue(e)) |> self.send}
+                       onChange={
+                         e =>
+                           ChangeRollbarToken(Dom.getValue(e)) |> self.send
+                       }
                      />
                    </Setting>
                    <Setting title="Rollbar" help="/">
-                     <label htmlFor="locale"> {ReasonReact.string("Locales: ")} </label>
-                     <input type_="tel" className="db mt1" name="locale" id="locale" />
+                     <label htmlFor="locale">
+                       {ReasonReact.string("Locales: ")}
+                     </label>
+                     <input
+                       type_="tel"
+                       className="db mt1"
+                       name="locale"
+                       id="locale"
+                     />
                    </Setting>
                    <Setting title="Scheduled" help="/">
                      <div className="mt3">
-                       <label htmlFor="import_time"> {ReasonReact.string("Import Time: ")} </label>
+                       <label htmlFor="import_time">
+                         {ReasonReact.string("Import Time: ")}
+                       </label>
                        <input
                          type_="time"
                          className="db mt1"
                          name="import_time"
                          id="import_time"
                          value={self.state.importTime}
-                         onChange={e => ChangeImportTime(Dom.getValue(e)) |> self.send}
+                         onChange={
+                           e =>
+                             ChangeImportTime(Dom.getValue(e)) |> self.send
+                         }
                        />
                      </div>
                      <div className="mt3">
-                       <label htmlFor="notification_time"> {ReasonReact.string("Notification Time: ")} </label>
+                       <label htmlFor="notification_time">
+                         {ReasonReact.string("Notification Time: ")}
+                       </label>
                        <input
                          type_="time"
                          className="db mt1"
                          name="notification_time"
                          id="notification_time"
                          value={self.state.rollbarToken}
-                         onChange={e => ChangeRollbarToken(Dom.getValue(e)) |> self.send}
+                         onChange={
+                           e =>
+                             ChangeRollbarToken(Dom.getValue(e)) |> self.send
+                         }
                        />
                      </div>
                    </Setting>
                    <Setting title="Branding and Contact" help="/">
-                     <label htmlFor="court_url"> {ReasonReact.string("Court URL: ")} </label>
+                     <label htmlFor="court_url">
+                       {ReasonReact.string("Court URL: ")}
+                     </label>
                      <input
                        type_="url"
                        className="db mt1"
                        name="court_url"
                        id="court_url"
                        value={self.state.rollbarToken}
-                       onChange={e => ChangeRollbarToken(Dom.getValue(e)) |> self.send}
+                       onChange={
+                         e =>
+                           ChangeRollbarToken(Dom.getValue(e)) |> self.send
+                       }
                      />
                    </Setting>
                    <Setting title="System" help="/">
-                     <label htmlFor="timezone"> {ReasonReact.string("Timezone: ")} </label>
+                     <label htmlFor="timezone">
+                       {ReasonReact.string("Timezone: ")}
+                     </label>
                      <Timezones />
                    </Setting>
-                   <input type_="submit" className="db mt3" name="submit" value="Save" id="submit" />
+                   <input
+                     type_="submit"
+                     className="db mt3"
+                     name="submit"
+                     value="Save"
+                     id="submit"
+                   />
                  </form>
              }
         </SetConfigurationMutation>
@@ -213,8 +269,24 @@ let make = _children => {
              | Error(_error) => <div> {ReasonReact.string("Error")} </div>
              | Data(data) =>
                switch (data##configuration) {
-               | Some({twilioSid, twilioToken, rollbarToken, importTime, notificationTime, timezone, courtUrl}) =>
-                 <Form twilioSid twilioToken rollbarToken importTime notificationTime timezone courtUrl />
+               | Some({
+                   twilioSid,
+                   twilioToken,
+                   rollbarToken,
+                   importTime,
+                   notificationTime,
+                   timezone,
+                   courtUrl,
+                 }) =>
+                 <Form
+                   twilioSid
+                   twilioToken
+                   rollbarToken
+                   importTime
+                   notificationTime
+                   timezone
+                   courtUrl
+                 />
                | None => ReasonReact.null
                }
              }

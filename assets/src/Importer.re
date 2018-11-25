@@ -116,7 +116,8 @@ module SetConfiguration = [%graphql
   |}
 ];
 
-module SetConfigurationMutation = ReasonApollo.CreateMutation(SetConfiguration);
+module SetConfigurationMutation =
+  ReasonApollo.CreateMutation(SetConfiguration);
 
 module Destination = {
   let component = ReasonReact.statelessComponent(__MODULE__);
@@ -140,7 +141,10 @@ module Destination = {
         {
           ReasonReact.array(
             List.map(
-              d => <option value=d selected={d == destination}> {ReasonReact.string(d)} </option>,
+              d =>
+                <option value=d selected={d == destination}>
+                  {ReasonReact.string(d)}
+                </option>,
               destinations,
             )
             |> Array.of_list,
@@ -161,7 +165,10 @@ module Kind = {
         {
           ReasonReact.array(
             List.map(
-              k => <option value=k selected={k == kind}> {k |> String.capitalize |> ReasonReact.string} </option>,
+              k =>
+                <option value=k selected={k == kind}>
+                  {k |> String.capitalize |> ReasonReact.string}
+                </option>,
               kinds,
             )
             |> Array.of_list,
@@ -208,7 +215,9 @@ module Field = {
         <td className="pv2 ph3 w2 tc"> {ReasonReact.string(source)} </td>
         <td className="pv2 ph3 w5 tc"> <Destination destination /> </td>
         <td className="pv2 ph3 w5 tc"> <Kind kind /> </td>
-        <td className="pv2 ph3 w5 tc"> <input type_="text" value=format /> </td>
+        <td className="pv2 ph3 w5 tc">
+          <input type_="text" value=format />
+        </td>
       </tr>;
     },
   };
@@ -224,15 +233,29 @@ module FieldMapper = {
         <table className="collapse ba br2 b--black-10 pv2 ph3 mt4 bn">
           <tbody className="ml3">
             <tr className="striped--near-white">
-              <th className="pv2 ph3 f6 fw6 ttu w2"> {ReasonReact.string("Source")} </th>
-              <th className="pv2 ph3 f6 fw6 ttu w5"> {ReasonReact.string("Destination")} </th>
-              <th className="pv2 ph3 f6 fw6 ttu w5"> {ReasonReact.string("Type")} </th>
-              <th className="pv2 ph3 f6 fw6 ttu w5"> {ReasonReact.string("Format")} </th>
+              <th className="pv2 ph3 f6 fw6 ttu w2">
+                {ReasonReact.string("Source")}
+              </th>
+              <th className="pv2 ph3 f6 fw6 ttu w5">
+                {ReasonReact.string("Destination")}
+              </th>
+              <th className="pv2 ph3 f6 fw6 ttu w5">
+                {ReasonReact.string("Type")}
+              </th>
+              <th className="pv2 ph3 f6 fw6 ttu w5">
+                {ReasonReact.string("Format")}
+              </th>
             </tr>
             {
               switch (fields) {
               | Some(fields) =>
-                ReasonReact.array(Array.map((field: Fields.field) => <Field key="0" properties=field />, fields))
+                ReasonReact.array(
+                  Array.map(
+                    (field: Fields.field) =>
+                      <Field key="0" properties=field />,
+                    fields,
+                  ),
+                )
               | None => ReasonReact.null
               }
             }
@@ -247,12 +270,18 @@ module Configuration = {
 
   let make = (~kind=CSV, ~origin=FILE, ~source="", _children) => {
     ...component,
-    initialState: () => {dataKind: kind, dataOrigin: origin, dataSource: source},
+    initialState: () => {
+      dataKind: kind,
+      dataOrigin: origin,
+      dataSource: source,
+    },
     reducer: (action, state) =>
       switch (action) {
       | UpdateType(dataKind) => ReasonReact.Update({...state, dataKind})
-      | UpdateOrigin(dataOrigin) => ReasonReact.Update({...state, dataOrigin})
-      | UpdateSource(dataSource) => ReasonReact.Update({...state, dataSource})
+      | UpdateOrigin(dataOrigin) =>
+        ReasonReact.Update({...state, dataOrigin})
+      | UpdateSource(dataSource) =>
+        ReasonReact.Update({...state, dataSource})
       },
     render: self =>
       <>
@@ -266,7 +295,9 @@ module Configuration = {
                 checked={self.state.dataKind == CSV}
                 onChange={_e => self.send(UpdateType(CSV))}
               />
-              <label className="pl2" htmlFor="csv"> {ReasonReact.string("CSV")} </label>
+              <label className="pl2" htmlFor="csv">
+                {ReasonReact.string("CSV")}
+              </label>
             </div>
           </div>
         </Setting>
@@ -279,7 +310,9 @@ module Configuration = {
               checked={self.state.dataOrigin == URL}
               onChange={_e => self.send(UpdateOrigin(URL))}
             />
-            <label className="pl2" htmlFor="url"> {ReasonReact.string("URL")} </label>
+            <label className="pl2" htmlFor="url">
+              {ReasonReact.string("URL")}
+            </label>
           </div>
           <div>
             <input
@@ -289,7 +322,9 @@ module Configuration = {
               checked={self.state.dataOrigin == FILE}
               onChange={_e => self.send(UpdateOrigin(FILE))}
             />
-            <label className="pl2" htmlFor="file"> {ReasonReact.string("File")} </label>
+            <label className="pl2" htmlFor="file">
+              {ReasonReact.string("File")}
+            </label>
           </div>
         </Setting>
         <Setting title="Data Source" help="/">
@@ -314,12 +349,22 @@ module Settings = {
     render: _self =>
       <Setting title="Field Settings" help="/">
         <div>
-          <input type_="text" id="delimiter" name="data_origin" className="w1 tc" placeholder="," />
-          <label className="pl2" htmlFor="url"> {ReasonReact.string("Delimiter Char")} </label>
+          <input
+            type_="text"
+            id="delimiter"
+            name="data_origin"
+            className="w1 tc"
+            placeholder=","
+          />
+          <label className="pl2" htmlFor="url">
+            {ReasonReact.string("Delimiter Char")}
+          </label>
         </div>
         <div className="mt3">
           <input type_="checkbox" id="url" name="data_origin" />
-          <label className="pl2" htmlFor="url"> {ReasonReact.string("Has Headers")} </label>
+          <label className="pl2" htmlFor="url">
+            {ReasonReact.string("Has Headers")}
+          </label>
         </div>
       </Setting>,
   };
@@ -349,8 +394,20 @@ let make = _children => {
                        | None => ReasonReact.null
                        }
                      }
-                     <input type_="submit" className="db mt3 ml3" name="submit" value="Test Import" id="submit" />
-                     <input type_="submit" className="db mt3 ml3" name="submit" value="Save" id="submit" />
+                     <input
+                       type_="submit"
+                       className="db mt3 ml3"
+                       name="submit"
+                       value="Test Import"
+                       id="submit"
+                     />
+                     <input
+                       type_="submit"
+                       className="db mt3 ml3"
+                       name="submit"
+                       value="Save"
+                       id="submit"
+                     />
                    </form>
                  | None => ReasonReact.null
                  }

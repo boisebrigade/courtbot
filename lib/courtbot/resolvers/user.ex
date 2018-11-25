@@ -1,5 +1,5 @@
-defmodule ExCourtbot.Resolver.User do
-  alias ExCourtbot.User
+defmodule Courtbot.Resolver.User do
+  alias Courtbot.User
 
   def login(params, _) do
     with {:ok, user} <- User.authenticate(params),

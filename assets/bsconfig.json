@@ -17,6 +17,7 @@
     "reason-react",
     "reason-apollo"
   ],
+  "bsc-flags": ["-bs-no-version-header", "-bs-super-errors"],
   "ppx-flags": [
     "graphql_ppx/ppx"
   ],

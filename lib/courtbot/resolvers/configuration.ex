@@ -1,5 +1,5 @@
-defmodule ExCourtbot.Resolver.Configuration do
-  alias ExCourtbot.{Repo, Configuration}
+defmodule Courtbot.Resolver.Configuration do
+  alias Courtbot.{Repo, Configuration}
 
   require Logger
 
@@ -92,19 +92,22 @@ defmodule ExCourtbot.Resolver.Configuration do
 
     # Start the applications again, this time with the updated configuration.
     case Application.ensure_all_started(:rollbax) do
-      {:ok, _} -> Logger.info("Restarted Rollbax and ExTwilio")
+      {:ok, _} ->
+        Logger.info("Restarted Rollbax and ExTwilio")
+
       {:error, _} ->
         # TODO(ts): Throw GQL error
         Logger.error("Unable to restart Rollbax and or ExTwilio")
     end
 
+    case Application.ensure_all_started(:ex_twilio) do
+      {:ok, _} ->
+        Logger.info("Restarted Rollbax and ExTwilio")
 
-  case Application.ensure_all_started(:ex_twilio) do
-    {:ok, _} -> Logger.info("Restarted Rollbax and ExTwilio")
-    {:error, _} ->
-      # TODO(ts): Throw GQL error
-      Logger.error("Unable to restart Rollbax and or ExTwilio")
-  end
+      {:error, _} ->
+        # TODO(ts): Throw GQL error
+        Logger.error("Unable to restart Rollbax and or ExTwilio")
+    end
 
     {:ok,
      %{

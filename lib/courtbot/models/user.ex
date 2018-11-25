@@ -1,9 +1,9 @@
-defmodule ExCourtbot.User do
+defmodule Courtbot.User do
   use Ecto.Schema
 
   import Ecto.{Changeset, Query}
 
-  alias ExCourtbot.{Repo, User}
+  alias Courtbot.{Repo, User}
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id

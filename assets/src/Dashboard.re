@@ -20,7 +20,12 @@ let make = _children => {
   render: _self => {
     let conf = GetDashboard.make();
     <GetDashboardQuery variables=conf##variables>
-      ...{({result}) => <Main title="Dashboard"> {ReasonReact.string("Coming Soon!")} </Main>}
+      ...{
+           ({result}) =>
+             <Main title="Dashboard">
+               {ReasonReact.string("Coming Soon!")}
+             </Main>
+         }
     </GetDashboardQuery>;
   },
 };

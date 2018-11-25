@@ -10,7 +10,7 @@ defmodule CourtbotWeb.Router do
   pipeline :api do
     plug(Guardian.Plug.VerifyHeader, realm: "Bearer")
     plug(Guardian.Plug.LoadResource)
-    plug(ExCourtbotWeb.Context)
+    plug(CourtbotWeb.Context)
   end
 
   scope "/", CourtbotWeb do
@@ -23,16 +23,16 @@ defmodule CourtbotWeb.Router do
   scope "/graphiql" do
     pipe_through(:api)
 
-    forward("/", Absinthe.Plug.GraphiQL, schema: ExCourtbot.Schema, interface: :playground)
+    forward("/", Absinthe.Plug.GraphiQL, schema: Courtbot.Schema, interface: :playground)
   end
 
   scope "/graphql" do
     pipe_through(:api)
 
-    forward("/", Absinthe.Plug, schema: ExCourtbot.Schema)
+    forward("/", Absinthe.Plug, schema: Courtbot.Schema)
   end
 
-  scope "/", ExCourtbotWeb do
+  scope "/", CourtbotWeb do
     forward("/", StaticPlug)
   end
 

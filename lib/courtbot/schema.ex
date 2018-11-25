@@ -1,4 +1,4 @@
-defmodule ExCourtbot.Schema do
+defmodule Courtbot.Schema do
   use Absinthe.Schema
   use Absinthe.Relay.Schema.Notation, :modern
   use Absinthe.Relay.Schema, :modern
@@ -71,15 +71,15 @@ defmodule ExCourtbot.Schema do
 
   query do
     field :dashboard, :dashboard do
-      resolve(&ExCourtbot.Resolver.Dashboard.get/3)
+      resolve(&Courtbot.Resolver.Dashboard.get/3)
     end
 
     field :configuration, :conf do
-      resolve(&ExCourtbot.Resolver.Configuration.get/3)
+      resolve(&Courtbot.Resolver.Configuration.get/3)
     end
 
     field :importer, :importer do
-      resolve(&ExCourtbot.Resolver.Importer.get/3)
+      resolve(&Courtbot.Resolver.Importer.get/3)
     end
   end
 
@@ -94,7 +94,7 @@ defmodule ExCourtbot.Schema do
         field(:jwt, non_null(:string))
       end
 
-      resolve(&ExCourtbot.Resolver.User.login/2)
+      resolve(&Courtbot.Resolver.User.login/2)
     end
 
     payload field(:user_edit) do
@@ -109,7 +109,7 @@ defmodule ExCourtbot.Schema do
         field(:jwt, non_null(:string))
       end
 
-      resolve(&ExCourtbot.Resolver.User.edit/2)
+      resolve(&Courtbot.Resolver.User.edit/2)
     end
 
     payload field(:set_configuration) do
@@ -141,7 +141,7 @@ defmodule ExCourtbot.Schema do
         field(:court_url, non_null(:string))
       end
 
-      resolve(&ExCourtbot.Resolver.Configuration.edit/2)
+      resolve(&Courtbot.Resolver.Configuration.edit/2)
     end
 
     payload field(:set_importer) do
@@ -156,7 +156,7 @@ defmodule ExCourtbot.Schema do
         field(:fields, :string)
       end
 
-      resolve(&ExCourtbot.Resolver.Importer.edit/2)
+      resolve(&Courtbot.Resolver.Importer.edit/2)
     end
 
     payload field(:test_import) do
@@ -170,7 +170,7 @@ defmodule ExCourtbot.Schema do
         field(:headers, list_of(non_null(:string)))
       end
 
-      resolve(&ExCourtbot.Resolver.Importer.test/2)
+      resolve(&Courtbot.Resolver.Importer.test/2)
     end
   end
 end
