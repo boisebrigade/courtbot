@@ -74,7 +74,7 @@ defmodule CourtbotWeb.Response do
 
   defp response(:prompt_reminder, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext("Would you like a reminder 24hr before the hearing date?")
+      gettext("Would you like a reminder a day before the next hearing date?")
     end)
   end
 
