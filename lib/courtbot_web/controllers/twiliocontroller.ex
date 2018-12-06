@@ -35,6 +35,8 @@ defmodule CourtbotWeb.TwilioController do
     gettext("unsubscribe")
   ]
 
+  @county gettext("county")
+
   @request_defaults %{"locale" => "en"}
 
   def sms(conn, _ = %{"From" => phone_number, "Body" => @debug_phase}) do
@@ -148,11 +150,9 @@ defmodule CourtbotWeb.TwilioController do
            "requires_county" => case_number
          }
        ) do
-    # FIXME(ts): Handle multilingual.
     message =
       message
-      |> String.replace("County", "")
-      |> String.replace("county", "")
+      |> String.replace(@county, "")
       |> String.trim()
 
     if Enum.member?(Case.all_counties(), message) do
