@@ -148,6 +148,13 @@ defmodule CourtbotWeb.TwilioController do
            "requires_county" => case_number
          }
        ) do
+    # FIXME(ts): Handle multilingual.
+    message =
+      message
+      |> String.replace("County", "")
+      |> String.replace("county", "")
+      |> String.trim()
+
     if Enum.member?(Case.all_counties(), message) do
       {_, params} =
         params
@@ -251,7 +258,7 @@ defmodule CourtbotWeb.TwilioController do
 
   defp respond(conn, params, [case = %Case{hearings: _}]), do: prompt_remind(conn, params, case)
   defp respond(conn, params, [_ | _]), do: prompt_county(conn, params)
-  defp respond(conn, params, _), do: prompt_unfound(conn, params)
+  defp respond(conn, params, _), do: prompt_not_found(conn, params)
 
   defp prompt_no_hearings(conn, params = %{"From" => phone_number}, case) do
     Logger.info(
@@ -266,7 +273,7 @@ defmodule CourtbotWeb.TwilioController do
     |> encode(response)
   end
 
-  defp prompt_unfound(conn, params = %{"From" => phone_number, "message" => message}) do
+  defp prompt_not_found(conn, params = %{"From" => phone_number, "message" => message}) do
     Logger.info(log_safe_phone_number(phone_number) <> ": No case found for input: #{message}")
 
     response = Response.message(:not_found, params)
