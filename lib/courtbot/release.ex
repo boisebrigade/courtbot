@@ -52,23 +52,33 @@ defmodule Courtbot.ReleaseTasks do
 
   defp drop_database() do
     case @repo.__adapter__.storage_down(@repo.config) do
-      :ok -> IO.puts "Database has been dropped"
-      {:error, :already_down} -> IO.puts "Dtabase has already been dropped"
+      :ok ->
+        IO.puts("Database has been dropped")
+
+      {:error, :already_down} ->
+        IO.puts("Dtabase has already been dropped")
+
       {:error, term} when is_binary(term) ->
         raise "Database couldn't be dropped: #{term}"
+
       {:error, term} ->
-        raise "Database couldn't be dropped: #{inspect term}"
+        raise "Database couldn't be dropped: #{inspect(term)}"
     end
   end
 
   defp create_database() do
     case @repo.__adapter__.storage_up(@repo.config) do
-      :ok -> IO.puts "Database has been created"
-      {:error, :already_up} -> IO.puts "Database has already been created"
+      :ok ->
+        IO.puts("Database has been created")
+
+      {:error, :already_up} ->
+        IO.puts("Database has already been created")
+
       {:error, term} when is_binary(term) ->
         raise "Database couldn't be created: #{term}"
+
       {:error, term} ->
-        raise "Database couldn't be created: #{inspect term}"
+        raise "Database couldn't be created: #{inspect(term)}"
     end
   end
 

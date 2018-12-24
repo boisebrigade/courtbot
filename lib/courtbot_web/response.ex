@@ -88,7 +88,9 @@ defmodule CourtbotWeb.Response do
 
   defp response(:reject_reminder, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext("Ok. We won't send you a reminder for this case. Text the case again in the future and you can subscribe.")
+      gettext(
+        "Ok. We won't send you a reminder for this case. Text the case again in the future and you can subscribe."
+      )
     end)
   end
 
