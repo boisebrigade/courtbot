@@ -48,7 +48,8 @@ release :courtbot do
   set(
     commands: [
       import: "rel/commands/import",
-      notify: "rel/commands/notify"
+      notify: "rel/commands/notify",
+      reset: "rel/commands/reset"
     ]
   )
 

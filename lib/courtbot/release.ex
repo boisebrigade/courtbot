@@ -3,11 +3,12 @@ defmodule Courtbot.ReleaseTasks do
     :crypto,
     :ssl,
     :postgrex,
+    :ecto,
     :ecto_sql,
     :timex
   ]
 
-  @repos Application.get_env(:courtbot, :ecto_repos, [])
+  @repo Courtbot.Repo
 
   def migrate() do
     start_services()
@@ -33,6 +34,44 @@ defmodule Courtbot.ReleaseTasks do
     stop_services()
   end
 
+  def reset() do
+    drop_database()
+    create_database()
+
+    start_services()
+
+    create_migrations_table()
+    run_migrations()
+
+    stop_services()
+  end
+
+  defp create_migrations_table() do
+    Ecto.Migration.SchemaMigration.ensure_schema_migrations_table!(@repo, nil)
+  end
+
+  defp drop_database() do
+    case @repo.__adapter__.storage_down(@repo.config) do
+      :ok -> IO.puts "Database has been dropped"
+      {:error, :already_down} -> IO.puts "Dtabase has already been dropped"
+      {:error, term} when is_binary(term) ->
+        raise "Database couldn't be dropped: #{term}"
+      {:error, term} ->
+        raise "Database couldn't be dropped: #{inspect term}"
+    end
+  end
+
+  defp create_database() do
+    case @repo.__adapter__.storage_up(@repo.config) do
+      :ok -> IO.puts "Database has been created"
+      {:error, :already_up} -> IO.puts "Database has already been created"
+      {:error, term} when is_binary(term) ->
+        raise "Database couldn't be created: #{term}"
+      {:error, term} ->
+        raise "Database couldn't be created: #{inspect term}"
+    end
+  end
+
   defp start_services do
     IO.puts("Starting dependencies..")
     # Start apps necessary for executing migrations
@@ -40,7 +79,8 @@ defmodule Courtbot.ReleaseTasks do
 
     # Start the Repo(s) for app
     IO.puts("Starting repos..")
-    Enum.each(@repos, & &1.start_link(pool_size: 2))
+
+    @repo.start_link(pool_size: 2)
   end
 
   defp stop_services do
@@ -49,7 +89,7 @@ defmodule Courtbot.ReleaseTasks do
   end
 
   defp run_migrations do
-    Enum.each(@repos, &run_migrations_for/1)
+    run_migrations_for(Courtbot.Repo)
   end
 
   defp run_migrations_for(repo) do
