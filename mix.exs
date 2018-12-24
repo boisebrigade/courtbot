@@ -41,6 +41,7 @@ defmodule Courtbot.Mixfile do
       {:cloak, "~> 0.7.0"},
       {:gettext, "~> 0.11"},
       {:csv, "~> 2.0.0"},
+      {:jason, "~> 1.1"},
       {:aes256, "~> 0.5.0"},
       {:sched_ex, "~> 1.0"},
       {:tesla, "~> 1.0.0"},
