@@ -41,7 +41,6 @@ defmodule CourtbotWeb.Endpoint do
   def init(_key, config) do
     if config[:load_from_system_env] do
       port = String.to_integer(System.get_env("PORT") || "4000")
-      host = System.get_env("HOST") || "localhost"
 
       secret_key_base =
         if config[:secret_key_base] do
@@ -53,18 +52,17 @@ defmodule CourtbotWeb.Endpoint do
 
       config =
         config
-        |> Keyword.put(:http, port: port)
-        |> Keyword.put(:url, port: port, host: host)
         |> Keyword.put(:secret_key_base, secret_key_base)
 
       # If we are trying to mount to 443 then set HTTPS specific settings
       config =
         if port === 443 do
           config
-          |> Keyword.put(:url, scheme: "https")
+          |> Keyword.put(:https, port: port, host: {0, 0, 0, 0})
           |> Keyword.put(:force_ssl, rewrite_on: [:x_forwarded_proto])
         else
           config
+          |> Keyword.put(:http, port: port, host: {0, 0, 0, 0})
         end
 
       {:ok, config}
