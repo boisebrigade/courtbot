@@ -18,6 +18,24 @@ defmodule Courtbot.ReleaseTasks do
     stop_services()
   end
 
+  def seeders() do
+    start_services()
+
+    run_seeds()
+
+    stop_services()
+  end
+
+  defp run_seeds() do
+    # Run the seed script if it exists
+    seed_script = priv_path_for(@repo, "seeds.exs")
+
+    if File.exists?(seed_script) do
+      IO.puts("Running seed script..")
+      Code.eval_file(seed_script)
+    end
+  end
+
   def import() do
     start_services()
 
