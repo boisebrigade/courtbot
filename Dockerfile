@@ -1,4 +1,4 @@
-FROM elixir:1.7.4
+FROM elixir:1.7.4 as build
 
 ARG MIX_ENV=prod
 ENV MIX_ENV ${MIX_ENV}
@@ -24,7 +24,7 @@ RUN mix compile
 RUN mix release --env=${MIX_ENV} --verbose \
   && mv _build/${MIX_ENV}/rel/courtbot /opt/release
 
-FROM debian:stretch
+FROM debian:stretch as runtime
 
 ENV LANG en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
@@ -37,5 +37,5 @@ RUN locale-gen en_US.UTF-8
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 
 WORKDIR /opt/app
-COPY --from=0 /opt/release .
+COPY --from=build /opt/release .
 CMD trap 'exit' INT; /opt/app/bin/courtbot foreground
