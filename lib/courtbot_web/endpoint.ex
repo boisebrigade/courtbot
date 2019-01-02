@@ -54,15 +54,21 @@ defmodule CourtbotWeb.Endpoint do
         config
         |> Keyword.put(:secret_key_base, secret_key_base)
 
-      # If we are trying to mount to 443 then set HTTPS specific settings
       config =
-        if port === 443 do
-          config
-          |> Keyword.put(:https, port: port, host: {0, 0, 0, 0})
-          |> Keyword.put(:force_ssl, rewrite_on: [:x_forwarded_proto])
+        if config[:server] do
+          # If we are trying to mount to 443 then set HTTPS specific settings
+
+          config =
+            if port === 443 do
+              config
+              |> Keyword.put(:https, port: port, host: {0, 0, 0, 0})
+              |> Keyword.put(:force_ssl, rewrite_on: [:x_forwarded_proto])
+            else
+              config
+              |> Keyword.put(:http, port: port, host: {0, 0, 0, 0})
+            end
         else
           config
-          |> Keyword.put(:http, port: port, host: {0, 0, 0, 0})
         end
 
       {:ok, config}
