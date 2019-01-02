@@ -47,7 +47,7 @@ defmodule Courtbot.Mixfile do
       {:tesla, "~> 1.0.0"},
       {:timex, "~> 3.1"},
       {:plug_cowboy, "~> 2.0"},
-      {:ex_twilio, "~> 0.6.0", runtime: false},
+      {:ex_twilio, "~> 0.6.0"},
       {:ex_twiml, "~> 2.1.3"},
       {:rollbax, ">= 0.0.0"},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
