@@ -217,38 +217,44 @@ defmodule Courtbot do
       raise "Locales must be defined for notifications, see documentation for configuration options"
     end
 
-    %{locales: locales} = locales
+    case Application.ensure_started(:ex_twilio) do
+      :ok ->
+        %{locales: locales} = locales
 
-    # FIXME(ts): Get a count of pending notifications mod by 100 and use SchEx to schedule batches.
-    Enum.map(
-      Subscriber.all_pending_notifications(),
-      fn params = %{
-           "locale" => locale,
-           "phone_number" => phone_number,
-           "subscriber_id" => subscriber_id
-         } ->
-        from_number = Map.fetch!(locales, locale)
+        # FIXME(ts): Get a count of pending notifications mod by 100 and use SchEx to schedule batches.
+        Enum.map(
+          Subscriber.all_pending_notifications(),
+          fn params = %{
+               "locale" => locale,
+               "phone_number" => phone_number,
+               "subscriber_id" => subscriber_id
+             } ->
+            from_number = Map.fetch!(locales, locale)
 
-        send_notification(
-          phone_number,
-          from_number,
-          subscriber_id,
-          Response.message(:reminder, params)
+            send_notification(
+              phone_number,
+              from_number,
+              subscriber_id,
+              Response.message(:reminder, params)
+            )
+          end
         )
-      end
-    )
 
-    # Notify debug subscribers
-    [%Case{id: case_id}] = Case.find_by_case_number("BEEPBOOP")
+        # Notify debug subscribers
+        [%Case{id: case_id}] = Case.find_by_case_number("BEEPBOOP")
 
-    Enum.map(Subscriber.subscribers_to_case(case_id), fn subscriber ->
-      send_notification(
-        subscriber.phone_number,
-        Map.fetch!(locales, "en"),
-        subscriber.id,
-        "BEEPBOOP"
-      )
-    end)
+        Enum.map(Subscriber.subscribers_to_case(case_id), fn subscriber ->
+          send_notification(
+            subscriber.phone_number,
+            Map.fetch!(locales, "en"),
+            subscriber.id,
+            "BEEPBOOP"
+          )
+        end)
+
+      {:error, err} ->
+        raise "ExTwilio cannot be started: #{err} Aborting notifications."
+    end
 
     Logger.info("Finished notifications")
   end
