@@ -20,7 +20,7 @@ defmodule CourtbotWeb.Response do
 
   defp response(:unsubscribe, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext("OK. We will stop sending reminders.")
+      gettext("OK. We will stop sending reminders for all cases you are subscribed to.")
     end)
   end
 
@@ -45,15 +45,13 @@ defmodule CourtbotWeb.Response do
 
   defp response(:resubscribe, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext(
-        "You will need to resubscribe to the case you are interested in receiving hearing reminders for."
-      )
+      gettext("You will need to resubscribe to the case to receive hearing reminders.")
     end)
   end
 
   defp response(:no_subscriptions, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext("You are currently not subscribed to any cases. We won't send you any reminders.")
+      gettext("You are not subscribed to any cases. We won't send you any reminders.")
     end)
   end
 
@@ -80,17 +78,21 @@ defmodule CourtbotWeb.Response do
 
   defp response(:accept_reminder, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
+      gettext("OK. We will text you a courtesy reminder the day before the hearing date.")
+    end)
+  end
+
+  defp response(:accept_reminder, %{"locale" => locale, :court_url => court_url}) do
+    Gettext.with_locale(locale, fn ->
       gettext(
-        "OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules frequently change."
+        "Note that court schedules may change. You should always confirm your hearing date and time by going to %{court_url}"
       )
     end)
   end
 
   defp response(:reject_reminder, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext(
-        "Ok. We won't send you a reminder for this case. Text the case again in the future and you can subscribe."
-      )
+      gettext("You said “No” so we won’t text you a reminder.")
     end)
   end
 
@@ -139,9 +141,8 @@ defmodule CourtbotWeb.Response do
   end
 
   defp response(:requires_county, %{"locale" => locale}) do
-    # TODO(ts): Does it make sense to include which counties we've found?
     Gettext.with_locale(locale, fn ->
-      gettext("Multiple cases found with this case number. Which county are you interested in?")
+      gettext("Which county are you interested in?")
     end)
   end
 
@@ -162,7 +163,7 @@ defmodule CourtbotWeb.Response do
   defp response(:not_found, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
       gettext(
-        "Reply with a case or ticket number to sign up for a reminder. For example a case number looks like: CR01-18-22672"
+        "We didn't find case %{case_number} in that county. Please check your case number and county."
       )
     end)
   end
@@ -170,7 +171,15 @@ defmodule CourtbotWeb.Response do
   defp response(:yes_or_no, %{"locale" => locale}) do
     Gettext.with_locale(locale, fn ->
       gettext(
-        "Sorry, didn't understand. Would you like a courtesy reminder a day before the hearing? Yes or No"
+        "Sorry, I didn't understand. Would you like a courtesy reminder a day before the hearing? Reply YES or NO"
+      )
+    end)
+  end
+
+  defp response(:standard, %{"locale" => locale}) do
+    Gettext.with_locale(locale, fn ->
+      gettext(
+        "Reply with a case number to sign up for a reminder. For example: CR01-18-22672"
       )
     end)
   end
