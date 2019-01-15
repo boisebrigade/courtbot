@@ -8,6 +8,8 @@ defmodule Courtbot.Subscriber do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  @twilio_rate_limit 100
+
   schema "subscribers" do
     belongs_to(:case, Case)
 
@@ -75,7 +77,7 @@ defmodule Courtbot.Subscriber do
     |> where_phone_number(phone_number)
   end
 
-  def all_pending_notifications() do
+  def pending_notifications() do
     # FIXME(ts): Figure out best way to determine timezone in this context.
     today = Date.utc_today()
     tomorrow = Date.add(today, 1)
@@ -88,10 +90,12 @@ defmodule Courtbot.Subscriber do
         select: n.subscriber_id
       )
 
+    [%Case{id: debug_case_id}] = Case.find_by_case_number("BEEPBOOP")
+
     from(
       s in Subscriber,
       join: c in Case,
-      on: s.case_id == c.id,
+      on: s.case_id == c.id and c.id != ^debug_case_id,
       join: h in Hearing,
       on: h.case_id == s.case_id,
       left_join: n in subquery(notified),
@@ -105,7 +109,8 @@ defmodule Courtbot.Subscriber do
         "locale" => s.locale,
         "date" => h.date,
         "time" => h.time
-      }
+      },
+      limit: @twilio_rate_limit
     )
     |> Repo.all()
   end

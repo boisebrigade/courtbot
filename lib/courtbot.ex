@@ -217,13 +217,13 @@ defmodule Courtbot do
       raise "Locales must be defined for notifications, see documentation for configuration options"
     end
 
-    case Application.ensure_started(:ex_twilio) do
-      :ok ->
-        %{locales: locales} = locales
+    %{locales: locales} = locales
 
-        # FIXME(ts): Get a count of pending notifications mod by 100 and use SchEx to schedule batches.
+    with {:ok} <- Application.ensure_started(:ex_twilio),
+          {[_ | _] = pending_notifications} <- Subscriber.pending_notifications
+      do
         Enum.map(
-          Subscriber.all_pending_notifications(),
+          pending_notifications,
           fn params = %{
                "locale" => locale,
                "phone_number" => phone_number,
@@ -240,21 +240,27 @@ defmodule Courtbot do
           end
         )
 
-        # Notify debug subscribers
-        [%Case{id: case_id}] = Case.find_by_case_number("BEEPBOOP")
+        SchedEx.run_at(
+          Courtbot,
+          :notify,
+          [],
+          Timex.shift(DateTime.utc_now(), seconds: 100)
+        )
+      else
+        {:error, err} -> raise "ExTwilio cannot be started: #{err} Aborting notifications."
+      end
 
-        Enum.map(Subscriber.subscribers_to_case(case_id), fn subscriber ->
-          send_notification(
-            subscriber.phone_number,
-            Map.fetch!(locales, "en"),
-            subscriber.id,
-            "BEEPBOOP"
-          )
-        end)
+    # Notify debug subscribers
+    [%Case{id: case_id}] = Case.find_by_case_number("BEEPBOOP")
 
-      {:error, err} ->
-        raise "ExTwilio cannot be started: #{err} Aborting notifications."
-    end
+    Enum.map(Subscriber.subscribers_to_case(case_id), fn subscriber ->
+      send_notification(
+        subscriber.phone_number,
+        Map.fetch!(locales, "en"),
+        subscriber.id,
+        "BEEPBOOP"
+      )
+    end)
 
     Logger.info("Finished notifications")
   end
