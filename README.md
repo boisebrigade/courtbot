@@ -16,9 +16,8 @@ Courtbot is a simple web service for subscribing to case hearing details via SMS
 - Start docker: `docker-compose up -d`
 - Run Setup: `mix setup`
 - Start Phoenix: `mix phx.server`
-  - In development mode, `MIX_ENV` is `dev`, Phoenix will run both `npm run start` and `npm run webpack` for you.
 
-After `mix phx.server` Phoenix will running and you should be able to access the frontend by hitting http://localhost:4001 in your browser of choice. For next steps in setting up Courtbot see [here](https://github.com/boisebrigade/Courtbot/wiki/Configuration) for additional details.
+After `mix phx.server` Phoenix will running and for next steps in setting up Courtbot see [here](https://github.com/boisebrigade/Courtbot/wiki/Configuration) for additional details.
 
 ## Documentation
 - [Overview](https://github.com/boisebrigade/Courtbot/wiki)
