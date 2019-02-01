@@ -1,4 +1,4 @@
-defmodule Courtbot.Csv do
+defmodule Courtbot.Source.Csv do
   alias Courtbot.{Case, Repo}
 
   require Logger
