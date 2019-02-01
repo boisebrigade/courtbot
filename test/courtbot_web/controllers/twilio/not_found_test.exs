@@ -42,7 +42,7 @@ defmodule CourtbotWeb.TwilioNotFoundTest do
 
     assert initial_conn.status === 200
 
-    params = %{"From" => @phone_number, "Body" => @case_doesnt_exist_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_doesnt_exist_number, locale: "en"}
     message = Response.message(:not_found, params)
 
     assert initial_conn.resp_body === Twiml.sms(message)

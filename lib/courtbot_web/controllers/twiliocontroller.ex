@@ -6,7 +6,7 @@ defmodule CourtbotWeb.TwilioController do
   alias Courtbot.{Case, Hearing, Repo, Subscriber}
   alias CourtbotWeb.{Response, Twiml}
 
-  @debug_phase "BEEPBOOP"
+  @debug_phase "beepboop"
 
   @accept_keywords [
     gettext("y"),
@@ -37,7 +37,9 @@ defmodule CourtbotWeb.TwilioController do
 
   @county gettext("county")
 
-  @request_defaults %{"locale" => "en"}
+  @request_defaults %{locale: "en"}
+
+  #  def sms(conn, params = %{"From" => phone_number, "Body" => body}), do: sms(conn, Map.merge(params, %{"Formatted_From" => phone_number, "Formatted_Body" => body}))
 
   def sms(conn, _ = %{"From" => phone_number, "Body" => @debug_phase}) do
     [%Case{id: case_id}] = Case.find_by_case_number(@debug_phase)
@@ -60,6 +62,21 @@ defmodule CourtbotWeb.TwilioController do
   def sms(conn, params = %{"From" => phone_number, "Body" => body}) do
     %Plug.Conn{private: %{plug_session: session}} = conn
 
+    # Filter and perform some slight sanitization on our session
+    session =
+      session
+      |> Map.take(["requires_county", "reminder", "delete"])
+      |> Enum.map(fn {k, v} ->
+        value =
+          v
+          |> String.trim()
+          |> String.downcase()
+
+        key = String.to_atom(k)
+        {key, value}
+      end)
+      |> Enum.into(%{})
+
     # Preprocess our SMS message to make it a bit friendlier to use.
     message =
       body
@@ -68,7 +85,7 @@ defmodule CourtbotWeb.TwilioController do
 
     # Add our defaults, SMS details, and sanitized message.
     request =
-      Enum.reduce([@request_defaults, params, session, %{"message" => message}], &Map.merge/2)
+      Enum.reduce([@request_defaults, session, %{from: phone_number, body: body, message: message}], &Map.merge/2)
 
     cond do
       # If the user wants to unsubscribe handle that up front.
@@ -114,9 +131,9 @@ defmodule CourtbotWeb.TwilioController do
   defp respond(
          conn,
          %{
-           "From" => phone_number,
-           "message" => message,
-           "delete" => case_id
+           from: phone_number,
+           message: message,
+           delete: case_id
          }
        ) do
     cond do
@@ -145,9 +162,9 @@ defmodule CourtbotWeb.TwilioController do
   defp respond(
          conn,
          params = %{
-           "From" => phone_number,
-           "message" => message,
-           "requires_county" => case_number
+           from: phone_number,
+           message: message,
+           requires_county: case_number
          }
        ) do
     message =
@@ -156,16 +173,23 @@ defmodule CourtbotWeb.TwilioController do
       |> String.trim()
 
     if Enum.member?(Case.all_counties(), message) do
-      {_, params} =
+      params =
         params
-        |> Map.merge(%{"county" => message, "case_number" => case_number})
-        |> Map.pop("requires_county")
+        |> Map.merge(%{county: message, case_number: case_number})
+        |> Map.delete(:requires_county)
 
-      respond(conn, params)
+      conn
+      |> delete_session(:requires_county)
+      |> respond(params)
     else
       Logger.info(log_safe_phone_number(phone_number) <> ": No county data for #{case_number}")
 
-      response = Response.message(:no_county, params)
+      params =
+        params
+        |> Map.merge(%{case_number: case_number})
+        |> Map.delete(:requires_county)
+
+      response = Response.message([:not_found, :help], params)
 
       conn
       |> configure_session(drop: true)
@@ -177,11 +201,11 @@ defmodule CourtbotWeb.TwilioController do
   defp respond(
          conn,
          params = %{
-           "From" => phone_number,
-           "Body" => body,
-           "message" => message,
-           "locale" => locale,
-           "reminder" => case_id
+           from: phone_number,
+           body: body,
+           message: message,
+           locale: locale,
+           reminder: case_id
          }
        ) do
     cond do
@@ -223,16 +247,16 @@ defmodule CourtbotWeb.TwilioController do
   end
 
   # Lets lookup the case based upon the context we're given.
-  defp respond(conn, params = %{"From" => phone_number, "message" => message}) do
+  defp respond(conn, params = %{from: phone_number, message: message}) do
     case_number = clean_case_number(message)
 
     # We may have several entries points, being a case number or a couple of rounds of back and forth with the user.
     result =
       case params do
-        %{"county" => county, "case_number" => case_number} ->
+        %{county: county, case_number: case_number} ->
           Case.find_with_county(case_number, county)
 
-        %{"message" => _} ->
+        %{message: _} ->
           Case.find_by_case_number(case_number)
       end
 
@@ -260,7 +284,7 @@ defmodule CourtbotWeb.TwilioController do
   defp respond(conn, params, [_ | _]), do: prompt_county(conn, params)
   defp respond(conn, params, _), do: prompt_not_found(conn, params)
 
-  defp prompt_no_hearings(conn, params = %{"From" => phone_number}, case) do
+  defp prompt_no_hearings(conn, params = %{from: phone_number}, case) do
     Logger.info(
       log_safe_phone_number(phone_number) <>
         ": No hearings found for case number: #{case.case_number}"
@@ -273,53 +297,31 @@ defmodule CourtbotWeb.TwilioController do
     |> encode(response)
   end
 
-  defp prompt_not_found(conn, params = %{"From" => phone_number, "message" => message}) do
+  defp prompt_not_found(conn, params = %{from: phone_number, message: message}) do
     Logger.info(log_safe_phone_number(phone_number) <> ": No case found for input: #{message}")
 
-    response = Response.message(:not_found, params)
+    response = Response.message(:help, params)
 
     conn
     |> configure_session(drop: true)
     |> encode(response)
   end
 
-  defp prompt_remind(conn, params = %{"From" => phone_number}, case) do
+  defp prompt_remind(conn, params = %{from: phone_number}, case) do
     Logger.info(
       log_safe_phone_number(phone_number) <>
         ": asking user if they want a reminder about case: " <> case.id
     )
 
-    # Extract information from our case and hearing data
-    %Case{
-      first_name: first_name,
-      last_name: last_name,
-      hearings: [
-        %Hearing{
-          time: time,
-          date: date,
-          location: location
-        }
-      ]
-    } = case
-
     response =
-      Response.message(
-        :hearing_details,
-        Map.merge(params, %{
-          "first_name" => first_name,
-          "last_name" => last_name,
-          "date" => date,
-          "time" => time,
-          "location" => location
-        })
-      ) <> " " <> Response.message(:prompt_reminder, params)
+      Response.message([:hearing_details, :prompt_reminder], Map.merge(params, %{case: case}))
 
     conn
     |> put_session(:reminder, case.id)
     |> encode(response)
   end
 
-  defp prompt_county(conn, params = %{"From" => phone_number, "message" => case_number}) do
+  defp prompt_county(conn, params = %{from: phone_number, message: case_number}) do
     Logger.info(
       log_safe_phone_number(phone_number) <>
         ": asking user about which county they are interested in"

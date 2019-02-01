@@ -78,11 +78,11 @@ defmodule CourtbotWeb.TwilioHearingTest do
     assert initial_conn.private[:plug_session] === %{"reminder" => @case_id}
 
     params = %{
-      "From" => @phone_number,
-      "Body" => @case_number,
-      "locale" => @locale,
-      "time" => @time,
-      "date" => @date
+      from: @phone_number,
+      case_number: @case_number,
+      locale: @locale,
+      time: @time,
+      date: @date
     }
 
     message =
@@ -98,7 +98,7 @@ defmodule CourtbotWeb.TwilioHearingTest do
     assert initial_conn.status === 200
     assert initial_conn.private[:plug_session] === %{"reminder" => @case_two_id}
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     message = Response.message(:no_hearings, params)
 
     assert initial_conn.resp_body === Twiml.sms(message)

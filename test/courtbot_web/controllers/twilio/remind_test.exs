@@ -85,7 +85,7 @@ defmodule CourtbotWeb.TwilioRemindTest do
 
     assert remind_conn.status === 200
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     # Expect acceptance
     message = Response.message(:accept_reminder, params)
 
@@ -101,7 +101,7 @@ defmodule CourtbotWeb.TwilioRemindTest do
 
     assert remind_conn.status === 200
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     # Expect rejection
     message = Response.message(:reject_reminder, params)
 
@@ -115,7 +115,7 @@ defmodule CourtbotWeb.TwilioRemindTest do
     # Ensure you can enter the reminder
     remind_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => @accept})
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     # Expect acceptance
     message = Response.message(:accept_reminder, params)
 
@@ -129,7 +129,7 @@ defmodule CourtbotWeb.TwilioRemindTest do
     # Ensure you can enter the reminder
     remind_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => @reject})
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     # Expect rejection
     message = Response.message(:reject_reminder, params)
 
@@ -145,7 +145,7 @@ defmodule CourtbotWeb.TwilioRemindTest do
 
     assert invalid_conn.status === 200
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     # Expect yes or no
     message = Response.message(:yes_or_no, params)
 
@@ -156,7 +156,7 @@ defmodule CourtbotWeb.TwilioRemindTest do
 
     assert remind_conn.status === 200
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     # Expect acceptance
     message = Response.message(:accept_reminder, params)
 

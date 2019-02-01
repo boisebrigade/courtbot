@@ -79,7 +79,7 @@ defmodule CourtbotWeb.TwilioResubscribeTest do
 
     assert unsubscribe_conn.status == 200
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     message = Response.message(:unsubscribe, params)
 
     assert unsubscribe_conn.resp_body === Twiml.sms(message)
@@ -87,7 +87,7 @@ defmodule CourtbotWeb.TwilioResubscribeTest do
     resubscribe_conn =
       post(unsubscribe_conn, "/sms", %{"From" => @phone_number, "Body" => "start"})
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => @locale}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     message = Response.message(:resubscribe, params)
 
     assert resubscribe_conn.resp_body === Twiml.sms(message)

@@ -24,4 +24,15 @@ defmodule Courtbot.Hearing do
     |> cast(params, [:case_id, :date, :time, :location, :detail])
     |> validate_required([:date, :time])
   end
+
+  def format(hearing) do
+    hearing
+    |> Map.take([:date, :time, :detail, :location])
+    |> Map.update!(:date, fn date ->
+      Timex.format!(date, "%m/%d/%Y", :strftime)
+    end)
+    |> Map.update!(:time, fn time ->
+      Timex.format!(time, "%I:%M %p", :strftime)
+    end)
+  end
 end

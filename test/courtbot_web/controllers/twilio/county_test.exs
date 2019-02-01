@@ -99,7 +99,7 @@ defmodule CourtbotWeb.TwilioCountyTest do
     assert initial_conn.status === 200
     assert initial_conn.private[:plug_session] === %{"requires_county" => @case_number}
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => "en"}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     message = Response.message(:requires_county, params)
 
     assert initial_conn.resp_body === Twiml.sms(message)
@@ -108,11 +108,10 @@ defmodule CourtbotWeb.TwilioCountyTest do
     county_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => @county_one})
 
     params = %{
-      "From" => @phone_number,
-      "Body" => @case_number,
-      "locale" => "en",
-      "time" => @time,
-      "date" => @date
+      from: @phone_number,
+      case_number: @case_number,
+      locale: "en",
+      case: Case.find_with_county(@case_number, @county_one)
     }
 
     message =
@@ -131,7 +130,7 @@ defmodule CourtbotWeb.TwilioCountyTest do
     assert initial_conn.status === 200
     assert initial_conn.private[:plug_session] === %{"requires_county" => @case_number}
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => "en"}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     message = Response.message(:requires_county, params)
 
     assert initial_conn.resp_body === Twiml.sms(message)
@@ -140,11 +139,10 @@ defmodule CourtbotWeb.TwilioCountyTest do
     county_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => @county_two})
 
     params = %{
-      "From" => @phone_number,
-      "Body" => @case_number,
-      "locale" => "en",
-      "time" => @time_two,
-      "date" => @date
+     from: @phone_number,
+     case_number: @case_number,
+     locale: "en",
+     case: Case.find_with_county(@case_number, @county_two)
     }
 
     message =
@@ -163,7 +161,7 @@ defmodule CourtbotWeb.TwilioCountyTest do
     assert initial_conn.status === 200
     assert initial_conn.private[:plug_session] === %{"requires_county" => @case_number}
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => "en"}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     message = Response.message(:requires_county, params)
 
     assert initial_conn.resp_body === Twiml.sms(message)
@@ -171,7 +169,7 @@ defmodule CourtbotWeb.TwilioCountyTest do
     # Check that we enter into the reminder phase
     county_conn = post(initial_conn, "/sms", %{"From" => @phone_number, "Body" => "invalid"})
 
-    params = %{"From" => @phone_number, "Body" => @case_number, "locale" => "en"}
+    params = %{from: @phone_number, case_number: @case_number, locale: "en"}
     message = Response.message(:no_county, params)
 
     assert county_conn.status === 200

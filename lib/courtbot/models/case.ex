@@ -71,22 +71,36 @@ defmodule Courtbot.Case do
     |> Repo.all()
   end
 
-  def all_counties() do
-    from(c in Case, select: c.county) |> Repo.all()
+  def all_counties(), do:
+    from(
+      c in Case,
+      select: c.county
+    )
+    |> Repo.all()
+
+
+  def format(case) do
+    case
+    |> Map.take([:case_number, :county, :formatted_case_number, :first_name, :last_name, :type, :hearings])
+    |> Map.update!(:hearings, fn hearings ->
+      Enum.map(hearings, fn hearing ->
+        Hearing.format(hearing)
+      end)
+    end)
   end
 
-  defp latest_hearing(query) do
-    latest_hearing =
-      from(h in Hearing, order_by: [h.date, h.time], limit: 1, where: h.date >= ^Date.utc_today())
+  defp latest_hearing(query), do:
+    preload(
+      query,
+      hearings: ^from(
+        h in Hearing,
+        order_by: [h.date, h.time],
+        limit: 1,
+        where: h.date >= ^Date.utc_today()
+      )
+    )
 
-    query
-    |> preload(hearings: ^latest_hearing)
-  end
-
-  defp clean_county(county) do
-    county
-    |> String.trim()
-  end
+  defp clean_county(county), do: String.trim(county)
 
   defp clean_case_number(case_number) do
     case_number
