@@ -90,13 +90,14 @@ defmodule Courtbot.Workflow do
         {:resubscribe, fsm}
 
       body == "beepboop" ->
-        Logger.info(from <> ": user subscribing to debug case")
 
         %Case{id: case_id} = Case.find_with([case_number: "beepboop"])
 
           if Subscriber.already_subscribed?(case_id, from) do
             {:beep, fsm}
           else
+            Logger.info(from <> ": user subscribing to debug case")
+
             %Subscriber{}
             |> Subscriber.changeset(%{case_id: case_id, phone_number: from, locale: locale})
             |> Repo.insert()
