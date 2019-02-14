@@ -89,7 +89,7 @@ defmodule Courtbot.Case do
     end)
 
     Enum.reduce(type_definitions, nil, fn {type, pattern}, acc ->
-      case Regex.compile(pattern) do
+      case Regex.compile(pattern, [:caseless]) do
         {:ok, regex} ->
           if Regex.match?(regex, case_number) do
             type
