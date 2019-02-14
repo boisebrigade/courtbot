@@ -131,16 +131,17 @@ defmodule Courtbot.Workflow do
   end
 
   def message(fsm = %Workflow{counties: counties, properties: properties = %{case_number: case_number}, state: :type}, params) do
-    case Case.check_types(case_number) do
-      nil -> reset(:invalid, fsm)
-      type ->
-        type = Atom.to_string(type)
+    with type when not is_nil(type) <- Case.check_types(case_number) do
+      type = Atom.to_string(type)
 
-        if counties do
+      if counties do
         {:county, %{fsm | state: :county, properties: Map.merge(properties, %{type: type})}}
-        else
-          message(%{fsm | state: :load_case}, params)
-        end
+      else
+        message(%{fsm | state: :load_case}, params)
+      end
+
+      else
+        nil -> reset(:invalid, fsm)
     end
   end
 
@@ -170,7 +171,7 @@ defmodule Courtbot.Workflow do
       %Case{id: case_id, hearings: [%_{}]} -> message(%{fsm | state: :is_subscribed, properties: %{id: case_id}}, params)
       nil ->
         if queuing and types do
-          # TODO(ts): Queuing
+          # FIXME(ts): Add support for queuing
         else
           reset(:no_case, fsm)
         end
