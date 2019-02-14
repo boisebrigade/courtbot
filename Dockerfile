@@ -1,4 +1,4 @@
-FROM elixir:1.8.0 as build
+FROM elixir:1.8.1 as build
 
 ARG MIX_ENV=prod
 ENV MIX_ENV ${MIX_ENV}
