@@ -85,25 +85,4 @@ defmodule Courtbot.Import do
         Logger.error("Unable to fetch #{url} because of: #{err}")
     end
   end
-
-  def test_import(kind, origin, source) do
-    data =
-      case origin do
-        :file -> File.stream!(source)
-        :url -> request(source)
-        _ -> raise "Origin not supported:  #{origin}}"
-      end
-
-    case kind do
-      :csv ->
-        [headers] = Stream.take(data, 1) |> Enum.to_list()
-        headers |> String.replace("\n", "") |> String.split(",")
-
-      :json ->
-        raise "Importing from JSON is not currently supported"
-
-      _ ->
-        raise "Unsupported import kind: #{kind}"
-    end
-  end
 end
