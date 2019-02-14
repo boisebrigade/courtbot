@@ -7,26 +7,6 @@ defmodule CourtbotWeb.Response do
 
   import CourtbotWeb.Gettext
 
-  #  def message(types, fsm) do
-  #    Enum.reduce(types, "", fn type, acc ->
-  #      params = Map.merge(fsm, message_params())
-  #
-  #      params =
-  #        if params[:case] do
-  #          case = params[:case]
-  #
-  #          params
-  #          |> Map.delete(:case)
-  #          |> Map.merge(format_case_details(case))
-  #        else
-  #          params
-  #        end
-  #
-  #      "#{acc} #{response(type, params)}"
-  #    end)
-  #    |> String.trim()
-  #  end
-
   def get_message({key, case = %Case{}}, locale) do
     params =
       %{locale: locale}
