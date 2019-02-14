@@ -38,5 +38,6 @@ config :phoenix, :stacktrace_depth, 20
 
 # Configure your database
 config :courtbot, Courtbot.Repo,
-  load_from_system_env: true,
+  load_from_system_env: false,
+  url: "postgres://postgres:postgres@localhost:5432/courtbot",
   pool_size: 10

@@ -22,9 +22,7 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
 
-config :ex_twilio,
-  account_sid: {:system, "TWILIO_ACCOUNT_SID"},
-  auth_token: {:system, "TWILIO_AUTH_TOKEN"}
+config :tesla, adapter: Tesla.Adapter.Hackney
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
