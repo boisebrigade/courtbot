@@ -17,7 +17,7 @@ defmodule CourtbotWeb.CaseHelper do
   end
 
   defmodule Helpers do
-    alias Courtbot.{Case, Repo}
+    alias Courtbot.{Case, Configuration}
     use Phoenix.ConnTest
 
     @endpoint CourtbotWeb.Endpoint
@@ -34,31 +34,33 @@ defmodule CourtbotWeb.CaseHelper do
     def text(conn, case, message) do
       message = replace_properties(case, message)
 
-      conn = post(conn, "/sms", %{"From" => "12025550170", "Body" => message})
+      conn = post(conn, "/sms/en", %{"From" => "12025550170", "Body" => message})
       assert(conn.status === 200, "Request failed with a non 200 error: #{conn.status}")
 
       conn
     end
 
     def response(conn, case, message) do
-      message = replace_properties(case, message)
+      message =
+        replace_properties(case, message)
+        |> HtmlEntities.encode()
 
-      assert("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Sms>#{message}</Sms></Response>" ===
-               conn.resp_body, "Unexpected result from ")
+      assert "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Sms>#{message}</Sms></Response>" ===
+               conn.resp_body
 
       conn
     end
 
+    def custom_variables() do
+      %{variables: variables} = Configuration.get([:variables])
+
+      Enum.reduce(variables, %{}, fn %_{name: name, value: value}, acc -> Map.put(acc, String.to_atom(name), value) end)
+    end
+
     defp replace_properties(case_details, message) do
-      case_properties = case_properties(case_details)
+      case_properties = Map.merge(case_properties(case_details), custom_variables())
 
-      config_properties =Application.get_env(:courtbot, Courtbot, %{})
-      |> Map.new()
-      |> Map.take([:court_url, :queued_ttl_days, :subscribe_limit])
-
-      case_properties
-      |> Map.merge(config_properties)
-      |> Enum.reduce(message, fn {k, v}, message ->
+      Enum.reduce(case_properties, message, fn {k, v}, message ->
         key = Atom.to_string(k)
 
         if v do

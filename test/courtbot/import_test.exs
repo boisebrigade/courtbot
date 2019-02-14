@@ -1,79 +1,5 @@
-defmodule Courtbot.ImportTest do
+defmodule CourtbotTest.ImportTest do
   use Courtbot.DataCase, asyc: true
-
-  @boise_import_config %{
-    importer: %{
-      file: Path.expand("../data/boise.csv", __DIR__),
-      type:
-        {:csv,
-         [
-           {:has_headers, true},
-           {:field_mapping,
-            [
-              :case_number,
-              :last_name,
-              :first_name,
-              nil,
-              nil,
-              nil,
-              {:date, "%-m/%e/%Y"},
-              {:time, "%k:%M"},
-              nil,
-              :county
-            ]}
-         ]}
-    }
-  }
-
-  @anchorage_import_config %{
-    importer: %{
-      file: Path.expand("../data/anchorage.csv", __DIR__),
-      type:
-        {:csv,
-         [
-           {:has_headers, false},
-           {
-             :field_mapping,
-             [
-               {:date, "%-m/%e/%Y"},
-               :last_name,
-               :first_name,
-               nil,
-               :location,
-               {:time, "%-I:%M %P"},
-               :case_number,
-               nil,
-               :violation,
-               nil
-             ]
-           }
-         ]}
-    }
-  }
-
-  @atlanta_import_config %{
-    importer: %{
-      file: Path.expand("../data/atlanta.csv", __DIR__),
-      type:
-        {:csv,
-         [
-           {:has_headers, true},
-           {:field_mapping,
-            [
-              {:date, "%-m/%e/%Y"},
-              nil,
-              nil,
-              nil,
-              {:time, "%-k:%M:%S"},
-              :case_number,
-              nil,
-              nil,
-              nil
-            ]},
-           {:delimiter, ?|}
-         ]}
-    }
-  }
 
   def count_fails(records) do
     records
@@ -84,25 +10,25 @@ defmodule Courtbot.ImportTest do
   end
 
   test "imports Anchorage data from mix config" do
-    config = Courtbot.mix_config(@anchorage_import_config)
+    Repo.insert(CourtbotTest.Helper.Configuration.anchorage())
 
-    records = Courtbot.import(config)
+    records = Courtbot.Import.run()
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end
 
   test "imports Atlanta data from mix config" do
-    config = Courtbot.mix_config(@atlanta_import_config)
+    Repo.insert(CourtbotTest.Helper.Configuration.atlanta())
 
-    records = Courtbot.import(config)
+    records =  Courtbot.Import.run()
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end
 
   test "imports Boise data from mix config" do
-    config = Courtbot.mix_config(@boise_import_config)
+    Repo.insert(CourtbotTest.Helper.Configuration.boise())
 
-    records = Courtbot.import(config)
+    records =  Courtbot.Import.run()
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end

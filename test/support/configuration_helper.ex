@@ -1,30 +1,160 @@
 defmodule CourtbotTest.Helper.Configuration do
-  @boise_importer_config [
-    court_url: "https://mycourts.idaho.gov",
-    importer: %{
-      file: Path.expand("../data/boise.csv", __DIR__),
-      type:
-        {:csv,
-         [
-           {:has_headers, true},
-           {:field_mapping,
-            [
-              :case_number,
-              :last_name,
-              :first_name,
-              nil,
-              nil,
-              nil,
-              {:date, "%-m/%e/%Y"},
-              {:time, "%k:%M"},
-              nil,
-              :county
-            ]}
-         ]}
+  def boise(),
+    do: %Courtbot.Configuration{
+      importer: %{
+        kind: :csv,
+        origin: :file,
+        source:  "#{File.cwd!()}/test/data/boise.csv",
+        delimiter: ",",
+        has_headers: true,
+        county_duplicates: true,
+        field_mapping: [
+          %{
+            destination: :case_number
+          },
+          %{
+            destination: :last_name
+          },
+          %{
+            destination: :first_name
+          },
+          %{
+            destination: nil
+          },
+          %{
+            destination: nil
+          },
+          %{
+            destination: nil
+          },
+          %{
+            destination: :date,
+            kind: :date,
+            format: "%-m/%e/%Y"
+          },
+          %{
+            destination: :time,
+            kind: :time,
+            format: "%-I:%M %p"
+          },
+          %{
+            destination: nil
+           },
+          %{
+            destination: :county
+          }
+        ]
+      },
+      scheduled: %{
+        task: [
+          %{name: :import, crontab: "0 11 * * *"},
+          %{name: :import, crontab: "0 19 * * *"},
+        ]
+      },
+      locales: %{en: "12083144089"},
+      types: [
+        %{name: :civil, pattern: "CV"},
+        %{name: :criminal, pattern: "CR"},
+      ],
+      notifications: %{
+        queuing: false,
+        reminders: [%{hours: 24}]
+      },
+      variables: [
+        %{name: "court_url", value: "https://mycourts.idaho.gov/"}
+      ]
     }
-  ]
 
-  def boise() do
-    @boise_importer_config
-  end
+  def atlanta(),
+      do: %Courtbot.Configuration{
+        importer: %{
+          kind: :csv,
+          origin: :file,
+          source:  "#{File.cwd!()}/test/data/atlanta.csv",
+          delimiter: "|",
+          has_headers: true,
+          county_duplicates: false,
+          field_mapping: [
+            %{
+              destination: :date,
+              kind: :date,
+              format: "%-m/%e/%Y"
+            },
+            %{
+              destination: nil
+            },
+            %{
+              destination: nil
+            },
+            %{
+              destination: nil
+            },
+            %{
+              destination: :time,
+              kind: :time,
+              format: "%-k:%M:%S"
+            },
+            %{
+              destination: :case_number
+            },
+            %{
+              destination: nil,
+            },
+            %{
+              destination: nil,
+            },
+            %{
+              destination: nil
+            }
+          ]
+        },
+      }
+
+  def anchorage(),
+      do: %Courtbot.Configuration{
+        importer: %{
+          kind: :csv,
+          origin: :file,
+          source:  "#{File.cwd!()}/test/data/anchorage.csv",
+          delimiter: ",",
+          has_headers: false,
+          county_duplicates: false,
+          field_mapping: [
+            %{
+              destination: :date,
+              kind: :date,
+              format: "%-m/%e/%Y"
+            },
+            %{
+              destination: :last_name
+            },
+            %{
+              destination: :first_name
+            },
+            %{
+              destination: nil
+            },
+            %{
+              destination: :location,
+            },
+            %{
+              destination: :time,
+              kind: :time,
+              format: "%-I:%M %P"
+            },
+            %{
+              destination: :case_number,
+            },
+            %{
+              destination: nil
+            },
+            %{
+              destination: :violation
+            },
+            %{
+              destination: nil
+            },
+          ]
+        },
+      }
 end
