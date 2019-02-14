@@ -2,16 +2,15 @@ defmodule CourtbotWeb.Router do
   use CourtbotWeb, :router
   use Plug.ErrorHandler
 
-  pipeline :twilio do
+  pipeline :sms do
     plug(:fetch_session)
     plug(:accepts, ["json"])
   end
 
   scope "/", CourtbotWeb do
-    pipe_through(:twilio)
+    pipe_through(:sms)
 
-    post("/sms", TwilioController, :sms)
-    post("/sms/:locale", TwilioController, :sms)
+    post("/sms/:locale", SmsController, :twilio)
   end
 
   def handle_errors(conn, %{kind: kind, reason: reason, stack: stacktrace}) do
