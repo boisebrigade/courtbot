@@ -5,6 +5,6 @@ defmodule Mix.Tasks.Courtbot.Import do
   def run(_) do
     Mix.Task.run("app.start", [])
 
-    Courtbot.import()
+    Courtbot.Import.run()
   end
 end

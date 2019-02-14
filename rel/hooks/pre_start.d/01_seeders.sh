@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-release_ctl eval --mfa "Courtbot.ReleaseTasks.seeders/0"
+release_ctl eval --mfa "Distillery.Hooks.Seeders.run/0"

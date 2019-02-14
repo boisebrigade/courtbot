@@ -5,6 +5,6 @@ defmodule Mix.Tasks.Courtbot.Notify do
   def run(_) do
     Mix.Task.run("app.start", [])
 
-    Courtbot.notify()
+    Courtbot.Notify.run()
   end
 end

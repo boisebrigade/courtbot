@@ -70,7 +70,8 @@ release :courtbot do
 
   set(
     config_providers: [
-      {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.exs"]}
+      {Distillery.Json.Provider, [path: "${RELEASE_ROOT_DIR}/etc/courtbot.json"]},
+      {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.secrets.exs"]}
     ]
   )
 
