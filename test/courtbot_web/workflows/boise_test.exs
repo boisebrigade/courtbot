@@ -4,13 +4,14 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
   alias Courtbot.{Case, Repo}
 
   setup do
-    Application.put_env(:courtbot, Courtbot, CourtbotTest.Helper.Configuration.boise())
+    Repo.insert(CourtbotTest.Helper.Configuration.boise())
 
     case_details =
       %Case{}
       |> Case.changeset(%{
-        case_number: "abc000",
+        case_number: "CR01-16-00001",
         county: "valid",
+        type: "criminal",
         first_name: "John",
         last_name: "Doe",
         hearings: [
@@ -42,7 +43,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
       |> text("{county}")
       |> response("We found a case for {first_name} {last_name} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?")
       |> text("yes")
-      |> response("Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
+      |> response("OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
     end
   end
 
@@ -54,7 +55,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
       |> text("{county}")
       |> response("We found a case for {first_name} {last_name} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?")
       |> text("no")
-      |> response("You said \"No\" so we won’t text you a reminder.")
+      |> response("You said \"No\" so we won’t text you a reminder. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
     end
   end
 
@@ -92,7 +93,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
       |> text("{county}")
       |> response("We found a case for {first_name} {last_name} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?")
       |> text("yes")
-      |> response("Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
+      |> response("OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
     end
   end
 
@@ -116,7 +117,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
       |> text("{county}")
       |> response("We found a case for {first_name} {last_name} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?")
       |> text("yes")
-      |> response("Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
+      |> response("OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
 
       new_conversation()
       |> text("{case_number}")
@@ -134,7 +135,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
       |> text("{county}")
       |> response("We found a case for {first_name} {last_name} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?")
       |> text("yes")
-      |> response("Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
+      |> response("OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}")
 
       new_conversation()
       |> text("{case_number}")
@@ -144,9 +145,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
 
       new_conversation()
       |> text("delete {case_number}")
-      |> response("Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672")
+      |> response("OK. We will stop sending reminders for all cases you are subscribed to.")
     end
   end
-
-
 end
