@@ -11,9 +11,6 @@ defmodule Courtbot.Notification do
   schema "notifications" do
     belongs_to(:subscriber, Subscriber)
 
-    field(:sid, :string)
-    field(:body, :string)
-
     timestamps()
   end
 

@@ -1,7 +1,7 @@
 defmodule Courtbot.Hearing do
   use Ecto.Schema
 
-  alias Courtbot.Case
+  alias Courtbot.{Case, Configuration}
 
   import Ecto.Changeset
 
@@ -20,10 +20,29 @@ defmodule Courtbot.Hearing do
   end
 
   def changeset(changeset, params \\ %{}) do
+    date_and_time = Map.take(params, [:date, :time])
+
+    params =
+      case date_and_time do
+        %{date: _, time: _} -> Map.merge(params, cast_date_and_time(date_and_time))
+        %{} -> params
+      end
+
     changeset
-    |> cast(params, [:case_id, :date, :time, :location, :detail])
+    |> cast(params, [:case_id, :time, :date, :location, :detail])
     |> validate_required([:date, :time])
   end
+
+  def cast_date_and_time(date_and_time = %{date: date, time: time}) when is_binary(date) and is_binary(time) do
+    %{format: time_format} = Configuration.importer_field_mapping("time")
+    %{format: date_format} = Configuration.importer_field_mapping("date")
+
+    date_and_time
+    |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format, :strftime))
+    |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format, :strftime))
+  end
+
+  def cast_date_and_time(date_and_time), do: date_and_time
 
   def format(hearing) do
     hearing
