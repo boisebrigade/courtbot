@@ -9,7 +9,7 @@ defmodule CourtbotWeb.SmsController do
 
     {response, _fsm = %Courtbot.Workflow{state: state, properties: properties}} =
       Workflow.init(%Workflow{counties: true, types: true, locale: locale, state: state, properties: properties})
-      |> Workflow.message(from: phone_number, body: body)
+      |> Workflow.message(from: phone_number, body: String.downcase(body))
       |> Response.get_message()
 
     conn
