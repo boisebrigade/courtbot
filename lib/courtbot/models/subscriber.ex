@@ -62,6 +62,11 @@ defmodule Courtbot.Subscriber do
     |> Repo.all()
   end
 
+  def find_by_number(phone_number) do
+    from(s in Subscriber)
+    |> where_phone_number(phone_number)
+  end
+
   defp where_phone_number(query, phone_number) do
     query
     |> where([s], s.phone_number_hash == ^phone_number)
