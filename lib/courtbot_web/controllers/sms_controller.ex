@@ -7,9 +7,16 @@ defmodule CourtbotWeb.SmsController do
   def twilio(conn = %Plug.Conn{private: %{plug_session: session}}, _params = %{"From" => phone_number, "Body" => body, "locale" => locale}) do
     %{"properties" => properties, "state" => state} = Map.merge(%{"properties" => %{}, "state" => :inquery}, session)
 
+    body = body
+      |> String.trim()
+      |> String.replace("-", "")
+      |> String.replace("_", "")
+      |> String.replace(",", "")
+      |> String.downcase()
+
     {response, _fsm = %Courtbot.Workflow{state: state, properties: properties}} =
       Workflow.init(%Workflow{counties: true, types: true, locale: locale, state: state, properties: properties})
-      |> Workflow.message(from: phone_number, body: String.downcase(body))
+      |> Workflow.message(from: phone_number, body: body)
       |> Response.get_message()
 
     conn
