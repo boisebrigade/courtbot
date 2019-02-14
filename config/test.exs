@@ -18,5 +18,6 @@ config :logger, level: :warn
 # Configure your database
 config :courtbot, Courtbot.Repo,
   load_from_system_env: true,
+  url: "postgres://postgres:postgres@localhost:5432/courtbot_test",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
