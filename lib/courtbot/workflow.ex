@@ -18,7 +18,7 @@ defmodule Courtbot.Workflow do
     locale: "en",
     state: :inquery,
     properties: %{},
-    context: %{}
+    input: %{}
   ]
 
   @accept_keywords [

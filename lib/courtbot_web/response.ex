@@ -16,7 +16,7 @@ defmodule CourtbotWeb.Response do
     response(key, params)
   end
 
-  def get_message({key, fsm = %Workflow{locale: locale, properties: properties = %{id: _}}}) do
+  def get_message({key, fsm = %Workflow{locale: locale, properties: properties = %{id: _}, input: input}}) do
     case_details =
       properties
       |> Map.to_list()
@@ -30,9 +30,9 @@ defmodule CourtbotWeb.Response do
     {response(key, params), fsm}
   end
 
-  def get_message({key, fsm = %Workflow{locale: locale, properties: properties}}) do
+  def get_message({key, fsm = %Workflow{locale: locale, properties: properties, input: input}}) do
     params =
-      %{locale: locale}
+      %{locale: locale, input: input}
       |> Map.merge(properties)
       |> Map.merge(custom_variables())
 
@@ -85,12 +85,20 @@ defmodule CourtbotWeb.Response do
     end)
   end
 
-  defp response(:no_county, params = %{locale: locale, case_number: _}) do
+  defp response(:no_county, params = %{locale: locale, case_number: case_number}) do
+    input_case_number = with %{input: %{inquery: user_supplied_case_number}} <- params do
+      user_supplied_case_number
+      else
+      _ -> case_number
+    end
+
+    params = Map.put(params, :user_supplied_case_number, input_case_number)
+
     Gettext.with_locale(locale, fn ->
       Gettext.dgettext(
         CourtbotWeb.Gettext,
         "response",
-        "We did not find case %{case_number} in that county. Please check your case number and county. Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672",
+        "We did not find case %{user_supplied_case_number} in that county. Please check your case number and county. Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672",
         params
       )
     end)
@@ -110,20 +118,6 @@ defmodule CourtbotWeb.Response do
   defp response(:no_subscriptions, _params = %{locale: locale}) do
     Gettext.with_locale(locale, fn ->
       gettext("You are not subscribed to any cases. We won't send you any reminders.")
-    end)
-  end
-
-  defp response(
-         :hearing_details,
-         params = %{locale: locale, date: _, time: _, first_name: _, last_name: _, county: _}
-       ) do
-    Gettext.with_locale(locale, fn ->
-      Gettext.dgettext(
-        CourtbotWeb.Gettext,
-        "response",
-        "We found a case for %{first_name} %{last_name} in %{county} County. The next hearing is on %{date}, at %{time}.",
-        params
-      )
     end)
   end
 
@@ -187,14 +181,6 @@ defmodule CourtbotWeb.Response do
     Gettext.with_locale(locale, fn ->
       gettext(
         "Sorry, I did not understand. Would you like a courtesy reminder a day before the hearing? Reply YES or NO"
-      )
-    end)
-  end
-
-  defp response(:help, _params = %{locale: locale}) do
-    Gettext.with_locale(locale, fn ->
-      gettext(
-        "Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672"
       )
     end)
   end
