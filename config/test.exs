@@ -21,3 +21,10 @@ config :courtbot, Courtbot.Repo,
   url: "postgres://postgres:postgres@localhost:5432/courtbot_test",
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: 10
+
+config :courtbot, Courtbot.Vault,
+ ciphers: [
+   default:
+     {Cloak.Ciphers.AES.GCM,
+     tag: "AES.GCM.V1", key: Base.decode64!(System.get_env("VAULT_KEY"))}
+ ]
