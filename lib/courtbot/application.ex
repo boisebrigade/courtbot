@@ -2,7 +2,6 @@ defmodule Courtbot.Application do
   use Application
 
   alias Courtbot.Configuration.{
-    Rollbar,
     Scheduled,
     Scheduled.Tasks
   }

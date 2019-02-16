@@ -7,10 +7,6 @@ defmodule Courtbot.ConfigMonitor do
     Application,
     Configuration
   }
-  alias Courtbot.Configuration.{
-    Rollbar,
-    Scheduled
-  }
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, opts)
@@ -39,6 +35,8 @@ defmodule Courtbot.ConfigMonitor do
       else
         schedule_check(60_000)
 
+        %{scheduled: scheduled} = config
+
         with %{scheduled: previous_scheduled} <- state do
           Application.stop_scheduled_tasks(previous_scheduled)
         end
@@ -48,6 +46,9 @@ defmodule Courtbot.ConfigMonitor do
 
       config
     end
+
+
+    schedule_check(60_000)
 
     {:noreply, config}
   end
