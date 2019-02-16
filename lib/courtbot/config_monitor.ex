@@ -47,9 +47,6 @@ defmodule Courtbot.ConfigMonitor do
       config
     end
 
-
-    schedule_check(60_000)
-
     {:noreply, config}
   end
 
