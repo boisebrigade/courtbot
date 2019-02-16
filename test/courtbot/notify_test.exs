@@ -1,7 +1,9 @@
 defmodule CourtbotTest.NotifyTest do
   use Courtbot.DataCase, asyc: true
 
-  alias Courtbot.{Case, Notify, Repo, Subscriber}
+  alias Courtbot.{Case, Notify, Repo, Notification, Subscriber}
+
+  import Ecto.Query
 
   setup do
     Repo.insert!(CourtbotTest.Helper.Configuration.boise())
@@ -82,8 +84,12 @@ defmodule CourtbotTest.NotifyTest do
   test "given subscribers there should be one pending notification" do
     pending_notifications = Notify.notifications_for_day(DateTime.utc_now())
 
-    assert length(pending_notifications) == 1
+    assert length(pending_notifications) === 1
 
     Notify.run()
+
+    Process.sleep(500)
+
+    assert length(from(n in Notification) |> Repo.all()) === 1
   end
 end
