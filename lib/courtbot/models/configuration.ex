@@ -24,7 +24,7 @@ defmodule Courtbot.Configuration do
 
     embeds_one :rollbar, Rollbar, primary_key: false do
       field(:access_token, :string)
-      field(:environment, :string)
+      field(:environment, :string, default: "development")
     end
 
     embeds_one :twilio, Twilio, primary_key: false do
@@ -33,7 +33,7 @@ defmodule Courtbot.Configuration do
     end
 
     embeds_one :scheduled, Scheduled, primary_key: false do
-      embeds_many :task, Task, primary_key: false do
+      embeds_many :tasks, Tasks, primary_key: false do
         field(:name, :string)
         field(:crontab, :string)
       end
@@ -84,11 +84,11 @@ defmodule Courtbot.Configuration do
   defp scheduled_changeset(params) do
     %Configuration.Scheduled{}
     |> cast(params, [])
-    |> cast_embed(:task, with: &task_changeset/1)
+    |> cast_embed(:tasks, with: &tasks_changeset/1)
   end
 
-  defp task_changeset(params) do
-    %Configuration.Scheduled.Task{}
+  defp tasks_changeset(params) do
+    %Configuration.Scheduled.Tasks{}
     |> cast(params, [:import, :notify])
   end
 

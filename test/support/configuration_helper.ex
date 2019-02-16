@@ -46,9 +46,9 @@ defmodule CourtbotTest.Helper.Configuration do
         ]
       },
       scheduled: %{
-        task: [
+        tasks: [
           %{name: :import, crontab: "0 11 * * *"},
-          %{name: :import, crontab: "0 19 * * *"},
+          %{name: :notify, crontab: "0 19 * * *"},
         ]
       },
       locales: %{en: "12083144089"},
