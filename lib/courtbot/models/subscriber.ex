@@ -62,14 +62,32 @@ defmodule Courtbot.Subscriber do
     |> Repo.all()
   end
 
-  def find_by_number(phone_number) do
+  def find_by_number(phone_number, preload \\ []) do
     from(s in Subscriber)
     |> where_phone_number(phone_number)
+    |> subscribers_preload(preload)
+  end
+
+  defp subscribers_preload(query, preload) do
+    with preload when preload != [] <- preload do
+      query
+      |> preload(^preload)
+      else
+        _ -> query
+    end
+  end
+
+  def find_by_number_and_case(phone_number, case_number, preload \\ []) do
+    from(s in Subscriber,
+      join: c in Case,
+      on: s.case_id == c.id and c.case_number == ^case_number)
+    |> where_phone_number(phone_number)
+    |> subscribers_preload(preload)
   end
 
   defp where_phone_number(query, phone_number) do
     query
-    |> where([s], s.phone_number_hash == ^phone_number)
+    |> where([s], s.phone_number_hash == ^clean_phone_number(phone_number))
   end
 
   defp clean_phone_number(case_number) do
