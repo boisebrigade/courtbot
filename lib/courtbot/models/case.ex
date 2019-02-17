@@ -59,7 +59,9 @@ defmodule Courtbot.Case do
     do:
       from(
         c in Case,
-        select: c.county
+        distinct: true,
+        select: c.county,
+        where: not is_nil(c.county)
       )
       |> Repo.all()
 
@@ -114,7 +116,6 @@ defmodule Courtbot.Case do
             where: h.date >= ^Date.utc_today()
          )
       )
-
 
   defp add_type(changeset = %Ecto.Changeset{changes: %{type: type}}) when not is_nil(type), do: changeset
 
