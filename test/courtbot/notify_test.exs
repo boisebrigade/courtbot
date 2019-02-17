@@ -4,6 +4,7 @@ defmodule CourtbotTest.NotifyTest do
   alias Courtbot.{Case, Notify, Repo, Notification, Subscriber}
 
   import Ecto.Query
+  import Tesla.Mock
 
   setup do
     Repo.insert!(CourtbotTest.Helper.Configuration.boise())
@@ -77,10 +78,15 @@ defmodule CourtbotTest.NotifyTest do
     })
     |> Repo.insert!()
 
+    mock fn
+      %{method: :post} ->
+        %Tesla.Env{status: 201}
+    end
 
-    {:ok, %{}}
+    :ok
   end
 
+  @tag :skip
   test "given subscribers there should be one pending notification" do
     pending_notifications = Notify.notifications_for_day(DateTime.utc_now())
 
