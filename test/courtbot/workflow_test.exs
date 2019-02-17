@@ -25,24 +25,30 @@ defmodule CourtbotTest.WorkflowTest do
 
   alias Courtbot.Workflow
 
-  test "workflow for debug should yield boop", _ do
+  test "workflow for debug should yield beep and then boop", _ do
     {response, _state} =
       %Courtbot.Workflow{counties: true, types: true, state: :inquery}
-      |> Workflow.message(from: "12025550170", body: "beepboop")
+      |> Workflow.message(from: "+12025550170", body: "beepboop")
 
     assert response == :boop
+
+    {response, _state} =
+      %Courtbot.Workflow{counties: true, types: true, state: :inquery}
+      |> Workflow.message(from: "+12025550170", body: "beepboop")
+
+    assert response == :beep
   end
 
   test "workflow for types and county", %{case_details: case_details} = _context do
     {response, state} =
       %Courtbot.Workflow{counties: true, types: true}
-      |> Workflow.message(from: "12025550170", body: case_details.case_number)
+      |> Workflow.message(from: "+12025550170", body: case_details.case_number)
 
     assert response == :county
 
     {response, _state} =
       state
-      |> Workflow.message(from: "12025550170", body: case_details.county)
+      |> Workflow.message(from: "+12025550170", body: case_details.county)
 
     assert response == :subscribe
   end

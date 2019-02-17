@@ -34,7 +34,7 @@ defmodule CourtbotWeb.CaseHelper do
     def text(conn, case, message) do
       message = replace_properties(case, message)
 
-      conn = post(conn, "/sms/en", %{"From" => "12025550170", "Body" => message})
+      conn = post(conn, "/sms/en", %{"From" => "+12025550170", "Body" => message})
       assert(conn.status === 200, "Request failed with a non 200 error: #{conn.status}")
 
       conn
