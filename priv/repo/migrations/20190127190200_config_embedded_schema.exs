@@ -3,7 +3,6 @@ defmodule Courtbot.Repo.Migrations.ConfigEmbeddedSchema do
 
   def change do
     alter table(:configuration) do
-      remove :id
       remove :name
       remove :value
 

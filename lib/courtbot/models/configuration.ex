@@ -4,7 +4,9 @@ defmodule Courtbot.Configuration do
   import Ecto.{Changeset, Query}
   alias Courtbot.{Repo, Configuration}
 
-  @primary_key false
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
+
   schema "configuration" do
     embeds_one :importer, Importer, primary_key: false do
       field(:kind, :string)
