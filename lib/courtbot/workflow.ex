@@ -18,7 +18,8 @@ defmodule Courtbot.Workflow do
     locale: "en",
     state: :inquery,
     properties: %{},
-    input: %{}
+    input: %{},
+    context: %{}
   ]
 
   @accept_keywords [
@@ -107,14 +108,27 @@ defmodule Courtbot.Workflow do
 
       String.contains?(body, gettext("delete")) ->
         if body === gettext("delete") do
-          Logger.info(from <> ": user is unsubscribing to a specific case")
+          Logger.info(from <> ": user is unsubscribing from all cases")
+
+          # Fetch all the subscriptions
+          cases = Repo.all(Subscriber.find_by_number(from, :case))
 
           # Delete the subscription
-          Repo.delete!(Subscriber.find_by_number(from))
+          Repo.delete_all(Subscriber.find_by_number(from))
 
-          reset(:unsubscribe, fsm)
+          reset(:unsubscribe, %{fsm | context: %{delete: cases}})
         else
-          reset(:unsubscribe, fsm)
+          Logger.info(from <> ": user is unsubscribing to a specific case")
+
+          [_, case_number] = String.split(body, " ")
+
+          # Fetch all the subscriptions matching the case number and from.
+          # TODO(ts): This may return more than one subscription if they are in seperate counties. Need to evaluate if this is confusing behavior.
+          cases = Repo.all(Subscriber.find_by_number_and_case(from, case_number, :case))
+
+          Repo.delete_all(Subscriber.find_by_number_and_case(from, case_number))
+
+          reset(:unsubscribe, %{fsm | context: %{delete: cases}})
         end
 
       true ->
@@ -151,12 +165,16 @@ defmodule Courtbot.Workflow do
       |> String.replace(@county, "")
       |> String.trim()
 
-    if Enum.member?(Case.all_counties(), county) do
+    all_counties =
+      Case.all_counties()
+      |> Enum.map(&(String.downcase(&1)))
+
+    if Enum.member?(all_counties, county) do
       message(%{fsm | state: :load_case, properties: Map.merge(properties, %{county: county})}, params)
     else
       Logger.info(from <> ": No county data for #{body}")
 
-      reset(:no_county, fsm)
+      reset(:no_case, fsm)
     end
   end
 

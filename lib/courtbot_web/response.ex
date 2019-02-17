@@ -16,23 +16,23 @@ defmodule CourtbotWeb.Response do
     response(key, params)
   end
 
-  def get_message({key, fsm = %Workflow{locale: locale, properties: properties = %{id: _}, input: input}}) do
+  def get_message({key, fsm = %Workflow{locale: locale, properties: properties = %{id: _}, input: input, context: context}}) do
     case_details =
       properties
       |> Map.to_list()
       |> Case.find_with()
 
     params =
-      %{locale: locale}
+      %{locale: locale, input: input, context: context}
       |> Map.merge(format_case_details(case_details))
       |> Map.merge(custom_variables())
 
     {response(key, params), fsm}
   end
 
-  def get_message({key, fsm = %Workflow{locale: locale, properties: properties, input: input}}) do
+  def get_message({key, fsm = %Workflow{locale: locale, properties: properties, input: input, context: context}}) do
     params =
-      %{locale: locale, input: input}
+      %{locale: locale, input: input, context: context}
       |> Map.merge(properties)
       |> Map.merge(custom_variables())
 
@@ -42,21 +42,40 @@ defmodule CourtbotWeb.Response do
   defp response(:beep, _), do: "beep"
   defp response(:boop, _), do: "boop"
 
-  defp response(:unsubscribe, _params = %{locale: locale}) do
-    Gettext.with_locale(locale, fn ->
-      gettext("OK. We will stop sending reminders for all cases you are subscribed to.")
-    end)
-  end
+  defp response(:unsubscribe, params = %{locale: locale}) do
+    %Case{id: debug_case_id} = Case.find_with([case_number: "beepboop"])
 
-  defp response(:unsubscribe, _params = %{locale: locale, case_number: case_number}) do
-    Gettext.with_locale(locale, fn ->
-      Gettext.dgettext(
-        CourtbotWeb.Gettext,
-        "response",
-        "OK. We will stop sending reminders for %{case_number}.",
-        case_number: case_number
-      )
-    end)
+    with %{context: %{delete: subscriptions}} <- params do
+      Gettext.with_locale(locale, fn ->
+        cases =
+          Enum.reduce(subscriptions, [], fn %Courtbot.Subscriber{case_id: case_id}, acc when case_id == debug_case_id ->
+              [Gettext.with_locale(locale, fn ->
+                gettext("Courtbot's debug case")
+              end) | acc]
+            %Courtbot.Subscriber{case: %Courtbot.Case{formatted_case_number: case_number, county: county}}, acc ->
+              [Gettext.dgettext(
+                CourtbotWeb.Gettext,
+                "response",
+                "%{case_number} in %{county}",
+                %{case_number: case_number, county: county}
+              ) | acc]
+          end)
+
+
+        Gettext.dgettext(
+          CourtbotWeb.Gettext,
+          "response",
+          "OK. We will stop sending reminders for %{cases}. Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672",
+          %{cases: Enum.join(cases, ", and ")}
+        )
+
+      end)
+
+      else
+      _ -> Gettext.with_locale(locale, fn ->
+        gettext("OK. We will stop sending reminders for all cases you are subscribed to.")
+      end)
+    end
   end
 
   defp response(:already_subscribed, _params = %{locale: locale}) do
@@ -85,7 +104,7 @@ defmodule CourtbotWeb.Response do
     end)
   end
 
-  defp response(:no_county, params = %{locale: locale, case_number: case_number}) do
+  defp response(:no_case, params = %{locale: locale, case_number: case_number}) do
     input_case_number = with %{input: %{inquery: user_supplied_case_number}} <- params do
       user_supplied_case_number
       else
@@ -155,7 +174,7 @@ defmodule CourtbotWeb.Response do
   end
 
   defp response(
-         :reminder,
+         :remind,
          _params = %{
            locale: locale,
            case_number: case_number,
@@ -168,7 +187,7 @@ defmodule CourtbotWeb.Response do
       Gettext.dgettext(
         CourtbotWeb.Gettext,
         "response",
-        "This is a reminder for case %{case_number}. The next hearing is %{date}, at %{time}. You can go to %{court_url} for more information.",
+        "This is a reminder for case %{case_number}. The next hearing is tomorrow, %{date}, at %{time}. You can go to %{court_url} for more information.",
         case_number: case_number,
         date: date,
         time: time,
