@@ -46,13 +46,17 @@ defmodule Courtbot.Notify do
     Enum.each(notifications, fn %{case: case, phone_number: phone_number, id: subscriber_id, locale: locale} ->
        twilio = Twilio.new(twilio_credentials)
        from_number = Map.fetch!(locales, locale)
-       body = Response.get_message({:reminder, case}, locale)
+       body = Response.get_message({:remind, case}, locale)
 
-       # FIXME(ts): Add logging and error handling
-       with {:ok, _result} <- Twilio.message(twilio, %{From: from_number, To: phone_number, Body: body}) do
+       with {:ok, _result = %Tesla.Env{status: 201}} <- Twilio.message(twilio, %{From: from_number, To: phone_number, Body: body}) do
          %Notification{}
          |> Notification.changeset(%{subscriber_id: subscriber_id})
          |> Repo.insert()
+       else
+         {:ok, %Tesla.Env{status: status, body: body}} ->
+           Logger.error("Unable to notify subscribers. Request to Twilio failed with #{status} and code #{body["code"]}")
+         {:error, _} ->
+           Logger.error("Unable to send request to Twilio to notify subscribers")
        end
     end)
   end
