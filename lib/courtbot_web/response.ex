@@ -53,6 +53,13 @@ defmodule CourtbotWeb.Response do
                 gettext("Courtbot's debug case")
               end) | acc]
             %Courtbot.Subscriber{case: %Courtbot.Case{formatted_case_number: case_number, county: county}}, acc ->
+              case_number =
+                case_number
+                |> String.trim()
+                |> String.replace("-", "")
+                |> String.replace("_", "")
+                |> String.replace(",", "")
+
               [Gettext.dgettext(
                 CourtbotWeb.Gettext,
                 "response",
