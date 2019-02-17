@@ -1,6 +1,7 @@
 defmodule CourtbotTest.Helper.Configuration do
   def boise(),
     do: %Courtbot.Configuration{
+      id: Ecto.UUID.generate(),
       importer: %{
         kind: :csv,
         origin: :file,
@@ -67,6 +68,7 @@ defmodule CourtbotTest.Helper.Configuration do
 
   def atlanta(),
       do: %Courtbot.Configuration{
+        id: Ecto.UUID.generate(),
         importer: %{
           kind: :csv,
           origin: :file,
@@ -112,6 +114,7 @@ defmodule CourtbotTest.Helper.Configuration do
 
   def anchorage(),
       do: %Courtbot.Configuration{
+        id: Ecto.UUID.generate(),
         importer: %{
           kind: :csv,
           origin: :file,
