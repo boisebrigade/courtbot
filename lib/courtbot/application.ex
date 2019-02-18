@@ -2,8 +2,8 @@ defmodule Courtbot.Application do
   use Application
 
   alias Courtbot.Configuration.{
-    Scheduled,
-    Scheduled.Tasks
+    Rollbar,
+    Scheduled
   }
 
   require Logger
@@ -15,9 +15,8 @@ defmodule Courtbot.Application do
     children = [
       CourtbotWeb.Endpoint,
       Courtbot.Repo,
-      {Registry, keys: :unique, name: DynamicRegistry},
-      {DynamicSupervisor, name: Courtbot.Bootstrap, strategy: :one_for_one},
-      Courtbot.ConfigMonitor
+      {DynamicSupervisor, name: ConfigSupervisor, strategy: :one_for_one},
+      Courtbot.Config
     ]
 
     opts = [strategy: :one_for_one, name: Courtbot.Supervisor]
@@ -31,12 +30,23 @@ defmodule Courtbot.Application do
     :ok
   end
 
-  def stop_scheduled_tasks(scheduled) do
-    with %Scheduled{tasks: tasks} when tasks != [] <- scheduled do
-      Enum.map(tasks, fn %Tasks{name: name} ->
-        Logger.info("Stopping #{}  scheduled task")
-        cancel_scheduled_item(name)
-      end)
+  def start_rollbar(rollbar) do
+    with %Rollbar{environment: environment, access_token: token} when not is_nil(token) <- rollbar do
+      opts = [
+        api_endpoint: "https://api.rollbar.com/api/1/item/",
+        access_token: token,
+        environment: environment,
+        enabled: true,
+        custom: %{},
+        proxy: nil
+      ]
+
+      case DynamicSupervisor.start_child(ConfigSupervisor, %{id: "rollbax", start: {Rollbax.Client, :start_link, [opts]}}) do
+        {:ok, _} ->
+          Logger.info("Starting Rollbax")
+        {:error, _} ->
+          Logger.error("Unable to start Rollbax")
+      end
     end
   end
 
@@ -45,27 +55,10 @@ defmodule Courtbot.Application do
       tasks
       |> Enum.map(&child_spec_for_scheduled_task/1)
       |> Enum.map(fn {name, childspec} ->
-        Logger.info("Starting #{name} scheduled task")
+        Logger.info("Starting scheduled-task-#{name}")
 
-        DynamicSupervisor.start_child(Courtbot.Bootstrap, childspec)
+        DynamicSupervisor.start_child(ConfigSupervisor, childspec)
       end)
-    end
-  end
-
-  def get_scheduled_item(id) do
-    list = Registry.lookup(RegistryName, id)
-
-    if length(list) > 0 do
-      {pid, _} = hd(list)
-      {:ok, pid}
-    else
-      {:error, "does not exist"}
-    end
-  end
-
-  def cancel_scheduled_item(id) do
-    with {:ok, pid} <- get_scheduled_item(id) do
-      DynamicSupervisor.terminate_child(Courtbot.Bootstrap, pid)
     end
   end
 
@@ -73,6 +66,6 @@ defmodule Courtbot.Application do
   defp mfa_for_task(type) when type === "import", do: [Courtbot.Import, :run, []]
 
   defp child_spec_for_scheduled_task(%Scheduled.Tasks{name: name, crontab: crontab}) do
-    {name, %{id: "scheduled-task-#{name}", start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab, [name: {:via, Registry, {DynamicRegistry, "scheduled-task-#{name}"}}]]}}}
+    {name, %{id: "scheduled-task-#{name}", start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab]}}}
   end
 end
