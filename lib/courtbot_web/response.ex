@@ -130,12 +130,20 @@ defmodule CourtbotWeb.Response do
     end)
   end
 
-  defp response(:no_hearings, params = %{locale: locale, case_number: _, court_url: _}) do
+  defp response(:no_hearings, params = %{locale: locale, case_number: case_number, court_url: _}) do
+    input_case_number = with %{input: %{inquery: user_supplied_case_number}} <- params do
+      user_supplied_case_number
+    else
+      _ -> case_number
+    end
+
+    params = Map.put(params, :user_supplied_case_number, input_case_number)
+
     Gettext.with_locale(locale, fn ->
       Gettext.dgettext(
         CourtbotWeb.Gettext,
         "response",
-        "We did not find any upcoming hearings for %{case_number} in that county. Please check your case number and county. Note that court schedules may change. You should always confirm your hearing date and time by going to %{court_url}",
+        "We did not find any upcoming hearings for %{user_supplied_case_number} in that county. Please check your case number and county. Note that court schedules may change. You should always confirm your hearing date and time by going to %{court_url}",
         params
       )
     end)
@@ -143,7 +151,7 @@ defmodule CourtbotWeb.Response do
 
   defp response(:no_subscriptions, _params = %{locale: locale}) do
     Gettext.with_locale(locale, fn ->
-      gettext("You are not subscribed to any cases. We won't send you any reminders.")
+      gettext("You are not subscribed to any cases. We won't send you any reminders. Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672")
     end)
   end
 
