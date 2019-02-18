@@ -6,24 +6,67 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
   setup do
     Repo.insert(CourtbotTest.Helper.Configuration.boise())
 
-    case_details =
-      %Case{}
-      |> Case.changeset(%{
-        case_number: "CR01-16-00001",
-        county: "valid",
-        type: "criminal",
-        first_name: "John",
-        last_name: "Doe",
-        hearings: [
-          %{time: ~T[09:00:00], date: Date.utc_today()}
-        ]
-      })
-      |> Repo.insert!()
+    cases =
+      %{
+        valid:
+          %Case{}
+          |> Case.changeset(%{
+            case_number: "CR01-16-00001",
+            county: "county",
+            type: "criminal",
+            first_name: "John",
+            last_name: "Doe",
+            hearings: [
+              %{time: ~T[09:00:00], date: Date.utc_today()}
+            ]
+          })
+          |> Repo.insert!(),
+        no_upcoming_hearings:
+          %Case{}
+          |> Case.changeset(%{
+            case_number: "CR01-16-00002",
+            county: "county",
+            type: "criminal",
+            first_name: "John",
+            last_name: "Doe",
+            hearings: [
+              %{time: ~T[09:00:00], date: Date.add(Date.utc_today(), -1)}
+            ]
+          })
+          |> Repo.insert!(),
 
-    {:ok, case_details: case_details}
+        duplicate_case_number_a:
+          %Case{}
+          |> Case.changeset(%{
+            case_number: "CR01-16-00003",
+            county: "A",
+            type: "criminal",
+            first_name: "John",
+            last_name: "Doe",
+            hearings: [
+              %{time: ~T[10:00:00], date: Date.utc_today()}
+            ]
+          })
+          |> Repo.insert!(),
+        duplicate_case_number_b:
+          %Case{}
+          |> Case.changeset(%{
+            case_number: "CR01-16-00003",
+            county: "B",
+            type: "criminal",
+            first_name: "John",
+            last_name: "Doe",
+            hearings: [
+              %{time: ~T[11:00:00], date: Date.utc_today()}
+            ]
+          })
+          |> Repo.insert!(),
+      }
+
+    {:ok, cases}
   end
 
-  test "send hi or help", %{case_details: case_details} = _context do
+  test "send hi or help", %{valid: case_details}  do
     for_case case_details do
       new_conversation()
       |> text("hi")
@@ -35,7 +78,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "subscribe to case with county", %{case_details: case_details} = _context do
+  test "subscribe to case with county", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -47,7 +90,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "reject subscription to case with county", %{case_details: case_details} = _context do
+  test "reject subscription to case with county", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -59,7 +102,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "send invalid response when asked about subscription to case with county", %{case_details: case_details} = _context do
+  test "send invalid response when asked about subscription to case with county", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -71,7 +114,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "attempt to subscribe to case with county but have an invalid county", %{case_details: case_details} = _context do
+  test "attempt to subscribe to case with county but have an invalid county", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -81,7 +124,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "attempt to subscribe to a case with county but have an invalid county with valid retry", %{case_details: case_details} = _context do
+  test "attempt to subscribe to a case with county but have an invalid county with valid retry", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -97,7 +140,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "attempt to subscribe to a case with county but have an invalid county with invalid retry", %{case_details: case_details} = _context do
+  test "attempt to subscribe to a case with county but have an invalid county with invalid retry", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -109,7 +152,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "attempt to subscribe to a case you are already subscribed to", %{case_details: case_details} = _context do
+  test "attempt to subscribe to a case you are already subscribed to", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -127,7 +170,7 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
     end
   end
 
-  test "delete subscription to a case you are already subscribed to", %{case_details: case_details} = _context do
+  test "delete subscription to a case you are already subscribed to", %{valid: case_details} do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
@@ -145,7 +188,44 @@ defmodule CourtbotWeb.Workflow.BoiseTest do
 
       new_conversation()
       |> text("delete {case_number}")
-      |> response("OK. We will stop sending reminders for all cases you are subscribed to.")
+      |> response("OK. We will stop sending reminders for {case_number} in {county}. Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672")
+    end
+  end
+
+
+  test "delete subscription when you have no subscriptions", %{valid: case_details} do
+    for_case case_details do
+      new_conversation()
+      |> text("delete")
+      |> response("You are not subscribed to any cases. We won't send you any reminders. Reply with a case number to sign up for a reminder. For example a case number looks like: CR01-18-22672")
+    end
+  end
+
+  test "attempt to subscribe to a case without any upcoming hearings", %{no_upcoming_hearings: case_details} do
+    for_case case_details do
+      new_conversation()
+      |> text("{case_number}")
+      |> response("Which county are you interested in?")
+      |> text("{county}")
+      |> response("We did not find any upcoming hearings for {case_number} in that county. Please check your case number and county. Note that court schedules may change. You should always confirm your hearing date and time by going to https://mycourts.idaho.gov/")
+    end
+  end
+
+  test "attempt to subscribe to a case with multiple counties", %{duplicate_case_number_a: case_details_a, duplicate_case_number_b: case_details_b} do
+    for_case case_details_a do
+      new_conversation()
+      |> text("{case_number}")
+      |> response("Which county are you interested in?")
+      |> text("{county}")
+      |> response("We found a case for {first_name} {last_name} in A County. The next hearing is on {date}, at 10:00 AM. Would you like a reminder a day before the next hearing date?")
+    end
+
+    for_case case_details_b do
+      new_conversation()
+      |> text("{case_number}")
+      |> response("Which county are you interested in?")
+      |> text("{county}")
+      |> response("We found a case for {first_name} {last_name} in B County. The next hearing is on {date}, at 11:00 AM. Would you like a reminder a day before the next hearing date?")
     end
   end
 end
