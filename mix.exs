@@ -21,7 +21,8 @@ defmodule Courtbot.Mixfile do
   def application do
     [
       mod: {Courtbot.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :hackney, :jason],
+      included_applications: [:rollbax]
     ]
   end
 

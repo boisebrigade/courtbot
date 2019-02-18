@@ -53,10 +53,6 @@ release :courtbot do
     ]
   )
 
-  set overlays: [
-    {:copy, "rel/config/courtbot.exs", "etc/courtbot.exs"}
-  ]
-
   set(
     applications: [
       :runtime_tools
@@ -70,7 +66,7 @@ release :courtbot do
 
   set(
     config_providers: [
-      {Distillery.Json.Provider, [path: "${RELEASE_ROOT_DIR}/etc/courtbot.json"]},
+      {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.exs"]},
       {Mix.Releases.Config.Providers.Elixir, ["${RELEASE_ROOT_DIR}/etc/courtbot.secrets.exs"]}
     ]
   )

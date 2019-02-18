@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-release_ctl eval --mfa "Distillery.Hooks.Migrate.run/0"
+release_ctl eval --mfa "Distillery.Hooks.Migrations.run/0"
