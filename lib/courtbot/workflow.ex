@@ -113,10 +113,15 @@ defmodule Courtbot.Workflow do
           # Fetch all the subscriptions
           cases = Repo.all(Subscriber.find_by_number(from, :case))
 
-          # Delete the subscription
-          Repo.delete_all(Subscriber.find_by_number(from))
+          with case_subscriptions when cases != [] <- cases do
+            # Delete the subscription
+            Repo.delete_all(Subscriber.find_by_number(from))
 
-          reset(:unsubscribe, %{fsm | context: %{delete: cases}})
+            reset(:unsubscribe, %{fsm | context: %{delete: case_subscriptions}})
+          else
+            [] -> reset(:no_subscriptions, fsm)
+          end
+
         else
           Logger.info(from <> ": user is unsubscribing to a specific case")
 
