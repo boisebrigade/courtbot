@@ -53,6 +53,7 @@ defmodule Courtbot.Mixfile do
       {:tesla, "~> 1.2.1"},
       {:hackney, "~> 1.15.0"},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
+      {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
       {:mix_test_watch, "~> 0.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
