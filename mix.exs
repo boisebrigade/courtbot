@@ -50,6 +50,7 @@ defmodule Courtbot.Mixfile do
       {:plug_cowboy, "~> 2.0"},
       {:ex_twiml, "~> 2.1.3"},
       {:rollbax, ">= 0.0.0", runtime: false},
+      {:telemetry, "~> 0.4.0", override: true},
       {:tesla, "~> 1.2.1"},
       {:hackney, "~> 1.15.0"},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
