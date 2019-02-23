@@ -21,13 +21,14 @@ defmodule Courtbot.Notify do
     %{
       locales: locales,
       notifications: %{reminders: reminders},
-      twilio: twilio
-    } = Configuration.get([:locales, :notifications, :twilio])
+      twilio: twilio,
+      timezone: timezone,
+    } = Configuration.get([:locales, :notifications, :twilio, :timezone])
 
     Enum.map(reminders, &(Enum.each(&1, fn({timescale, offset}) ->
       date = Timex.shift(Date.utc_today(), [{String.to_atom(timescale), offset}])
 
-      with pending when pending != [] <- notifications_for_day(date) do
+      with pending when pending != [] <- notifications_for_day(day, timezone) do
         pending
         |> Enum.chunk_every(100)
         |> Enum.with_index()
@@ -72,12 +73,14 @@ defmodule Courtbot.Notify do
     end)
   end
 
-  def notifications_for_day(day) do
+  def notifications_for_day(day, timezone) do
+    {:ok, today} = DateTime.shift_zone(day, timezone, Tzdata.TimeZoneDatabase)
+
     notified =
       from(
         n in Notification,
-        where: n.inserted_at >= ^Timex.beginning_of_day(DateTime.utc_now()),
-        where: n.inserted_at <= ^Timex.end_of_day(DateTime.utc_now()),
+        where: n.inserted_at >= ^Timex.beginning_of_day(today),
+        where: n.inserted_at <= ^Timex.end_of_day(today),
         select: n.subscriber_id
       )
 
@@ -98,7 +101,7 @@ defmodule Courtbot.Notify do
           hearings: ^from(
             h in Hearing,
             order_by: [h.date, h.time],
-            where: h.date >= ^Date.utc_today(),
+            where: h.date >= ^today,
             limit: 1
           )
         ]
