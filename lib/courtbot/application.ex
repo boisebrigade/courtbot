@@ -41,9 +41,13 @@ defmodule Courtbot.Application do
         proxy: nil
       ]
 
-      case DynamicSupervisor.start_child(ConfigSupervisor, %{id: "rollbax", start: {Rollbax.Client, :start_link, [opts]}}) do
+      case DynamicSupervisor.start_child(ConfigSupervisor, %{
+             id: "rollbax",
+             start: {Rollbax.Client, :start_link, [opts]}
+           }) do
         {:ok, _} ->
           Logger.info("Starting Rollbax")
+
         {:error, _} ->
           Logger.error("Unable to start Rollbax")
       end
@@ -66,6 +70,10 @@ defmodule Courtbot.Application do
   defp mfa_for_task(type) when type === "import", do: [Courtbot.Import, :run, []]
 
   defp child_spec_for_scheduled_task(%Scheduled.Tasks{name: name, crontab: crontab}) do
-    {name, %{id: "scheduled-task-#{name}", start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab]}}}
+    {name,
+     %{
+       id: "scheduled-task-#{name}",
+       start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab]}
+     }}
   end
 end

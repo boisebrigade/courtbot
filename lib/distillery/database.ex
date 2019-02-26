@@ -1,11 +1,10 @@
 defmodule Distillery.Database do
-
   def create_migrations_table() do
     Ecto.Migration.SchemaMigration.ensure_schema_migrations_table!(Courtbot.Repo, nil)
   end
 
   def drop_database() do
-    case Courtbot.Repo.__adapter__.storage_down(Courtbot.Repo.config) do
+    case Courtbot.Repo.__adapter__().storage_down(Courtbot.Repo.config()) do
       :ok ->
         IO.puts("Database has been dropped")
 
@@ -21,7 +20,7 @@ defmodule Distillery.Database do
   end
 
   def create_database() do
-    case Courtbot.Repo.__adapter__.storage_up(Courtbot.Repo.config) do
+    case Courtbot.Repo.__adapter__().storage_up(Courtbot.Repo.config()) do
       :ok ->
         IO.puts("Database has been created")
 
@@ -36,7 +35,6 @@ defmodule Distillery.Database do
     end
   end
 
-
   def run_seeds() do
     # Run the seed script if it exists
     seed_script = priv_path_for(Courtbot.Repo, "seeds.exs")
@@ -48,7 +46,7 @@ defmodule Distillery.Database do
   end
 
   def run_migrations do
-    app = Keyword.get(Courtbot.Repo.config, :otp_app)
+    app = Keyword.get(Courtbot.Repo.config(), :otp_app)
     IO.puts("Running migrations for #{app}")
     migrations_path = priv_path_for(Courtbot.Repo, "migrations")
     Ecto.Migrator.run(Courtbot.Repo, migrations_path, :up, all: true)

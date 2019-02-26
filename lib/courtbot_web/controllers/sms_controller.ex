@@ -4,21 +4,32 @@ defmodule CourtbotWeb.SmsController do
   alias Courtbot.Workflow
   alias CourtbotWeb.{Response, Twiml}
 
-  def twilio(conn = %Plug.Conn{private: %{plug_session: session}}, _params = %{"From" => phone_number, "Body" => body, "locale" => locale}) do
-    %{"properties" => properties, "state" => state, "input" => input} = Map.merge(%{"properties" => %{}, "state" => :inquery, "input" => %{}}, session)
+  def twilio(
+        conn = %Plug.Conn{private: %{plug_session: session}},
+        _params = %{"From" => phone_number, "Body" => body, "locale" => locale}
+      ) do
+    %{"properties" => properties, "state" => state, "input" => input} =
+      Map.merge(%{"properties" => %{}, "state" => :inquery, "input" => %{}}, session)
 
     input = Map.put(input, state, body)
 
-    body = body
+    body =
+      body
       |> String.trim()
       |> String.replace("-", "")
       |> String.replace("_", "")
       |> String.replace(",", "")
       |> String.downcase()
 
-
     {response, _fsm = %Courtbot.Workflow{state: state, properties: properties, input: input}} =
-      Workflow.init(%Workflow{counties: true, types: true, locale: locale, state: state, properties: properties, input: input})
+      Workflow.init(%Workflow{
+        counties: true,
+        types: true,
+        locale: locale,
+        state: state,
+        properties: properties,
+        input: input
+      })
       |> Workflow.message(from: phone_number, body: body)
       |> Response.get_message()
 
