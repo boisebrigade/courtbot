@@ -31,9 +31,13 @@ defmodule Courtbot.Hearing do
     changeset
     |> cast(params, [:case_id, :time, :date, :location, :detail])
     |> validate_required([:date, :time])
+    |> unique_constraint(:case_id, name: :hearings_case_id_date_time_index)
+    |> unique_constraint(:date, name: :hearings_case_id_date_time_index)
+    |> unique_constraint(:time, name: :hearings_case_id_date_time_index)
   end
 
-  def cast_date_and_time(date_and_time = %{date: date, time: time}) when is_binary(date) and is_binary(time) do
+  def cast_date_and_time(date_and_time = %{date: date, time: time})
+      when is_binary(date) and is_binary(time) do
     %{format: time_format} = Configuration.importer_field_mapping("time")
     %{format: date_format} = Configuration.importer_field_mapping("date")
 

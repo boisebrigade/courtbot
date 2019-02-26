@@ -1,7 +1,7 @@
 defmodule Courtbot.Case do
   use Ecto.Schema
 
-  alias Courtbot.{Case, Configuration, Hearing, Subscriber, Repo}
+  alias Courtbot.{Case, Configuration, Hearing, Party, Subscriber, Repo}
 
   import Ecto.{Changeset, Query}
 
@@ -14,10 +14,9 @@ defmodule Courtbot.Case do
     field(:type, :string)
     field(:case_number, :string)
     field(:formatted_case_number, :string)
-    field(:first_name, :string)
-    field(:last_name, :string)
     field(:county, :string)
 
+    has_many(:parties, Party, on_delete: :delete_all)
     has_many(:hearings, Hearing, on_delete: :delete_all)
     has_many(:subscribers, Subscriber, on_delete: :delete_all)
 
@@ -30,8 +29,6 @@ defmodule Courtbot.Case do
       :type,
       :case_number,
       :formatted_case_number,
-      :first_name,
-      :last_name,
       :county
     ])
     |> validate_required([:case_number])
@@ -40,6 +37,7 @@ defmodule Courtbot.Case do
     |> update_change(:county, &clean_county/1)
     |> add_type()
     |> cast_assoc(:hearings)
+    |> cast_assoc(:parties)
     |> unique_constraint(:case_number, name: :cases_case_number_index)
     |> unique_constraint(:case_number, name: :cases_case_number_type_index)
     |> unique_constraint(:case_number, name: :cases_case_number_county_index)
@@ -49,7 +47,8 @@ defmodule Courtbot.Case do
   def find_with(props) do
     from(
       c in Case,
-      where: ^props
+      where: ^props,
+      preload: :parties
     )
     |> latest_hearing()
     |> Repo.one()
@@ -71,24 +70,27 @@ defmodule Courtbot.Case do
       :case_number,
       :county,
       :formatted_case_number,
-      :first_name,
-      :last_name,
+      :parties,
       :type,
       :hearings
     ])
     |> Map.update!(:hearings, fn hearings ->
-      Enum.map(hearings, fn hearing ->
-        Hearing.format(hearing)
-      end)
+      Enum.map(hearings, &(Hearing.format(&1)))
+    end)
+    |> Map.update!(:parties, fn parties ->
+      parties
+      |> Enum.map(&(Party.format(&1)))
+      |> Enum.join(", and ")
     end)
   end
 
   def check_types(case_number) do
     %{types: types} = Configuration.get([:types])
 
-    type_definitions = Enum.reduce(types, %{}, fn %_{name: name, pattern: value}, acc ->
-      Map.put(acc, String.to_atom(name), value)
-    end)
+    type_definitions =
+      Enum.reduce(types, %{}, fn %_{name: name, pattern: value}, acc ->
+        Map.put(acc, String.to_atom(name), value)
+      end)
 
     Enum.reduce(type_definitions, nil, fn {type, pattern}, acc ->
       case Regex.compile(pattern, [:caseless]) do
@@ -98,6 +100,7 @@ defmodule Courtbot.Case do
           else
             acc
           end
+
         {:error, _message} ->
           acc
       end
@@ -114,16 +117,18 @@ defmodule Courtbot.Case do
             order_by: [h.date, h.time],
             limit: 1,
             where: h.date >= ^Date.utc_today()
-         )
+          )
       )
 
-  defp add_type(changeset = %Ecto.Changeset{changes: %{type: type}}) when not is_nil(type), do: changeset
+  defp add_type(changeset = %Ecto.Changeset{changes: %{type: type}}) when not is_nil(type),
+    do: changeset
 
   defp add_type(changeset = %Ecto.Changeset{changes: %{case_number: case_number}}) do
-    type = case check_types(case_number) do
-      nil -> nil
-      type -> Atom.to_string(type)
-    end
+    type =
+      case check_types(case_number) do
+        nil -> nil
+        type -> Atom.to_string(type)
+      end
 
     changeset
     |> put_change(:type, type)
@@ -135,7 +140,7 @@ defmodule Courtbot.Case do
     |> String.trim()
   end
 
-  defp clean_case_number(case_number) do
+  def clean_case_number(case_number) do
     case_number
     |> String.trim()
     |> String.replace("-", "")
