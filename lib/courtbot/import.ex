@@ -12,12 +12,10 @@ defmodule Courtbot.Import do
   def run(%{importer: importer = %{kind: kind, origin: origin, source: source}}) do
     Logger.info("Starting import")
 
-    origin = String.to_atom(origin)
-
     data =
       case origin do
-        :file -> File.stream!(source)
-        :url -> request(source)
+        "file" -> File.stream!(source)
+        "url" -> request(source)
         _ -> raise "Unsupported import origin: #{origin}"
       end
 
@@ -25,7 +23,7 @@ defmodule Courtbot.Import do
 
     imported =
       run_import(
-        String.to_atom(kind),
+        kind,
         data,
         importer
       )
@@ -35,9 +33,9 @@ defmodule Courtbot.Import do
     imported
   end
 
-  defp run_import(:csv, data, settings), do: Csv.extract(data, settings)
+  defp run_import("csv", data, settings), do: Csv.run(data, settings)
 
-  defp run_import(:json, _, _),
+  defp run_import("json", _, _),
     do: raise("JSON is currently not supported")
 
   defp run_import(_, _, _),
@@ -46,8 +44,9 @@ defmodule Courtbot.Import do
   defp backup_and_truncate_hearings do
     Logger.info("Creating backup hearings table")
 
-    backup_table =
-      "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
+    date = Date.utc_today() |> Date.add(-1) |> Timex.format!("%m_%d_%Y", :strftime)
+
+    backup_table = "hearing_" <> date
 
     # Drop backup table if it has previously been created.
     Repo.query("DROP TABLE IF EXISTS #{backup_table}", [])

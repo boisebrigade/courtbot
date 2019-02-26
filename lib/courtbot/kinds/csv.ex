@@ -1,15 +1,17 @@
 defmodule Courtbot.Kinds.Csv do
-  alias Courtbot.{Case, Configuration, Hearing, Repo}
+  alias Courtbot.{Case, Configuration, Hearing, Party, Repo}
 
   require Logger
 
-  def extract(data, _options = %{
-    delimiter: <<delimiter::utf8>>,
-    has_headers: has_headers,
-    county_duplicates: county_duplicates,
-    field_mapping: field_mapping
-  }) do
-
+  def run(
+        data,
+        _options = %{
+          delimiter: <<delimiter::utf8>>,
+          has_headers: has_headers,
+          county_duplicates: county_duplicates,
+          field_mapping: field_mapping
+        }
+      ) do
     # If the CSV file has headings then drop the first row
     data =
       if has_headers do
@@ -29,51 +31,61 @@ defmodule Courtbot.Kinds.Csv do
 
     fragment =
       cond do
-        county_duplicates and length(types) > 0 ->
+        Configuration.mapped_county?() and (Configuration.mapped_type?() or not is_nil(types)) ->
           "(case_number, county, type)"
 
-        county_duplicates ->
+        Configuration.mapped_county?() ->
           "(case_number, county) WHERE type IS NULL"
 
-        length(types) > 0 ->
+        Configuration.mapped_type?() or not is_nil(types) ->
           "(case_number, type) WHERE county IS NULL"
 
         true ->
-         "(case_number) WHERE county IS NULL AND type IS NULL"
+          "(case_number) WHERE county IS NULL AND type IS NULL"
       end
-
-    opts = [returning: true,
-      on_conflict: :replace_all_except_primary_key,
-      conflict_target: {:unsafe_fragment, fragment}]
 
     data
     |> CSV.decode(headers: headings, separator: delimiter)
     |> Enum.to_list()
-    |> Enum.reduce([], fn
-
-    {:ok, record}, acc ->
-      [Case.changeset(%Case{}, Map.merge(record, %{hearings: [record]})) | acc]
-    {:error, message}, acc ->
-      Logger.error("Unable to import row: #{message}")
-
-        acc
+    |> Enum.map(&cast_fields/1)
+    |> Enum.each(fn {case_changeset, hearing_changeset, party_changeset} ->
+      Ecto.Multi.new()
+      |> Ecto.Multi.insert(:case, case_changeset,
+        returning: true,
+        on_conflict: :replace_all_except_primary_key,
+        conflict_target: {:unsafe_fragment, fragment}
+      )
+      |> Ecto.Multi.insert(
+        :hearings,
+        fn %{case: case} ->
+          Hearing.changeset(Ecto.build_assoc(case, :hearings), hearing_changeset)
+        end,
+        on_conflict: :replace_all_except_primary_key,
+        conflict_target: [:case_id, :time, :date]
+      )
+      |> Ecto.Multi.insert(
+        :parties,
+        fn %{case: case} ->
+          Party.changeset(Ecto.build_assoc(case, :parties), party_changeset)
+        end,
+        on_conflict: :replace_all_except_primary_key,
+        conflict_target: [:case_id, :first_name, :last_name]
+      )
+      |> Repo.transaction()
     end)
-    |> Enum.map(fn changeset = %_{changes: changes = %{hearings: [hearing]}} ->
-      case Repo.insert(changeset, opts) do
-        {:error, %_{errors: [case_number: _]}} ->
-          %Case{id: case_id} = changes
-            |> Map.take([:county, :type, :case_number])
-            |> Map.to_list()
-            |> Case.find_with()
+  end
 
-          %_{changes: hearing} = hearing
+  defp cast_fields({:ok, record}) do
+    hearing = Hearing.changeset(%Hearing{}, record)
+    party = Party.changeset(%Party{}, record)
+    case = Case.changeset(%Case{}, record)
 
-          %Hearing{}
-          |> Hearing.changeset(Map.merge(hearing, %{case_id: case_id}))
-          |> Repo.insert()
+    {case, record, record}
+  end
 
-        result -> result
-      end
-    end)
+  defp cast_fields({:error, message}, acc) do
+    Logger.error("Unable to import row: #{message}")
+
+    acc
   end
 end
