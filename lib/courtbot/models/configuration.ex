@@ -112,7 +112,7 @@ defmodule Courtbot.Configuration do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:timezone])
+    |> cast(params, [:timezone, :locales])
     |> cast_embed(:importer, with: &importer_changeset/2)
     |> cast_embed(:rollbar, with: &rollbar_changeset/2)
     |> cast_embed(:twilio, with: &twilio_changeset/2)
