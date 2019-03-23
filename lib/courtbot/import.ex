@@ -9,15 +9,32 @@ defmodule Courtbot.Import do
 
   def run, do: Courtbot.Import.run(Configuration.get([:importer]))
 
-  def run(%{importer: importer = %{kind: kind, origin: origin, source: source}}) do
+  def run(%{importer: importer = %{kind: kind, origin: "file", source: source}}) do
+    Logger.info("Starting file import from: #{source}")
+
+    with {:ok, %File.Stat{size: size}} when size > 0 <- File.stat(source) do
+      backup_and_truncate_hearings()
+
+      imported =
+        run_import(
+          kind,
+          File.stream!(source),
+          importer
+        )
+
+      Logger.info("Finished Import")
+
+      imported
+      else
+        {:ok, %File.Stat{size: 0}} -> Logger.error("Unable to import. Source file, #{source}, is empty.")
+        {:error, reason} -> Logger.error("Unable to import: #{reason}")
+    end
+  end
+
+  def run(%{importer: importer = %{kind: kind, origin: "url", source: source}}) do
     Logger.info("Starting import")
 
-    data =
-      case origin do
-        "file" -> File.stream!(source)
-        "url" -> request(source)
-        _ -> raise "Unsupported import origin: #{origin}"
-      end
+    data = request(source)
 
     backup_and_truncate_hearings()
 
