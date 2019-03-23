@@ -54,10 +54,10 @@ defmodule Courtbot.Application do
     end
   end
 
-  def start_scheduled_tasks(scheduled) do
+  def start_scheduled_tasks(scheduled, timezone) do
     with %Scheduled{tasks: tasks} when tasks != [] <- scheduled do
       tasks
-      |> Enum.map(&child_spec_for_scheduled_task/1)
+      |> Enum.map(&child_spec_for_scheduled_task(&1, timezone))
       |> Enum.map(fn {name, childspec} ->
         Logger.info("Starting scheduled-task-#{name}")
 
@@ -69,11 +69,11 @@ defmodule Courtbot.Application do
   defp mfa_for_task(type) when type === "notify", do: [Courtbot.Notify, :run, []]
   defp mfa_for_task(type) when type === "import", do: [Courtbot.Import, :run, []]
 
-  defp child_spec_for_scheduled_task(%Scheduled.Tasks{name: name, crontab: crontab}) do
+  defp child_spec_for_scheduled_task(%Scheduled.Tasks{name: name, crontab: crontab}, timezone) do
     {name,
      %{
        id: "scheduled-task-#{name}",
-       start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab]}
+       start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab] ++ [timezone: timezone]}
      }}
   end
 end
