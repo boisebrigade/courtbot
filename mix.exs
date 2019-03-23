@@ -21,7 +21,7 @@ defmodule Courtbot.Mixfile do
   def application do
     [
       mod: {Courtbot.Application, []},
-      extra_applications: [:logger, :runtime_tools, :hackney, :jason],
+      extra_applications: [:logger, :runtime_tools, :hackney, :jason, :tzdata],
       included_applications: [:rollbax]
     ]
   end
@@ -53,6 +53,7 @@ defmodule Courtbot.Mixfile do
       {:telemetry, "~> 0.4.0", override: true},
       {:tesla, "~> 1.2.1"},
       {:hackney, "~> 1.15.0"},
+      {:tzdata, "~> 1.0.0-rc.0", override: true},
       {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
       {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false},
       {:earmark, "~> 1.2", only: :dev, runtime: false},
