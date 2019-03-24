@@ -23,7 +23,7 @@ defmodule Courtbot.Subscriber do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:case_id, :phone_number, :locale])
+    |> cast(params, [:case_id, :phone_number, :locale, :queued])
     |> validate_length(:phone_number, min: 9)
     |> validate_required([:phone_number, :locale])
     |> update_change(:phone_number, &clean_phone_number/1)
