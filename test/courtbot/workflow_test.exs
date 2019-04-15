@@ -4,7 +4,8 @@ defmodule CourtbotTest.WorkflowTest do
   alias Courtbot.{Case, Repo}
 
   setup do
-    Repo.insert!(CourtbotTest.Helper.Configuration.boise())
+    Repo.insert!(CourtbotTest.Helper.Configuration.idaho())
+    Repo.insert!(CourtbotTest.Helper.Case.debug_case())
 
     case_details =
       %Case{}
@@ -12,8 +13,9 @@ defmodule CourtbotTest.WorkflowTest do
         case_number: "CR01-16-00001",
         county: "valid",
         type: "criminal",
-        first_name: "John",
-        last_name: "Doe",
+        parties: [
+          %{first_name: "John", last_name: "Doe"}
+        ],
         hearings: [
           %{time: ~T[09:00:00], date: Date.utc_today()}
         ]

@@ -1,13 +1,14 @@
 defmodule CourtbotTest.Helper.Configuration do
+  @moduledoc false
   alias Courtbot.Configuration
 
-  def boise(),
+  def idaho(),
     do:
       Configuration.changeset(%Configuration{}, %{
         importer: %{
           kind: "csv",
           origin: "file",
-          source: "#{File.cwd!()}/test/data/boise.csv",
+          source: "#{File.cwd!()}/test/data/idaho.csv",
           delimiter: ",",
           has_headers: true,
           county_duplicates: true,
@@ -16,16 +17,7 @@ defmodule CourtbotTest.Helper.Configuration do
               destination: "case_number"
             },
             %{
-              destination: "last_name"
-            },
-            %{
-              destination: "first_name"
-            },
-            %{
-              destination: nil
-            },
-            %{
-              destination: nil
+              destination: "case_name"
             },
             %{
               destination: nil
@@ -57,8 +49,8 @@ defmodule CourtbotTest.Helper.Configuration do
         },
         locales: %{en: "12083144089"},
         types: [
-          %{name: "civil", pattern: "CV"},
-          %{name: "criminal", pattern: "CR"}
+          %{name: "civil", pattern: "(?=(.*\\d.*))(?=(.{6,20}))(?=(CV))"},
+          %{name: "criminal", pattern: "(?=(.*\\d.*))(?=(.{6,20}))(?=(CR))"}
         ],
         notifications: %{
           queuing: false,

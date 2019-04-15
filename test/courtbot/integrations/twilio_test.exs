@@ -24,7 +24,8 @@ defmodule CourtbotTest.Integrations.TwilioTest do
 
   test "check twilio integration" do
     {status, _result} =
-      Twilio.new(%{account_sid: "test", auth_token: "test"})
+      %{account_sid: "test", auth_token: "test"}
+      |> Twilio.new()
       |> Twilio.message(%{To: "+15005550006", From: "+15005550006", Body: "test"})
 
     assert status === :ok
