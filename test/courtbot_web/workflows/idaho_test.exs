@@ -69,6 +69,7 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
     {:ok, cases}
   end
 
+  @tag :skip
   property "check that arbitrary data will yield a sane response", %{valid: case_details} do
     check all input <- StreamData.binary() do
       try do
