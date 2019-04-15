@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Courtbot.Import do
+  @moduledoc false
   use Mix.Task
 
   @shortdoc "Run the Courtbot import"

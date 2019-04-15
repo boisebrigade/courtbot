@@ -1,4 +1,6 @@
 defmodule Distillery.Database do
+  @moduledoc false
+
   def create_migrations_table() do
     Ecto.Migration.SchemaMigration.ensure_schema_migrations_table!(Courtbot.Repo, nil)
   end

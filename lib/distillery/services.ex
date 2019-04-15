@@ -1,4 +1,5 @@
 defmodule Distillery.Services do
+  @moduledoc false
   @start_apps [
     :crypto,
     :ssl,

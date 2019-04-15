@@ -1,4 +1,5 @@
 defmodule Distillery.Commands.Reset do
+  @moduledoc false
   alias Distillery.{Services, Database}
 
   def run() do

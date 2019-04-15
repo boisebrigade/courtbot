@@ -1,4 +1,6 @@
 defmodule CourtbotWeb.SmsController do
+  @moduledoc false
+
   use CourtbotWeb, :controller
 
   alias Courtbot.Workflow
@@ -43,6 +45,6 @@ defmodule CourtbotWeb.SmsController do
   defp encode_for_twilio(conn, response) do
     conn
     |> put_resp_content_type("application/xml")
-    |> send_resp(200, Twiml.sms(response))
+    |> send_resp(:ok, Twiml.sms(response))
   end
 end

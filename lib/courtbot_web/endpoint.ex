@@ -1,4 +1,5 @@
 defmodule CourtbotWeb.Endpoint do
+  @moduledoc false
   use Phoenix.Endpoint, otp_app: :courtbot
 
   # Code reloading can be explicitly enabled under the

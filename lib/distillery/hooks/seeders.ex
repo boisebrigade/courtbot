@@ -1,4 +1,5 @@
 defmodule Distillery.Hooks.Seeders do
+  @moduledoc false
   alias Distillery.{Services, Database}
 
   def run() do
