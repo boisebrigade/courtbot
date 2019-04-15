@@ -1,11 +1,14 @@
 ExUnit.start()
 
-defmodule CourtbotWeb.CaseHelper do
+defmodule CourtbotTest.Helper.Case do
+  @moduledoc false
   use ExUnit.CaseTemplate
+
+  alias Courtbot.Case
 
   using do
     quote do
-      import CourtbotWeb.CaseHelper.Helpers
+      import CourtbotTest.Helper.Case.Conversation
       import CourtbotWeb.Router.Helpers
       use CourtbotWeb.ConnCase, async: true
 
@@ -16,9 +19,19 @@ defmodule CourtbotWeb.CaseHelper do
     end
   end
 
-  defmodule Helpers do
-    alias Courtbot.{Case, Configuration}
+  def debug_case(),
+    do: %Case{
+      case_number: "BEEPBOOP",
+      formatted_case_number: "BEEPBOOP"
+    }
+
+  defmodule Conversation do
+    @moduledoc false
+    alias Courtbot.{Case, Subscriber, Repo}
+    alias CourtbotWeb.Response
     use Phoenix.ConnTest
+
+    import Ecto.Query
 
     @endpoint CourtbotWeb.Endpoint
 
@@ -42,7 +55,8 @@ defmodule CourtbotWeb.CaseHelper do
 
     def response(conn, case, message) do
       message =
-        replace_properties(case, message)
+        case
+        |> replace_properties(message)
         |> HtmlEntities.encode()
 
       assert "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response><Sms>#{message}</Sms></Response>" ===
@@ -51,29 +65,32 @@ defmodule CourtbotWeb.CaseHelper do
       conn
     end
 
-    def custom_variables() do
-      %{variables: variables} = Configuration.get([:variables])
+    defp replace_properties(case_details = %Courtbot.Case{id: case_id}, message) do
+      subscribers =
+        Repo.all(from(s in Subscriber, where: s.case_id == ^case_id, preload: :case))
 
-      Enum.reduce(variables, %{}, fn %_{name: name, value: value}, acc -> Map.put(acc, String.to_atom(name), value) end)
-    end
-
-    defp replace_properties(case_details, message) do
-      case_properties = Map.merge(case_properties(case_details), custom_variables())
+      case_properties =
+        case_details
+        |> case_properties()
+        |> Map.merge(Response.custom_variables())
+        |> Map.merge(Response.cases_context(%{context: %{cases: subscribers}}))
 
       Enum.reduce(case_properties, message, fn {k, v}, message ->
         key = Atom.to_string(k)
 
-        if v do
-          String.replace(message, "{#{key}}", v)
-        else
-          String.replace(message, "{#{key}}", "")
+        case v do
+          v when is_binary(v) -> String.replace(message, "{#{key}}", v)
+          _ -> String.replace(message, "{#{key}}", "")
         end
       end)
     end
 
     defp case_properties(case_details) do
-      case = %{hearings: [hearing]} = Case.format(case_details)
-      case |> Map.delete(:hearings) |> Map.merge(hearing)
+      with case = %{hearings: [hearing]} <- Case.format(case_details) do
+        case |> Map.delete(:hearings) |> Map.merge(hearing)
+      else
+        case -> case
+      end
     end
 
     defp prewalk({type, meta, [message]}, case) when type === :text or type === :response do

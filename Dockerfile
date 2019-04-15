@@ -24,7 +24,7 @@ RUN mix compile
 RUN mix release --env=${MIX_ENV} --verbose \
   && mv _build/${MIX_ENV}/rel/courtbot /opt/release
 
-FROM debian:stretch as runtime
+FROM ubuntu as runtime
 
 ENV LANG en_US.UTF-8
 ENV LC_CTYPE en_US.UTF-8
@@ -32,7 +32,7 @@ ENV LC_ALL en_US.UTF-8
 ENV REPLACE_OS_VARS true
 
 RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install locales libssl-dev -y
+RUN apt-get install libssl-dev postgresql-client postgresql -y
 RUN locale-gen en_US.UTF-8
 RUN localedef -i en_US -f UTF-8 en_US.UTF-8
 

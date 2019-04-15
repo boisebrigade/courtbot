@@ -14,6 +14,7 @@ defmodule Courtbot.Subscriber do
     field(:phone_number, Courtbot.Encrypted.Binary)
     field(:phone_number_hash, Cloak.Fields.SHA256)
     field(:locale, :string)
+    field(:queued, :boolean, default: false)
 
     has_many(:notifications, Notification, on_delete: :delete_all)
 
@@ -22,7 +23,7 @@ defmodule Courtbot.Subscriber do
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:case_id, :phone_number, :locale])
+    |> cast(params, [:case_id, :phone_number, :locale, :queued])
     |> validate_length(:phone_number, min: 9)
     |> validate_required([:phone_number, :locale])
     |> update_change(:phone_number, &clean_phone_number/1)
@@ -39,7 +40,7 @@ defmodule Courtbot.Subscriber do
     |> Repo.one()
   end
 
-  def already_subscribed?(case_id, phone_number) do
+  def already?(case_id, phone_number) do
     query =
       from(
         s in Subscriber,
@@ -54,11 +55,12 @@ defmodule Courtbot.Subscriber do
     end
   end
 
-  def subscribers_to_case(case_id) do
+  def subscribers_to_case(case_id, preload \\ []) do
     from(
       s in Subscriber,
       where: s.case_id == ^case_id
     )
+    |> subscribers_preload(preload)
     |> Repo.all()
   end
 
@@ -72,15 +74,16 @@ defmodule Courtbot.Subscriber do
     with preload when preload != [] <- preload do
       query
       |> preload(^preload)
-      else
-        _ -> query
+    else
+      _ -> query
     end
   end
 
   def find_by_number_and_case(phone_number, case_number, preload \\ []) do
     from(s in Subscriber,
       join: c in Case,
-      on: s.case_id == c.id and c.case_number == ^case_number)
+      on: s.case_id == c.id and c.case_number == ^case_number
+    )
     |> where_phone_number(phone_number)
     |> subscribers_preload(preload)
   end

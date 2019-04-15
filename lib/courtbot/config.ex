@@ -26,9 +26,10 @@ defmodule Courtbot.Config do
 
   @impl true
   def handle_info(:load_configuration, state) do
-    with %{rollbar: rollbar, scheduled: scheduled} <- Configuration.get([:scheduled, :rollbar]) do
+    with %{rollbar: rollbar, scheduled: scheduled, timezone: timezone} <-
+           Configuration.get([:scheduled, :rollbar, :timezone]) do
       Application.start_rollbar(rollbar)
-      Application.start_scheduled_tasks(scheduled)
+      Application.start_scheduled_tasks(scheduled, timezone)
     end
 
     {:noreply, state}

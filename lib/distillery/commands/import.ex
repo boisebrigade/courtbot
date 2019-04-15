@@ -1,4 +1,5 @@
 defmodule Distillery.Commands.Import do
+  @moduledoc false
   alias Courtbot.Import
   alias Distillery.Services
 

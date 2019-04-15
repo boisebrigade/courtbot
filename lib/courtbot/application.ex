@@ -6,8 +6,6 @@ defmodule Courtbot.Application do
     Scheduled
   }
 
-  require Logger
-
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -41,21 +39,25 @@ defmodule Courtbot.Application do
         proxy: nil
       ]
 
-      case DynamicSupervisor.start_child(ConfigSupervisor, %{id: "rollbax", start: {Rollbax.Client, :start_link, [opts]}}) do
+      case DynamicSupervisor.start_child(ConfigSupervisor, %{
+             id: "rollbax",
+             start: {Rollbax.Client, :start_link, [opts]}
+           }) do
         {:ok, _} ->
-          Logger.info("Starting Rollbax")
+          Rollbax.report_message(:info, "Starting Rollbax")
+
         {:error, _} ->
-          Logger.error("Unable to start Rollbax")
+          Rollbax.report_message(:error, "Unable to start Rollbax")
       end
     end
   end
 
-  def start_scheduled_tasks(scheduled) do
+  def start_scheduled_tasks(scheduled, timezone) do
     with %Scheduled{tasks: tasks} when tasks != [] <- scheduled do
       tasks
-      |> Enum.map(&child_spec_for_scheduled_task/1)
+      |> Enum.map(&child_spec_for_scheduled_task(&1, timezone))
       |> Enum.map(fn {name, childspec} ->
-        Logger.info("Starting scheduled-task-#{name}")
+        Rollbax.report_message(:info, "Starting scheduled-task-#{name}")
 
         DynamicSupervisor.start_child(ConfigSupervisor, childspec)
       end)
@@ -65,7 +67,11 @@ defmodule Courtbot.Application do
   defp mfa_for_task(type) when type === "notify", do: [Courtbot.Notify, :run, []]
   defp mfa_for_task(type) when type === "import", do: [Courtbot.Import, :run, []]
 
-  defp child_spec_for_scheduled_task(%Scheduled.Tasks{name: name, crontab: crontab}) do
-    {name, %{id: "scheduled-task-#{name}", start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab]}}}
+  defp child_spec_for_scheduled_task(%Scheduled.Tasks{name: name, crontab: crontab}, timezone) do
+    {name,
+     %{
+       id: "scheduled-task-#{name}",
+       start: {SchedEx, :run_every, mfa_for_task(name) ++ [crontab] ++ [timezone: timezone]}
+     }}
   end
 end

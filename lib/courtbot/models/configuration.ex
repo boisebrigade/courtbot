@@ -58,67 +58,68 @@ defmodule Courtbot.Configuration do
       field(:reminders, {:array, :map})
     end
 
+    field(:timezone, :string)
+
     timestamps()
   end
 
-  def importer_changeset(params) do
-    %Configuration.Importer{}
-    |> cast(params, [:kind, :origin, :source, :delimiter])
-    |> cast_embed(:field_mapping, with: &field_mapping_changeset/1)
+  def importer_changeset(changeset, params) do
+    changeset
+    |> cast(params, [:kind, :origin, :source, :delimiter, :has_headers, :county_duplicates])
+    |> cast_embed(:field_mapping, with: &field_mapping_changeset/2)
   end
 
-  defp field_mapping_changeset(params) do
-    %Configuration.Importer.FieldMapping{}
+  defp field_mapping_changeset(changeset, params) do
+    changeset
     |> cast(params, [:pointer, :destination, :kind, :format])
-    |> unique_constraint(:destination)
   end
 
-  defp rollbar_changeset(params) do
-    %Configuration.Rollbar{}
+  defp rollbar_changeset(changeset, params) do
+    changeset
     |> cast(params, [:access_token, :environment])
   end
 
-  defp twilio_changeset(params) do
-    %Configuration.Twilio{}
+  defp twilio_changeset(changeset, params) do
+    changeset
     |> cast(params, [:account_sid, :auth_token])
   end
 
-  defp scheduled_changeset(params) do
-    %Configuration.Scheduled{}
+  defp scheduled_changeset(changeset, params) do
+    changeset
     |> cast(params, [])
-    |> cast_embed(:tasks, with: &tasks_changeset/1)
+    |> cast_embed(:tasks, with: &tasks_changeset/2)
   end
 
-  defp tasks_changeset(params) do
-    %Configuration.Scheduled.Tasks{}
-    |> cast(params, [:import, :notify])
+  defp tasks_changeset(changeset, params) do
+    changeset
+    |> cast(params, [:name, :crontab])
   end
 
-  defp variables_changeset(params) do
-    %Configuration.Variables{}
+  defp variables_changeset(changeset, params) do
+    changeset
     |> cast(params, [:name, :value])
   end
 
-  defp types_changeset(params) do
-    %Configuration.Types{}
+  defp types_changeset(changeset, params) do
+    changeset
     |> cast(params, [:name, :pattern])
   end
 
-  defp notifications_changeset(params) do
-    %Configuration.Notifications{}
+  defp notifications_changeset(changeset, params) do
+    changeset
     |> cast(params, [:queuing, :reminders])
   end
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [])
-    |> cast_embed(:importer, with: &importer_changeset/1)
-    |> cast_embed(:rollbar, with: &rollbar_changeset/1)
-    |> cast_embed(:twilio, with: &twilio_changeset/1)
-    |> cast_embed(:scheduled, with: &scheduled_changeset/1)
-    |> cast_embed(:variables, with: &variables_changeset/1)
-    |> cast_embed(:types, with: &types_changeset/1)
-    |> cast_embed(:notifications, with: &notifications_changeset/1)
+    |> cast(params, [:timezone, :locales])
+    |> cast_embed(:importer, with: &importer_changeset/2)
+    |> cast_embed(:rollbar, with: &rollbar_changeset/2)
+    |> cast_embed(:twilio, with: &twilio_changeset/2)
+    |> cast_embed(:scheduled, with: &scheduled_changeset/2)
+    |> cast_embed(:variables, with: &variables_changeset/2)
+    |> cast_embed(:types, with: &types_changeset/2)
+    |> cast_embed(:notifications, with: &notifications_changeset/2)
   end
 
   def get(config) do

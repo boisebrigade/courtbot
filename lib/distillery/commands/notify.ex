@@ -1,4 +1,5 @@
 defmodule Distillery.Commands.Notify do
+  @moduledoc false
   alias Courtbot.Notify
   alias Distillery.Services
 

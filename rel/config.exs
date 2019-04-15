@@ -59,6 +59,11 @@ release :courtbot do
     ]
   )
 
+  set overlays: [
+    {:mkdir, "etc"},
+    {:copy, "rel/config/courtbot.exs", "etc/courtbot.exs"}
+  ]
+
   set(
     cookie:
       :crypto.hash(:sha256, :crypto.strong_rand_bytes(32)) |> Base.encode16() |> String.to_atom()

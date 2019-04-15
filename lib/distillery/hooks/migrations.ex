@@ -1,4 +1,5 @@
 defmodule Distillery.Hooks.Migrations do
+  @moduledoc false
   alias Distillery.{Services, Database}
 
   def run() do

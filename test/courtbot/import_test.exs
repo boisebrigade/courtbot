@@ -9,6 +9,7 @@ defmodule CourtbotTest.ImportTest do
     end)
   end
 
+  @tag :skip
   test "imports Anchorage data from mix config" do
     Repo.insert(CourtbotTest.Helper.Configuration.anchorage())
 
@@ -17,20 +18,21 @@ defmodule CourtbotTest.ImportTest do
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end
 
+  @tag :skip
   test "imports Atlanta data from mix config" do
     Repo.insert(CourtbotTest.Helper.Configuration.atlanta())
 
-    records =  Courtbot.Import.run()
+    records = Courtbot.Import.run()
 
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end
 
-  test "imports Boise data from mix config" do
-    Repo.insert(CourtbotTest.Helper.Configuration.boise())
+  test "imports Idaho data from mix config" do
+    Repo.insert(CourtbotTest.Helper.Configuration.idaho())
 
-    records =  Courtbot.Import.run()
+    records = Courtbot.Import.run()
 
-    assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
+    assert count_fails(records) == 2, "Failed to import #{count_fails(records)} records"
   end
 
   # TODO(ts): Property test input data

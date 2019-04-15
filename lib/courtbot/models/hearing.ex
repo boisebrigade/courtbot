@@ -19,30 +19,48 @@ defmodule Courtbot.Hearing do
     timestamps()
   end
 
-  def changeset(changeset, params \\ %{}) do
+  def changeset(
+        changeset,
+        params \\ %{},
+        %{importer: %{field_mapping: field_mapping}} \\ Configuration.get([:importer])
+      ) do
     date_and_time = Map.take(params, [:date, :time])
+
+    field_mapping =
+      Enum.reduce(field_mapping, %{}, fn
+        mapping = %{destination: destination}, acc
+        when destination === "date" or destination === "time" or destination === "datetime" ->
+          Map.put(acc, String.to_existing_atom(destination), mapping)
+
+        _, acc ->
+          acc
+      end)
 
     params =
       case date_and_time do
-        %{date: _, time: _} -> Map.merge(params, cast_date_and_time(date_and_time))
-        %{} -> params
+        %{date: _, time: _} -> Map.merge(params, cast_date_and_time(date_and_time, field_mapping))
+        _ -> params
       end
 
     changeset
     |> cast(params, [:case_id, :time, :date, :location, :detail])
     |> validate_required([:date, :time])
+    |> unique_constraint(:case_id, name: :hearings_case_id_date_time_index)
+    |> unique_constraint(:date, name: :hearings_case_id_date_time_index)
+    |> unique_constraint(:time, name: :hearings_case_id_date_time_index)
   end
 
-  def cast_date_and_time(date_and_time = %{date: date, time: time}) when is_binary(date) and is_binary(time) do
-    %{format: time_format} = Configuration.importer_field_mapping("time")
-    %{format: date_format} = Configuration.importer_field_mapping("date")
-
+  def cast_date_and_time(date_and_time = %{date: date, time: time}, %{
+        date: %{format: date_format},
+        time: %{format: time_format}
+      })
+      when is_binary(date) and is_binary(time) do
     date_and_time
     |> Map.put(:date, date |> String.trim() |> Timex.parse!(date_format, :strftime))
     |> Map.put(:time, time |> String.trim() |> Timex.parse!(time_format, :strftime))
   end
 
-  def cast_date_and_time(date_and_time), do: date_and_time
+  def cast_date_and_time(date_and_time, _), do: date_and_time
 
   def format(hearing) do
     hearing
