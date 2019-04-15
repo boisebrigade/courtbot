@@ -10,7 +10,7 @@ config :courtbot, CourtbotWeb.Endpoint,
 config :tesla, adapter: Tesla.Mock
 
 # Print only warnings and errors during test
-config :logger, level: :info
+config :logger, level: :warn
 
 config :phoenix, :stacktrace_depth, 20
 
