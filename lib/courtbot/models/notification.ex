@@ -11,11 +11,14 @@ defmodule Courtbot.Notification do
   schema "notifications" do
     belongs_to(:subscriber, Subscriber)
 
+    field(:type, :string)
+    field(:message, :string)
+
     timestamps()
   end
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:subscriber_id])
+    |> cast(params, [:subscriber_id, :type, :message])
   end
 end
