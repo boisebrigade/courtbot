@@ -10,9 +10,6 @@ Courtbot is a simple web service for subscribing to case hearing details via SMS
   - Install [asdf](https://github.com/asdf-vm/asdf#setup)
   - Add Elixir asdf plugin: [asdf-elixir](https://github.com/asdf-vm/asdf-elixir) 
   - Goto where you've cloned the repo and run: `asdf install`
-- Copy `.env.example` to `.env`: `cp .env.example .env`
-  - Tweak default environment variables as needed
-  - Take a look at the [external dependencies](https://github.com/boisebrigade/Courtbot/wiki/External-Dependencies#external-dependencies) as they their credentials will need to be configured for a full development setup 
 - Start docker: `docker-compose up -d`
 - Run Setup: `mix setup`
 - Start Phoenix: `mix phx.server`
