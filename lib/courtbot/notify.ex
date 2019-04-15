@@ -1,4 +1,5 @@
 defmodule Courtbot.Notify do
+  @moduledoc false
   alias Courtbot.{
     Case,
     Configuration,
@@ -13,109 +14,125 @@ defmodule Courtbot.Notify do
 
   import Ecto.Query
 
-  require Logger
-
   def run() do
-    Logger.info("Starting batches of notifications")
+    Rollbax.report_message(:info, "Starting batches of notifications")
 
-    %{
-      locales: locales,
-      notifications: %{reminders: reminders},
-      twilio: twilio,
-      timezone: timezone
-    } = Configuration.get([:locales, :notifications, :twilio, :timezone])
+    configuration =
+      %{
+        locales: _,
+        notifications: %{reminders: reminders},
+        twilio: _,
+        timezone: _
+      } = Configuration.get([:locales, :notifications, :twilio, :timezone])
 
     Enum.map(
       reminders,
       &Enum.each(&1, fn {timescale, offset} ->
-        day = get_day(timezone, [{String.to_atom(timescale), offset}])
+        day = get_day(configuration.timezone, {String.to_atom(timescale), offset})
 
-        with pending when pending != [] <- notifications_for_day(day) do
-          pending
-          |> Enum.chunk_every(100)
-          |> Enum.with_index()
-          |> Enum.map(fn {notifications, batch} ->
-            SchedEx.run_at(
-              Courtbot.Notify,
-              :notify_subscriber_list,
-              [notifications, locales, twilio],
-              Timex.shift(DateTime.utc_now(), seconds: 100 * batch)
-            )
-          end)
-        end
+        notify(configuration, :remind, reminders_for_day(day))
       end)
     )
 
-    notify_debug_subscribers(locales, twilio)
+    day = get_day(configuration.timezone)
 
-    Logger.info("Finished starting batches of notifications")
+    notify(configuration, :queued, queued_subscribers(day))
+
+    with %Case{id: case_id} <- Case.find_with(case_number: "beepboop") do
+      notify(configuration, :debug, Subscriber.subscribers_to_case(case_id, [:case]))
+    end
+
+    Rollbax.report_message(:info, "Finished starting batches of notifications")
   end
 
-  defp get_day(timezone, offset) do
+  def notify(configuration, type, pending_notification) do
+    with pending when pending != [] <- pending_notification do
+      pending
+      |> batch_notifications()
+      |> Enum.map(fn {notifications, batch} ->
+        SchedEx.run_at(
+          Courtbot.Notify,
+          :send_twilio_notification,
+          [notifications, configuration, type],
+          Timex.shift(DateTime.utc_now(), seconds: 100 * batch)
+        )
+      end)
+    else
+      _ -> Rollbax.report_message(:warning, "Notification queue for #{type} is empty")
+    end
+  end
+
+  def get_day(timezone, offset \\ {:hours, 0}) do
     {:ok, today} = DateTime.shift_zone(DateTime.utc_now(), timezone, Tzdata.TimeZoneDatabase)
-    Timex.shift(today, offset)
+    Timex.shift(today, [offset])
   end
 
-  def notify_subscriber_list(notifications, locales, twilio_credentials) do
-    Enum.each(notifications, fn %{
-                                  case: case,
-                                  phone_number: phone_number,
-                                  id: subscriber_id,
-                                  locale: locale
-                                } ->
-      twilio = Twilio.new(twilio_credentials)
-      from_number = Map.fetch!(locales, locale)
-      body = Response.get_message({:remind, case}, locale)
+  def send_twilio_notification(
+        notifications,
+        %{locales: locales, twilio: twilio_credentials},
+        type
+      ) do
+    Enum.each(
+      notifications,
+      fn subscriber = %{case: case, phone_number: phone_number, id: subscriber_id, locale: locale} ->
+        from_number = Map.fetch!(locales, locale)
+        body = Response.get_message({type, case}, locale)
 
-      with {:ok, _result = %Tesla.Env{status: 201}} <-
-             Twilio.message(twilio, %{From: from_number, To: phone_number, Body: body}) do
-        %Notification{}
-        |> Notification.changeset(%{subscriber_id: subscriber_id})
-        |> Repo.insert()
-      else
-        {:ok, %Tesla.Env{status: status, body: body}} ->
-          Logger.error(
-            "Unable to notify subscribers. Request to Twilio failed with #{status} and code #{
-              body["code"]
-            }"
-          )
+        twilio_response =
+          Twilio.new(twilio_credentials)
+          |> Twilio.message(%{From: from_number, To: phone_number, Body: body})
 
-        {:error, _} ->
-          Logger.error("Unable to send request to Twilio to notify subscribers")
+        with {:ok, _result = %Tesla.Env{status: 201}} <- twilio_response do
+          %Notification{}
+          |> Notification.changeset(%{
+            subscriber_id: subscriber_id,
+            message: body,
+            type: Atom.to_string(type)
+          })
+          |> Repo.insert!()
+
+          Subscriber.changeset(subscriber, %{queued: false}) |> Repo.update!()
+        else
+          {:ok, %Tesla.Env{status: status, body: body}} ->
+            Rollbax.report_message(
+              :error,
+              "Unable to notify subscribers. Request to Twilio failed with #{status} and code #{
+                body["code"]
+              }"
+            )
+
+          {:error, _} ->
+            Rollbax.report_message(
+              :error,
+              "Unable to send request to Twilio to notify subscriber: #{subscriber_id}"
+            )
+        end
       end
-    end)
+    )
   end
 
-  def notify_debug_subscribers(locales, twilio_credentials) do
-    Logger.info("Sending debug notifications")
-
-    # Notify debug subscribers
-    %Case{id: case_id} = Case.find_with(case_number: "beepboop")
-
-    Enum.map(Subscriber.subscribers_to_case(case_id), fn subscriber ->
-      Twilio.message(Twilio.new(twilio_credentials), %{
-        From: Map.fetch!(locales, "en"),
-        To: subscriber.phone_number,
-        Body: "BEEPBOOP"
-      })
-    end)
-  end
-
-  def notifications_for_day(day) do
+  def reminders_for_day(day) do
     notified =
       from(
         n in Notification,
         where: n.inserted_at >= ^Timex.beginning_of_day(day),
         where: n.inserted_at <= ^Timex.end_of_day(day),
+        where: n.type == "remind",
         select: n.subscriber_id
       )
 
-    %Case{id: debug_case_id} = Case.find_with(case_number: "beepboop")
+    latest_hearing =
+      from(
+        h in Hearing,
+        order_by: [h.date, h.time],
+        where: h.date >= ^day,
+        limit: 1
+      )
 
     from(
       s in Subscriber,
       join: c in Case,
-      on: s.case_id == c.id and c.id != ^debug_case_id,
+      on: s.case_id == c.id,
       join: h in Hearing,
       on: h.case_id == s.case_id,
       left_join: n in subquery(notified),
@@ -123,17 +140,38 @@ defmodule Courtbot.Notify do
       where: is_nil(n.subscriber_id),
       where: h.date == ^day,
       preload: [
-        case: [
-          hearings:
-            ^from(
-              h in Hearing,
-              order_by: [h.date, h.time],
-              where: h.date >= ^day,
-              limit: 1
-            )
-        ]
+        case: [{:hearings, ^latest_hearing}, :parties]
       ]
     )
     |> Repo.all()
+  end
+
+  def queued_subscribers(day) do
+    latest_hearing =
+      from(
+        h in Hearing,
+        order_by: [h.date, h.time],
+        where: h.date >= ^day,
+        limit: 1
+      )
+
+    from(
+      s in Subscriber,
+      where: s.queued == true,
+      join: c in Case,
+      on: s.case_id == c.id,
+      join: h in Hearing,
+      on: h.case_id == s.case_id,
+      preload: [
+        case: [{:hearings, ^latest_hearing}, :parties]
+      ]
+    )
+    |> Repo.all()
+  end
+
+  defp batch_notifications(pending) do
+    pending
+    |> Enum.chunk_every(100)
+    |> Enum.with_index()
   end
 end

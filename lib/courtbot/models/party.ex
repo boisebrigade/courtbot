@@ -21,6 +21,8 @@ defmodule Courtbot.Party do
   def changeset(changeset, params \\ %{}) do
     changeset
     |> cast(params, [:first_name, :last_name, :case_name])
+    |> trim_case_name()
+    |> validate_required_inclusion([:first_name, :last_name, :case_name])
     |> unique_constraint(:case_id, name: :party_case_id_first_name_last_name_index)
     |> unique_constraint(:case_id, name: :party_case_id_case_name_index)
     |> unique_constraint(:case_name, name: :party_case_id_case_name_index)
@@ -28,9 +30,31 @@ defmodule Courtbot.Party do
     |> unique_constraint(:last_name, name: :party_case_id_first_name_last_name_index)
   end
 
-  def format(%Party{first_name: first_name, last_name: lastname}) do
-    "#{first_name} #{lastname}"
+  def validate_required_inclusion(changeset, fields) do
+    if Enum.any?(fields, &present?(changeset, &1)) do
+      changeset
+    else
+      # Add the error to the first field only since Ecto requires a field name for each error.
+      add_error(changeset, hd(fields), "One of these fields must be present: #{inspect(fields)}")
+    end
   end
 
-  def format(%Party{case_name: case_name}), do: String.slice(case_name, 0..50)
+  def present?(changeset, field) do
+    value = get_field(changeset, field)
+    value && value != ""
+  end
+
+  defp trim_case_name(changeset) do
+    if get_change(changeset, :case_name) do
+      case_name =
+        get_change(changeset, :case_name) |> String.replace("\"", "") |> String.replace("'", "")
+
+      put_change(changeset, :case_name, case_name)
+    else
+      changeset
+    end
+  end
+
+  def format(%Party{first_name: first_name, last_name: lastname}), do: "#{first_name} #{lastname}"
+  def format(%Party{case_name: case_name}), do: "\"#{String.slice(case_name, 0..50)}\""
 end

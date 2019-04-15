@@ -6,8 +6,6 @@ defmodule Courtbot.Application do
     Scheduled
   }
 
-  require Logger
-
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
   def start(_type, _args) do
@@ -46,10 +44,10 @@ defmodule Courtbot.Application do
              start: {Rollbax.Client, :start_link, [opts]}
            }) do
         {:ok, _} ->
-          Logger.info("Starting Rollbax")
+          Rollbax.report_message(:info, "Starting Rollbax")
 
         {:error, _} ->
-          Logger.error("Unable to start Rollbax")
+          Rollbax.report_message(:error, "Unable to start Rollbax")
       end
     end
   end
@@ -59,7 +57,7 @@ defmodule Courtbot.Application do
       tasks
       |> Enum.map(&child_spec_for_scheduled_task(&1, timezone))
       |> Enum.map(fn {name, childspec} ->
-        Logger.info("Starting scheduled-task-#{name}")
+        Rollbax.report_message(:info, "Starting scheduled-task-#{name}")
 
         DynamicSupervisor.start_child(ConfigSupervisor, childspec)
       end)

@@ -1,15 +1,15 @@
 defmodule Courtbot.Kinds.Csv do
-  alias Courtbot.{Case, Configuration, Hearing, Party, Repo}
-
-  require Logger
+  alias Courtbot.{Case, Hearing, Party, Repo}
 
   def run(
         data,
-        _options = %{
-          delimiter: <<delimiter::utf8>>,
-          has_headers: has_headers,
-          county_duplicates: county_duplicates,
-          field_mapping: field_mapping
+        options = %{
+          importer: %{
+            delimiter: <<delimiter::utf8>>,
+            has_headers: has_headers,
+            field_mapping: field_mapping
+          },
+          types: _
         }
       ) do
     # If the CSV file has headings then drop the first row
@@ -27,65 +27,76 @@ defmodule Courtbot.Kinds.Csv do
         _ -> nil
       end)
 
-    %{types: types} = Configuration.get([:types])
+    try do
+      data
+      |> CSV.decode!(headers: headings, separator: delimiter, escape_max_lines: 1)
+      |> Flow.from_enumerable()
+      |> Flow.map(&cast_fields(&1, options))
+      |> Flow.map(fn {case_changeset, hearing_changeset, party_changeset} ->
+        parties_conflict =
+          case party_changeset do
+            %{changes: %{case_name: case_name}} when not is_nil(case_name) ->
+              [:case_id, :case_name]
 
-    fragment =
-      cond do
-        Configuration.mapped_county?() and (Configuration.mapped_type?() or not is_nil(types)) ->
-          "(case_number, county, type)"
+            %{changes: %{full_name: full_name}} when not is_nil(full_name) ->
+              [:case_id, :full_name]
 
-        Configuration.mapped_county?() ->
-          "(case_number, county) WHERE type IS NULL"
+            _ ->
+              [:case_id, :first_name, :last_name]
+          end
 
-        Configuration.mapped_type?() or not is_nil(types) ->
-          "(case_number, type) WHERE county IS NULL"
+        case_conflict =
+          case case_changeset do
+            %{changes: %{county: county, type: type}}
+            when not is_nil(county) and not is_nil(type) ->
+              "(case_number, county, type)"
 
-        true ->
-          "(case_number) WHERE county IS NULL AND type IS NULL"
-      end
+            %{changes: %{county: county}} when not is_nil(county) ->
+              "(case_number, county) WHERE type IS NULL"
 
-    data
-    |> CSV.decode(headers: headings, separator: delimiter)
-    |> Enum.to_list()
-    |> Enum.map(&cast_fields/1)
-    |> Enum.each(fn {case_changeset, hearing_changeset, party_changeset} ->
-      Ecto.Multi.new()
-      |> Ecto.Multi.insert(:case, case_changeset,
-        returning: true,
-        on_conflict: :replace_all_except_primary_key,
-        conflict_target: {:unsafe_fragment, fragment}
-      )
-      |> Ecto.Multi.insert(
-        :hearings,
-        fn %{case: case} ->
-          Hearing.changeset(Ecto.build_assoc(case, :hearings), hearing_changeset)
-        end,
-        on_conflict: :replace_all_except_primary_key,
-        conflict_target: [:case_id, :time, :date]
-      )
-      |> Ecto.Multi.insert(
-        :parties,
-        fn %{case: case} ->
-          Party.changeset(Ecto.build_assoc(case, :parties), party_changeset)
-        end,
-        on_conflict: :replace_all_except_primary_key,
-        conflict_target: [:case_id, :first_name, :last_name]
-      )
-      |> Repo.transaction()
-    end)
+            %{changes: %{type: type}} when not is_nil(type) ->
+              "(case_number, type) WHERE county IS NULL"
+
+            _ ->
+              "(case_number) WHERE county IS NULL AND type IS NULL"
+          end
+
+        Ecto.Multi.new()
+        |> Ecto.Multi.insert(:case, case_changeset,
+          returning: true,
+          on_conflict: :replace_all_except_primary_key,
+          conflict_target: {:unsafe_fragment, case_conflict}
+        )
+        |> Ecto.Multi.insert(
+          :hearings,
+          fn %{case: case} ->
+            Ecto.Changeset.put_assoc(hearing_changeset, :case, case)
+          end,
+          on_conflict: :replace_all_except_primary_key,
+          conflict_target: [:case_id, :time, :date]
+        )
+        |> Ecto.Multi.insert(
+          :parties,
+          fn %{case: case} ->
+            Ecto.Changeset.put_assoc(party_changeset, :case, case)
+          end,
+          on_conflict: :replace_all_except_primary_key,
+          conflict_target: parties_conflict
+        )
+        |> Repo.transaction()
+      end)
+      |> Enum.to_list()
+    rescue
+      x in CSV.RowLengthError -> Rollbax.report(:error, x, System.stacktrace())
+      x in CSV.EscapeSequenceError -> Rollbax.report(:error, x, System.stacktrace())
+    end
   end
 
-  defp cast_fields({:ok, record}) do
-    hearing = Hearing.changeset(%Hearing{}, record)
+  defp cast_fields(record, options = %{importer: _importer, types: _types}) do
+    hearing = Hearing.changeset(%Hearing{}, record, options)
     party = Party.changeset(%Party{}, record)
-    case = Case.changeset(%Case{}, record)
+    case = Case.changeset(%Case{}, record, options)
 
-    {case, record, record}
-  end
-
-  defp cast_fields({:error, message}, acc) do
-    Logger.error("Unable to import row: #{message}")
-
-    acc
+    {case, hearing, party}
   end
 end

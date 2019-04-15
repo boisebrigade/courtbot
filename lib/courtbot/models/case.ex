@@ -23,7 +23,7 @@ defmodule Courtbot.Case do
     timestamps()
   end
 
-  def changeset(changeset, params \\ %{}) do
+  def changeset(changeset, params \\ %{}, %{types: types} \\ Configuration.get([:types])) do
     changeset
     |> cast(params, [
       :type,
@@ -35,7 +35,7 @@ defmodule Courtbot.Case do
     |> put_change(:formatted_case_number, params[:case_number])
     |> update_change(:case_number, &clean_case_number/1)
     |> update_change(:county, &clean_county/1)
-    |> add_type()
+    |> add_type(types)
     |> cast_assoc(:hearings)
     |> cast_assoc(:parties)
     |> unique_constraint(:case_number, name: :cases_case_number_index)
@@ -74,19 +74,25 @@ defmodule Courtbot.Case do
       :type,
       :hearings
     ])
-    |> Map.update!(:hearings, fn hearings ->
-      Enum.map(hearings, &(Hearing.format(&1)))
+    |> Map.update!(:hearings, fn
+      hearings when is_list(hearings) ->
+        Enum.map(hearings, &Hearing.format(&1))
+
+      _ ->
+        nil
     end)
-    |> Map.update!(:parties, fn parties ->
-      parties
-      |> Enum.map(&(Party.format(&1)))
-      |> Enum.join(", and ")
+    |> Map.update!(:parties, fn
+      parties when is_list(parties) ->
+        parties
+        |> Enum.map(&Party.format(&1))
+        |> Enum.join(", and ")
+
+      _ ->
+        nil
     end)
   end
 
-  def check_types(case_number) do
-    %{types: types} = Configuration.get([:types])
-
+  def check_types(case_number, types) do
     type_definitions =
       Enum.reduce(types, %{}, fn %_{name: name, pattern: value}, acc ->
         Map.put(acc, String.to_atom(name), value)
@@ -101,7 +107,12 @@ defmodule Courtbot.Case do
             acc
           end
 
-        {:error, _message} ->
+        {:error, message} ->
+          Rollbax.report_message(
+            :error,
+            "Unable to determine type due to invalid regex: #{message}"
+          )
+
           acc
       end
     end)
@@ -120,12 +131,12 @@ defmodule Courtbot.Case do
           )
       )
 
-  defp add_type(changeset = %Ecto.Changeset{changes: %{type: type}}) when not is_nil(type),
+  defp add_type(changeset = %Ecto.Changeset{changes: %{type: type}}, _) when not is_nil(type),
     do: changeset
 
-  defp add_type(changeset = %Ecto.Changeset{changes: %{case_number: case_number}}) do
+  defp add_type(changeset = %Ecto.Changeset{changes: %{case_number: case_number}}, types) do
     type =
-      case check_types(case_number) do
+      case check_types(case_number, types) do
         nil -> nil
         type -> Atom.to_string(type)
       end

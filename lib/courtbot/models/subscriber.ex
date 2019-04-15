@@ -55,11 +55,12 @@ defmodule Courtbot.Subscriber do
     end
   end
 
-  def subscribers_to_case(case_id) do
+  def subscribers_to_case(case_id, preload \\ []) do
     from(
       s in Subscriber,
       where: s.case_id == ^case_id
     )
+    |> subscribers_preload(preload)
     |> Repo.all()
   end
 

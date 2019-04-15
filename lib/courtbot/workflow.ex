@@ -7,20 +7,18 @@ defmodule Courtbot.Workflow do
     Workflow
   }
 
+  import Ecto.Query
+
   import CourtbotWeb.Gettext
 
-  require Logger
-
-  defstruct [
-    types: false,
-    counties: false,
-    queuing: false,
-    locale: "en",
-    state: :inquery,
-    properties: %{},
-    input: %{},
-    context: %{}
-  ]
+  defstruct types: false,
+            counties: false,
+            queuing: false,
+            locale: "en",
+            state: :inquery,
+            properties: %{},
+            input: %{},
+            context: %{}
 
   @accept_keywords [
     gettext("y"),
@@ -67,90 +65,127 @@ defmodule Courtbot.Workflow do
     cond do
       # If the user wants to unsubscribe handle that up front.
       Enum.member?(@unsubscribe_keywords, body) ->
-        Logger.info(from <> ": user is unsubscribing")
-
-        subscriptions = Repo.all(Subscriber.find_by_number(from))
+        subscriptions =
+          from
+          |> Subscriber.find_by_number()
+          |> Repo.all()
 
         # User shouldn't receive this message as Twilio would have blocked the response but try and send it anyway.
         if Enum.empty?(subscriptions) do
-          Logger.info(from <> ": user had no subscriptions")
-
           {:no_subscriptions, fsm}
         else
-          Logger.info(from <> ": deleting all subscriptions")
-
           Repo.delete_all(Subscriber.find_by_number(from))
 
           reset(:unsubscribe, fsm)
         end
 
-      body == "start" ->
-        Logger.info(from <> ": user has 'unblocked' us")
+      # Treat these two as special cases
+      body == "subscribe" or body == "resubscribe" ->
+        reset(:invalid, fsm)
 
+      body == "start" ->
         # Inform the user we blew away all their subscriptions due to being blocked
         {:resubscribe, fsm}
 
       body == "beepboop" ->
+        case Case.find_with(case_number: "beepboop") do
+          %Case{id: case_id} ->
+            if Subscriber.already?(case_id, from) do
+              {:beep, fsm}
+            else
+              %Subscriber{}
+              |> Subscriber.changeset(%{case_id: case_id, phone_number: from, locale: locale})
+              |> Repo.insert()
 
-        %Case{id: case_id} = Case.find_with([case_number: "beepboop"])
+              {:boop, fsm}
+            end
 
-          if Subscriber.already_subscribed?(case_id, from) do
-            {:beep, fsm}
-          else
-            Logger.info(from <> ": user subscribing to debug case")
-
-            %Subscriber{}
-            |> Subscriber.changeset(%{case_id: case_id, phone_number: from, locale: locale})
-            |> Repo.insert()
-
-            {:boop, fsm}
-          end
+          _ ->
+            reset(:invalid, fsm)
+        end
 
       String.contains?(body, gettext("delete")) ->
-        if body === gettext("delete") do
-          Logger.info(from <> ": user is unsubscribing from all cases")
-
-          # Fetch all the subscriptions
-          cases = Repo.all(Subscriber.find_by_number(from, :case))
-
-          with case_subscriptions when cases != [] <- cases do
-            # Delete the subscription
-            Repo.delete_all(Subscriber.find_by_number(from))
-
-            reset(:unsubscribe, %{fsm | context: %{delete: case_subscriptions}})
+        cases =
+          if body === gettext("delete") do
+            # Fetch all the subscriptions
+            Repo.all(Subscriber.find_by_number(from, :case))
           else
-            [] -> reset(:no_subscriptions, fsm)
+            [_, case_number] = String.split(body, " ")
+
+            # Fetch all the subscriptions matching the case number and from.
+            # TODO(ts): This may return more than one subscription if they are in separate counties. Need to evaluate if this is confusing behavior.
+            Repo.all(Subscriber.find_by_number_and_case(from, case_number, :case))
           end
 
+        with case_subscriptions when cases != [] <- cases do
+          {:unsubscribe_confirm,
+           %{fsm | state: :unsubscribe, context: %{cases: case_subscriptions}}}
         else
-          Logger.info(from <> ": user is unsubscribing to a specific case")
-
-          [_, case_number] = String.split(body, " ")
-
-          # Fetch all the subscriptions matching the case number and from.
-          # TODO(ts): This may return more than one subscription if they are in seperate counties. Need to evaluate if this is confusing behavior.
-          cases = Repo.all(Subscriber.find_by_number_and_case(from, case_number, :case))
-
-          Repo.delete_all(Subscriber.find_by_number_and_case(from, case_number))
-
-          reset(:unsubscribe, %{fsm | context: %{delete: cases}})
+          _ -> reset(:no_subscriptions, fsm)
         end
 
       true ->
         case fsm do
-         %Workflow{types: true} ->
-           message(%{fsm | state: :type, properties: %{case_number: body}}, params)
+          %Workflow{types: true} ->
+            message(%{fsm | state: :type, properties: %{case_number: body}}, params)
 
-         %Workflow{counties: true} ->
-           message(%{fsm | state: :type, properties: %{case_number: body}}, params)
+          %Workflow{counties: true} ->
+            message(%{fsm | state: :type, properties: %{case_number: body}}, params)
 
-         _ -> message(%{fsm | state: :load_case, properties: %{case_number: body}}, params)
+          _ ->
+            message(%{fsm | state: :load_case, properties: %{case_number: body}}, params)
         end
     end
   end
 
-  def message(fsm = %Workflow{counties: counties, properties: properties = %{case_number: case_number}, state: :type}, params) do
-    with type when not is_nil(type) <- Case.check_types(case_number) do
+  def message(
+        fsm = %Workflow{state: :unsubscribe, input: %{inquery: inquery}},
+        _params = [from: from, body: body]
+      ) do
+    cases =
+      if inquery === gettext("delete") do
+        # Fetch all the subscriptions
+        from
+        |> Subscriber.find_by_number(:case)
+        |> Repo.all()
+      else
+        [_, case_number] = String.split(inquery, " ")
+
+        # Fetch all the subscriptions matching the case number and from.
+        # TODO(ts): This may return more than one subscription if they are in separate counties. Need to evaluate if this is confusing behavior.
+        from
+        |> Subscriber.find_by_number_and_case(case_number, :case)
+        |> Repo.all()
+      end
+
+    cond do
+      Enum.member?(@accept_keywords, body) ->
+        # Delete the subscription
+        from
+        |> Subscriber.find_by_number()
+        |> Repo.delete_all()
+
+        reset(:unsubscribe, fsm)
+
+      Enum.member?(@reject_keywords, body) ->
+        reset(:unsubscribe_reject, fsm)
+
+      true ->
+        {:unsubscribe_yes_or_no, %{fsm | context: %{cases: cases}}}
+    end
+  end
+
+  def message(
+        fsm = %Workflow{
+          counties: counties,
+          properties: properties = %{case_number: case_number},
+          state: :type
+        },
+        params
+      ) do
+    %{types: types} = Configuration.get([:types])
+
+    with type when not is_nil(type) <- Case.check_types(case_number, types) do
       type = Atom.to_string(type)
 
       if counties do
@@ -158,13 +193,15 @@ defmodule Courtbot.Workflow do
       else
         message(%{fsm | state: :load_case}, params)
       end
-
-      else
-        nil -> reset(:invalid, fsm)
+    else
+      nil -> reset(:invalid, fsm)
     end
   end
 
-  def message(fsm = %Workflow{state: :county, properties: properties}, params = [from: from, body: body]) do
+  def message(
+        fsm = %Workflow{state: :county, properties: properties},
+        params = [from: _from, body: body]
+      ) do
     county =
       body
       |> String.replace(@county, "")
@@ -172,26 +209,34 @@ defmodule Courtbot.Workflow do
 
     all_counties =
       Case.all_counties()
-      |> Enum.map(&(String.downcase(&1)))
+      |> Enum.map(&String.downcase(&1))
 
     if Enum.member?(all_counties, county) do
-      message(%{fsm | state: :load_case, properties: Map.merge(properties, %{county: county})}, params)
+      message(
+        %{fsm | state: :load_case, properties: Map.merge(properties, %{county: county})},
+        params
+      )
     else
-      Logger.info(from <> ": No county data for #{body}")
-
       reset(:no_case, fsm)
     end
   end
 
-  def message(fsm = %Workflow{state: :load_case, properties: properties, queuing: queuing, types: types}, params) do
+  def message(
+        fsm = %Workflow{state: :load_case, properties: properties, queuing: queuing, types: types},
+        params
+      ) do
     case_details =
       properties
       |> Map.to_list()
       |> Case.find_with()
 
     case case_details do
-      %Case{hearings: []} -> reset(:no_hearings, fsm)
-      %Case{id: case_id, hearings: [%_{}]} -> message(%{fsm | state: :is_subscribed, properties: %{id: case_id}}, params)
+      %Case{id: case_id, hearings: []} ->
+        {:no_hearings, %{fsm | state: :no_hearings, properties: %{id: case_id}}}
+
+      %Case{id: case_id, hearings: [%_{}]} ->
+        message(%{fsm | state: :is_subscribed, properties: %{id: case_id}}, params)
+
       nil ->
         if queuing and types do
           # FIXME(ts): Add support for queuing
@@ -201,29 +246,66 @@ defmodule Courtbot.Workflow do
     end
   end
 
-  def message(fsm = %Workflow{state: :is_subscribed, properties: properties}, _params = [from: from, body: _body]) do
+  def message(
+        fsm = %Workflow{state: :no_hearings, properties: properties, locale: locale},
+        _params = [from: from, body: body]
+      ) do
     %Case{id: case_id} =
-      properties
-      |> Map.to_list()
-      |> Case.find_with()
-
-    if Subscriber.already_subscribed?(case_id, from) do
-      reset(:already_subscribed, fsm)
-    else
-      {:subscribe, %{fsm | state: :subscribe}}
-    end
-  end
-
-  def message(fsm = %Workflow{state: :subscribe, properties: properties, locale: locale}, _params = [from: from, body: body]) do
-    %Case{id: case_id, case_number: case_number} =
       properties
       |> Map.to_list()
       |> Case.find_with()
 
     cond do
       Enum.member?(@accept_keywords, body) ->
-        Logger.info(from <> ": user is subscribing to case: " <> case_number)
+        {:ok, subscriber} =
+          %Subscriber{}
+          |> Subscriber.changeset(%{
+            case_id: case_id,
+            phone_number: from,
+            locale: locale,
+            queued: true
+          })
+          |> Repo.insert()
 
+        cases = from(s in Subscriber, where: s.id == ^subscriber.id, preload: :case) |> Repo.all()
+
+        reset(:no_hearings_confirm, %{fsm | context: %{cases: cases}})
+
+      Enum.member?(@reject_keywords, body) ->
+        reset(:reject_reminder, fsm)
+
+      true ->
+        {:no_hearings_yes_or_no, fsm}
+    end
+  end
+
+  def message(
+        fsm = %Workflow{state: :is_subscribed, properties: properties},
+        _params = [from: from, body: _body]
+      ) do
+    %Case{id: case_id} =
+      properties
+      |> Map.to_list()
+      |> Case.find_with()
+
+    if Subscriber.already?(case_id, from) do
+      reset(:subscribed_already, fsm)
+    else
+      {:subscribe, %{fsm | state: :subscribe}}
+    end
+  end
+
+  def message(
+        fsm = %Workflow{state: :subscribe, properties: properties, locale: locale},
+        _params = [from: from, body: body]
+      ) do
+    %Case{id: case_id} =
+      properties
+      |> Map.to_list()
+      |> Case.find_with()
+
+    cond do
+      Enum.member?(@accept_keywords, body) ->
         %Subscriber{}
         |> Subscriber.changeset(%{case_id: case_id, phone_number: from, locale: locale})
         |> Repo.insert()
@@ -231,13 +313,9 @@ defmodule Courtbot.Workflow do
         reset(:reminder, fsm)
 
       Enum.member?(@reject_keywords, body) ->
-        Logger.info(from <> ": user rejected reminder offer")
-
         reset(:reject_reminder, fsm)
 
       true ->
-        Logger.info(from <> ": user has responded with an unknown reply: " <> body)
-
         {:yes_or_no, fsm}
     end
   end

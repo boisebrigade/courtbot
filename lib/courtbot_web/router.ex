@@ -1,4 +1,5 @@
 defmodule CourtbotWeb.Router do
+  @moduledoc false
   use CourtbotWeb, :router
   use Plug.ErrorHandler
 
@@ -9,6 +10,8 @@ defmodule CourtbotWeb.Router do
 
   scope "/", CourtbotWeb do
     pipe_through(:sms)
+
+    get("/health", HealthController, :health)
 
     post("/sms/:locale", SmsController, :twilio)
   end

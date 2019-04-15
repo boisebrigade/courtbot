@@ -1,56 +1,49 @@
 defmodule Courtbot.Import do
+  @moduledoc false
   alias Courtbot.{
     Kinds.Csv,
     Repo,
     Configuration
   }
 
-  require Logger
+  def run, do: Courtbot.Import.run(Configuration.get([:importer, :types]))
 
-  def run, do: Courtbot.Import.run(Configuration.get([:importer]))
+  def run(config = %{importer: %{kind: kind, origin: "file", source: source}, types: _types}) do
+    Rollbax.report_message(:info, "Starting file import from: #{source}")
 
-  def run(%{importer: importer = %{kind: kind, origin: "file", source: source}}) do
-    Logger.info("Starting file import from: #{source}")
-
-    with {:ok, %File.Stat{size: size}} when size > 0 <- File.stat(source) do
+    with {:ok, %File.Stat{size: size, mtime: _mtime}} when size > 0 <- File.stat(source) do
       backup_and_truncate_hearings()
 
-      imported =
-        run_import(
-          kind,
-          File.stream!(source),
-          importer
-        )
+      # TODO(ts): Warn if mtime is over a day.
+      {time, imported} = :timer.tc(&run_import/3, [kind, File.stream!(source), config])
 
-      Logger.info("Finished Import")
+      Rollbax.report_message(:info, "Finished Import in #{time / 1_000_000}s")
 
       imported
-      else
-        {:ok, %File.Stat{size: 0}} -> Logger.error("Unable to import. Source file, #{source}, is empty.")
-        {:error, reason} -> Logger.error("Unable to import: #{reason}")
+    else
+      {:ok, %File.Stat{size: 0}} ->
+        Rollbax.report_message(:error, "Unable to import. Source file, #{source}, is empty.")
+
+      {:error, reason} ->
+        Rollbax.report_message(:error, "Unable to import: #{reason}")
     end
   end
 
-  def run(%{importer: importer = %{kind: kind, origin: "url", source: source}}) do
-    Logger.info("Starting import")
+  def run(config = %{importer: %{kind: kind, origin: "url", source: source}, types: _types}) do
+    Rollbax.report_message(:info, "Starting import")
 
     data = request(source)
 
     backup_and_truncate_hearings()
 
-    imported =
-      run_import(
-        kind,
-        data,
-        importer
-      )
+    {time, imported} = :timer.tc(&run_import/3, [kind, data, config])
 
-    Logger.info("Finished Import")
+    Rollbax.report_message(:info, "Finished Import in #{time / 1_000_000}s")
 
     imported
   end
 
-  defp run_import("csv", data, settings), do: Csv.run(data, settings)
+  defp run_import("csv", data, options), do: Csv.run(data, options)
 
   defp run_import("json", _, _),
     do: raise("JSON is currently not supported")
@@ -59,7 +52,7 @@ defmodule Courtbot.Import do
     do: raise("The supplied configuration to the importer is invalid")
 
   defp backup_and_truncate_hearings do
-    Logger.info("Creating backup hearings table")
+    Rollbax.report_message(:info, "Creating backup hearings table")
 
     date = Date.utc_today() |> Date.add(-1) |> Timex.format!("%m_%d_%Y", :strftime)
 
@@ -92,13 +85,18 @@ defmodule Courtbot.Import do
   defp request(url) do
     case Tesla.get(url, follow_redirect: true) do
       {:ok, %Tesla.Env{status: 200, body: body}} ->
-        body
+        {:ok, data} = StringIO.open(body)
+
+        IO.binstream(data, :line)
 
       {:ok, %Tesla.Env{status: status}} ->
-        Logger.error("Unhandled status code received: #{status}, while fetching #{url}")
+        Rollbax.report_message(
+          :error,
+          "Unhandled status code received: #{status}, while fetching #{url}"
+        )
 
       {:error, err} ->
-        Logger.error("Unable to fetch #{url} because of: #{err}")
+        Rollbax.report_message(:error, "Unable to fetch #{url} because of: #{err}")
     end
   end
 end
