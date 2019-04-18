@@ -10,7 +10,7 @@ defmodule CourtbotTest.ImportTest do
   end
 
   @tag :skip
-  test "imports Anchorage data from mix config" do
+  test "imports Anchorage data based on config" do
     Repo.insert(CourtbotTest.Helper.Configuration.anchorage())
 
     records = Courtbot.Import.run()
@@ -19,7 +19,7 @@ defmodule CourtbotTest.ImportTest do
   end
 
   @tag :skip
-  test "imports Atlanta data from mix config" do
+  test "imports Atlanta data based on config" do
     Repo.insert(CourtbotTest.Helper.Configuration.atlanta())
 
     records = Courtbot.Import.run()
@@ -27,18 +27,16 @@ defmodule CourtbotTest.ImportTest do
     assert count_fails(records) == 0, "Failed to import #{count_fails(records)} records"
   end
 
-  test "imports Idaho data from mix config" do
+  test "imports Idaho data based on config" do
     Repo.insert(CourtbotTest.Helper.Configuration.idaho())
 
     records = Courtbot.Import.run()
 
-    assert count_fails(records) == 2, "Failed to import #{count_fails(records)} records"
+    assert count_fails(records) == 1, "Failed to import #{count_fails(records)} records"
   end
 
-  # TODO(ts): Property test input data
   # TODO(ts): Verify data is inserted correctly based upon the configured input
   # TODO(ts): Test that types and county apply
   # TODO(ts): Add tests for url sources
-  # TODO(ts): Add tests for reoccurring imports
   # TODO(ts): Add tests for DB configuration
 end
