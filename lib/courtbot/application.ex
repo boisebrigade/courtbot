@@ -74,7 +74,6 @@ defmodule Courtbot.Application do
   defp mfa_for_task(type, crontab, timezone) when type === "import", do: [&Courtbot.Import.run/0, crontab, [timezone: timezone]]
 
   defp child_spec_for_scheduled_task(%Scheduled.Tasks{name: name, crontab: crontab}, timezone) do
-    IO.inspect timezone
     {name,
      %{
        id: "scheduled-task-#{name}",
