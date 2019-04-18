@@ -162,6 +162,30 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
     end
   end
 
+  test "send start and receive you are not subscribed to any cases", %{valid: case_details} do
+    for_case case_details do
+      new_conversation()
+      |> text("start")
+      |> response("You are not subscribed to any cases. Reply with a case number to sign up for reminders. For example: CR00-19-00011")
+    end
+  end
+
+  test "send start when you are subscribed you should get reply with case number", %{valid: case_details} do
+    for_case case_details do
+      new_conversation()
+      |> text("{case_number}")
+      |> response("We need more information to find your case. Which county is this case in?")
+      |> text("{county}")
+      |> response("We found a case for {parties} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?")
+      |> text("yes")
+
+      new_conversation()
+      |> text("start")
+      |> response("Reply with a case number to sign up for reminders. For example: CR00-19-00011")
+    end
+  end
+
+
   test "attempt to subscribe to a case with county but have an invalid county with valid retry",
        %{valid: case_details} do
     for_case case_details do
@@ -354,6 +378,28 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
     end
   end
 
+  test "check that case sensitivity is not an issue when deleting ", %{valid: case_details} do
+    for_case case_details do
+      new_conversation()
+      |> text("{case_number}")
+      |> response("We need more information to find your case. Which county is this case in?")
+      |> text("{county}")
+      |> response(
+           "We found a case for {parties} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?"
+         )
+      |> text("yes")
+      |> response(
+           "OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}."
+         )
+
+      new_conversation()
+      |> text("Delete")
+      |> response("Are you sure you want to stop getting reminders for {cases}?")
+      |> text("no")
+      |> response("OK. You said \"No\" so we will still send you reminders.")
+    end
+  end
+
   test "respond with gibberish when deleting all subscriptions when you have subscriptions", %{
     valid: case_details
   } do
@@ -369,6 +415,7 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
       |> response(
         "OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}."
       )
+
 
       new_conversation()
       |> text("delete")

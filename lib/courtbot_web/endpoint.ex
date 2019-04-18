@@ -28,7 +28,8 @@ defmodule CourtbotWeb.Endpoint do
     store: :cookie,
     key: "_courtbot_key",
     signing_salt: "JXkMr3AQ",
-    log: :debug
+    log: :debug,
+    max_age: 60*60*4
   )
 
   plug(CourtbotWeb.Router)

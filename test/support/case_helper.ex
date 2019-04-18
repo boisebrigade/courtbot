@@ -65,7 +65,7 @@ defmodule CourtbotTest.Helper.Case do
       conn
     end
 
-    defp replace_properties(case_details = %Courtbot.Case{id: case_id}, message) do
+    defp replace_properties(case_details = %Courtbot.Case{id: case_id}, original_message) do
       subscribers =
         Repo.all(from(s in Subscriber, where: s.case_id == ^case_id, preload: :case))
 
@@ -75,12 +75,16 @@ defmodule CourtbotTest.Helper.Case do
         |> Map.merge(Response.custom_variables())
         |> Map.merge(Response.cases_context(%{context: %{cases: subscribers}}))
 
-      Enum.reduce(case_properties, message, fn {k, v}, message ->
+      Enum.reduce(case_properties, original_message, fn {k, v}, message ->
         key = Atom.to_string(k)
 
-        case v do
-          v when is_binary(v) -> String.replace(message, "{#{key}}", v)
-          _ -> String.replace(message, "{#{key}}", "")
+        if String.contains?(original_message, "{#{key}}") do
+          assert String.trim(v) != "", "#{key} is empty but is expected in: #{original_message}"
+          assert v != nil, "#{key} is null but is expected in: #{original_message}"
+
+          String.replace(message, "{#{key}}", v)
+        else
+          message
         end
       end)
     end

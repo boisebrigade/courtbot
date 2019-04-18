@@ -15,31 +15,51 @@ defmodule CourtbotWeb.SmsController do
 
     input = Map.put(input, state, body)
 
-    body =
-      body
-      |> String.trim()
-      |> String.replace("-", "")
-      |> String.replace("_", "")
-      |> String.replace(",", "")
-      |> String.downcase()
+    body = normalize_input(body)
 
-    {response, _fsm = %Courtbot.Workflow{state: state, properties: properties, input: input}} =
-      Workflow.init(%Workflow{
-        counties: true,
-        types: true,
-        locale: locale,
-        state: state,
-        properties: properties,
-        input: input
-      })
-      |> Workflow.message(from: phone_number, body: body)
-      |> Response.get_message()
+    try do
+      {response, _fsm = %Courtbot.Workflow{state: state, properties: properties, input: input}} =
+        Workflow.init(%Workflow{
+          counties: true,
+          types: true,
+          locale: locale,
+          state: state,
+          properties: properties,
+          input: input
+        })
+        |> Workflow.message(from: phone_number, body: body)
+        |> Response.get_message()
 
-    conn
-    |> put_session(:state, state)
-    |> put_session(:properties, properties)
-    |> put_session(:input, input)
-    |> encode_for_twilio(response)
+      conn =
+        if state === :inquery do
+          conn
+          |> configure_session(drop: true)
+        else
+          conn
+          |> put_session(:state, state)
+          |> put_session(:properties, properties)
+          |> put_session(:input, input)
+        end
+
+      encode_for_twilio(conn, response)
+
+    rescue
+      e ->
+        Rollbax.report(:error, e, System.stacktrace())
+
+        conn
+        |> configure_session(drop: true)
+        |> send_resp(:internal_server_error, "")
+    end
+  end
+
+  defp normalize_input(input) do
+    input
+    |> String.trim()
+    |> String.replace("-", "")
+    |> String.replace("_", "")
+    |> String.replace(",", "")
+    |> String.downcase()
   end
 
   defp encode_for_twilio(conn, response) do

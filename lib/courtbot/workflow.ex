@@ -84,8 +84,11 @@ defmodule Courtbot.Workflow do
         reset(:invalid, fsm)
 
       body == "start" ->
-        # Inform the user we blew away all their subscriptions due to being blocked
-        {:resubscribe, fsm}
+        case Repo.one(Subscriber.find_by_number(from, :case)) do
+          %Subscriber{} -> {:invalid, fsm}
+           _ -> # Inform the user we blew away all their subscriptions due to being blocked
+            {:resubscribe, fsm}
+        end
 
       body == "beepboop" ->
         case Case.find_with(case_number: "beepboop") do
@@ -142,20 +145,30 @@ defmodule Courtbot.Workflow do
         fsm = %Workflow{state: :unsubscribe, input: %{inquery: inquery}},
         _params = [from: from, body: body]
       ) do
-    cases =
-      if inquery === gettext("delete") do
-        # Fetch all the subscriptions
-        from
-        |> Subscriber.find_by_number(:case)
-        |> Repo.all()
-      else
-        [_, case_number] = String.split(inquery, " ")
+    normalize_inquery =
+      inquery
+      |> String.trim()
+      |> String.replace("-", "")
+      |> String.replace("_", "")
+      |> String.replace(",", "")
+      |> String.downcase()
 
-        # Fetch all the subscriptions matching the case number and from.
-        # TODO(ts): This may return more than one subscription if they are in separate counties. Need to evaluate if this is confusing behavior.
-        from
-        |> Subscriber.find_by_number_and_case(case_number, :case)
-        |> Repo.all()
+    cases =
+      cond do
+        normalize_inquery === gettext("delete") ->
+          # Fetch all the subscriptions
+          from
+          |> Subscriber.find_by_number(:case)
+          |> Repo.all()
+        String.contains?(normalize_inquery, gettext("delete")) ->
+
+          [_, case_number] = String.split(normalize_inquery, " ")
+
+          # Fetch all the subscriptions matching the case number and from.
+          # TODO(ts): This may return more than one subscription if they are in separate counties. Need to evaluate if this is confusing behavior.
+          from
+          |> Subscriber.find_by_number_and_case(case_number, :case)
+          |> Repo.all()
       end
 
     cond do
