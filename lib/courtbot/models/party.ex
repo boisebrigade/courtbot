@@ -55,6 +55,6 @@ defmodule Courtbot.Party do
     end
   end
 
-  def format(%Party{first_name: first_name, last_name: lastname}), do: "#{first_name} #{lastname}"
+  def format(%Party{first_name: first_name, last_name: last_name}) when first_name != nil and last_name != nil, do: "#{first_name} #{last_name}"
   def format(%Party{case_name: case_name}), do: "\"#{String.slice(case_name, 0..50)}\""
 end
