@@ -84,8 +84,11 @@ defmodule Courtbot.Workflow do
         reset(:invalid, fsm)
 
       body == "start" ->
-        # Inform the user we blew away all their subscriptions due to being blocked
-        {:resubscribe, fsm}
+        case Repo.one(Subscriber.find_by_number(from, :case)) do
+          %Subscriber{} -> {:invalid, fsm}
+           _ -> # Inform the user we blew away all their subscriptions due to being blocked
+            {:resubscribe, fsm}
+        end
 
       body == "beepboop" ->
         case Case.find_with(case_number: "beepboop") do
