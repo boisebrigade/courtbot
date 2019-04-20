@@ -49,3 +49,7 @@ config :courtbot, Courtbot.Vault,
 config :courtbot, Courtbot.Repo,
   url: "postgres://postgres:postgres@localhost:5432/courtbot",
   pool_size: 10
+
+config :guardian, Guardian,
+  issuer: "courtbot",
+  secret_key: "53B64BFDE8AA12298B09F2D01030CC3A16A93D48102B9EF92B8A68F3CB216356"

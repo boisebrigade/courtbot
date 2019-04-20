@@ -12,14 +12,9 @@ let contextHandler = () => {
   headers;
 };
 
-let httpLink =
-  ApolloLinks.createHttpLink(~uri="http://localhost:4000/graphql", ());
+let httpLink = ApolloLinks.createHttpLink(~uri="https://localhost:4000/graphql", ());
 
 let authLink = ApolloLinks.createContextLink(contextHandler);
 
 let instance =
-  ReasonApollo.createApolloClient(
-    ~link=ApolloLinks.from([|authLink, httpLink|]),
-    ~cache=inMemoryCache,
-    (),
-  );
+  ReasonApollo.createApolloClient(~link=ApolloLinks.from([|authLink, httpLink|]), ~cache=inMemoryCache, ());

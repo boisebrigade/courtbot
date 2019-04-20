@@ -31,5 +31,9 @@ config :courtbot, Courtbot.Vault,
     }
   ]
 
+config :guardian, Guardian,
+  issuer: "courtbot",
+  secret_key: "53B64BFDE8AA12298B09F2D01030CC3A16A93D48102B9EF92B8A68F3CB216356"
+
 config :stream_data,
   max_runs: if(System.get_env("CI"), do: 1_000, else: 50)
