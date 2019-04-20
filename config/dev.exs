@@ -12,7 +12,24 @@ config :courtbot, CourtbotWeb.Endpoint,
   code_reloader: true,
   check_origin: false,
   render_errors: [view: CourtbotWeb.ErrorView, accepts: ~w(json)],
-  pubsub: [name: Courtbot.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: Courtbot.PubSub, adapter: Phoenix.PubSub.PG2],
+  watchers: [
+    npm: [
+      "run",
+      "start",
+      cd: Path.expand("../assets", __DIR__)
+    ],
+    npm: [
+      "run",
+      "webpack",
+      cd: Path.expand("../assets", __DIR__)
+    ]
+  ],
+  live_reload: [
+    patterns: [
+      ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$}
+    ]
+  ]
 
 config :phoenix, :stacktrace_depth, 20
 

@@ -8,12 +8,34 @@ defmodule CourtbotWeb.Router do
     plug(:accepts, ["json"])
   end
 
+  pipeline :api do
+    plug(Guardian.Plug.VerifyHeader, realm: "Bearer")
+    plug(Guardian.Plug.LoadResource)
+    plug(CourtbotWeb.Context)
+  end
+
   scope "/", CourtbotWeb do
     pipe_through(:sms)
 
     get("/health", HealthController, :health)
 
     post("/sms/:locale", SmsController, :twilio)
+  end
+
+  scope "/graphiql" do
+    pipe_through(:api)
+
+    forward("/", Absinthe.Plug.GraphiQL, schema: Courtbot.Schema, interface: :playground)
+  end
+
+  scope "/graphql" do
+    pipe_through(:api)
+
+    forward("/", Absinthe.Plug, schema: Courtbot.Schema)
+  end
+
+  scope "/", CourtbotWeb do
+    forward("/", StaticPlug)
   end
 
   def handle_errors(conn, %{kind: kind, reason: reason, stack: stacktrace}) do

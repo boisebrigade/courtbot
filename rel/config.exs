@@ -52,7 +52,10 @@ release :courtbot do
       reset: "rel/commands/reset"
     ]
   )
-
+  set overlays: [
+    {:copy, "rel/config/courtbot.exs", "etc/courtbot.exs"},
+    {:copy, "priv", "courtbot"}
+  ]
   set(
     applications: [
       :runtime_tools

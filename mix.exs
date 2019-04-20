@@ -49,6 +49,12 @@ defmodule Courtbot.Mixfile do
       {:timex, "~> 3.1"},
       {:plug_cowboy, "~> 2.0"},
       {:ex_twiml, "~> 2.1.3"},
+      {:absinthe, "~> 1.4"},
+      {:guardian, "~> 0.14"},
+      {:comeonin, "~> 4.0"},
+      {:bcrypt_elixir, "~> 0.12.0"},
+      {:absinthe_relay, "~> 1.4"},
+      {:absinthe_plug, "~> 1.4"},
       {:rollbax, ">= 0.0.0", runtime: false},
       {:telemetry, "~> 0.4.0", override: true},
       {:tesla, "~> 1.2.1"},
@@ -74,10 +80,15 @@ defmodule Courtbot.Mixfile do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup"],
+      setup: ["ecto.drop", "deps.get", "ecto.setup", "schema", &setup_npm/1],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate", "test"]
+      test: ["ecto.create --quiet", "ecto.migrate", "test"],
+      schema: ["absinthe.schema.json --schema Courtbot.Schema assets/graphql_schema.json"]
     ]
+  end
+
+  defp setup_npm(_) do
+    System.cmd("npm", ["install"], cd: "assets")
   end
 end
