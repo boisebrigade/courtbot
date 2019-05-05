@@ -8,7 +8,7 @@ defmodule Courtbot.Configuration do
   @foreign_key_type :binary_id
 
   schema "configuration" do
-    embeds_one :importer, Importer, primary_key: false do
+    embeds_one :importer, Importer, primary_key: false, on_replace: :update do
       field(:kind, :string)
       field(:origin, :string)
       field(:source, :string)
@@ -16,7 +16,7 @@ defmodule Courtbot.Configuration do
       field(:has_headers, :boolean, default: false)
       field(:county_duplicates, :boolean, default: false)
 
-      embeds_many :field_mapping, FieldMapping, primary_key: false do
+      embeds_many :field_mapping, FieldMapping, primary_key: false, on_replace: :delete do
         field(:pointer, :string)
         field(:destination, :string)
         field(:kind, :string, default: "string")
@@ -24,18 +24,18 @@ defmodule Courtbot.Configuration do
       end
     end
 
-    embeds_one :rollbar, Rollbar, primary_key: false do
+    embeds_one :rollbar, Rollbar, primary_key: false, on_replace: :update do
       field(:access_token, :string)
       field(:environment, :string, default: "development")
     end
 
-    embeds_one :twilio, Twilio, primary_key: false do
+    embeds_one :twilio, Twilio, primary_key: false, on_replace: :update do
       field(:account_sid, :string)
       field(:auth_token, :string)
     end
 
-    embeds_one :scheduled, Scheduled, primary_key: false do
-      embeds_many :tasks, Tasks, primary_key: false do
+    embeds_one :scheduled, Scheduled, primary_key: false, on_replace: :update do
+      embeds_many :tasks, Tasks, primary_key: false, on_replace: :delete do
         field(:name, :string)
         field(:crontab, :string)
       end
@@ -43,17 +43,17 @@ defmodule Courtbot.Configuration do
 
     field(:locales, :map)
 
-    embeds_many :variables, Variables, primary_key: false do
+    embeds_many :variables, Variables, primary_key: false, on_replace: :delete do
       field(:name, :string)
       field(:value, :string)
     end
 
-    embeds_many :types, Types, primary_key: false do
+    embeds_many :types, Types, primary_key: false, on_replace: :delete do
       field(:name, :string)
       field(:pattern, :string)
     end
 
-    embeds_one :notifications, Notifications, primary_key: false do
+    embeds_one :notifications, Notifications, primary_key: false, on_replace: :update do
       field(:queuing, :boolean, default: false)
       field(:reminders, {:array, :map})
     end
