@@ -24,3 +24,4 @@ priv/cert/
 !priv/static/.keep
 priv/static
 
+/priv/repo/*.seeds.exs
