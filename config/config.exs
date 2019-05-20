@@ -17,12 +17,22 @@ config :courtbot, CourtbotWeb.Endpoint,
   render_errors: [view: CourtbotWeb.ErrorView, accepts: ~w(json)],
   pubsub: [name: Courtbot.PubSub, adapter: Phoenix.PubSub.PG2]
 
+config :logger,
+  level: :debug,
+  backends: [:console, {Courtbot.Rollbar, :rollbar}]
+
 # Configures Elixir's Logger
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:user_id]
 
+config :logger, :rollbar,
+  level: :info,
+  format: "$message\n"
+
 config :tesla, adapter: Tesla.Adapter.Hackney
+
+config :courtbot, :environment, Mix.env()
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

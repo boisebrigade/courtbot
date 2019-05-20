@@ -16,7 +16,9 @@ config :courtbot, CourtbotWeb.Endpoint,
 
 config :phoenix, :stacktrace_depth, 20
 
-config :logger, level: :info
+config :logger, level: :debug
+
+config :tesla, Tesla.Middleware.Logger, format: "$method $url ====> $status / time=$time"
 
 config :courtbot, CourtbotWeb.Endpoint,
   secret_key_base: "1C969829A72C108979C56C5F49ACF80D7F51DEC4C8398D96BEBCFE3B94332B17"
