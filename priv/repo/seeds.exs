@@ -7,3 +7,9 @@ if Case.find_with([case_number: "BEEPBOOP"]) === nil && System.get_env("MIX_ENV"
     formatted_case_number: "BEEPBOOP"
   } |> Repo.insert!
 end
+
+env = Application.get_env(:courtbot, :environment)
+
+with {:ok, _} <- File.stat("priv/repo/#{env}.seeds.exs") do
+   Code.require_file("#{env}.seeds.exs", "priv/repo")
+end
