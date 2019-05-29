@@ -16,7 +16,8 @@ defmodule Courtbot.Application do
       CourtbotWeb.Endpoint,
       Courtbot.Repo,
       {DynamicSupervisor, name: ConfigSupervisor, strategy: :one_for_one},
-      Courtbot.Config
+      Courtbot.Config,
+      Courtbot.ClearSessions
     ]
 
     opts = [strategy: :one_for_one, name: Courtbot.Supervisor]
