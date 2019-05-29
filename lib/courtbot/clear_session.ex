@@ -42,7 +42,7 @@ defmodule Courtbot.ClearSessions do
       from(s in Sessions, where: s.expires_at <= ^NaiveDateTime.utc_now())
     )
 
-    clear_session(10_000)
+    clear_session(60_000)
 
     {:noreply, state}
   end
