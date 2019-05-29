@@ -19,6 +19,7 @@ config :courtbot, CourtbotWeb.Endpoint,
 
 config :logger,
   level: :debug,
+  handle_sasl_reports: true,
   backends: [:console, {Courtbot.Rollbar, :rollbar}]
 
 # Configures Elixir's Logger
