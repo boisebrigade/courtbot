@@ -10,12 +10,14 @@ defmodule Courtbot.Notify do
     Subscriber
   }
 
+  require Logger
+
   alias CourtbotWeb.Response
 
   import Ecto.Query
 
   def run() do
-    Rollbax.report_message(:info, "Starting batches of notifications")
+    Logger.info("Starting batches of notifications")
 
     configuration =
       %{
@@ -42,7 +44,7 @@ defmodule Courtbot.Notify do
       notify(configuration, :debug, Subscriber.subscribers_to_case(case_id, [:case]))
     end
 
-    Rollbax.report_message(:info, "Finished starting batches of notifications")
+    Logger.info("Finished starting batches of notifications")
   end
 
   def notify(configuration, type, pending_notification) do
@@ -58,7 +60,7 @@ defmodule Courtbot.Notify do
         )
       end)
     else
-      _ -> Rollbax.report_message(:warning, "Notification queue for #{type} is empty")
+      _ -> Logger.warn("Notification queue for #{type} is empty")
     end
   end
 
@@ -80,11 +82,14 @@ defmodule Courtbot.Notify do
 
         twilio_response =
           Twilio.new(twilio_credentials)
-          |> Twilio.message(%{From: from_number, To: phone_number, Body: body})
+          |> Twilio.send_message(
+            %{From: from_number, To: phone_number, Body: body}
+          )
 
         with {:ok, _result = %Tesla.Env{status: 201}} <- twilio_response do
           %Notification{}
           |> Notification.changeset(%{
+            id: notification_id,
             subscriber_id: subscriber_id,
             message: body,
             type: Atom.to_string(type)
@@ -94,16 +99,14 @@ defmodule Courtbot.Notify do
           Subscriber.changeset(subscriber, %{queued: false}) |> Repo.update!()
         else
           {:ok, %Tesla.Env{status: status, body: body}} ->
-            Rollbax.report_message(
-              :error,
-              "Unable to notify subscribers. Request to Twilio failed with #{status} and code #{
+            Logger.error(
+              "Unable to notify subscriber. Request to Twilio failed with #{status} and code #{
                 body["code"]
               }"
             )
 
           {:error, _} ->
-            Rollbax.report_message(
-              :error,
+            Logger.error(
               "Unable to send request to Twilio to notify subscriber: #{subscriber_id}"
             )
         end

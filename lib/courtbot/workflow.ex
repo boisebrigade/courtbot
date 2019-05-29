@@ -85,8 +85,11 @@ defmodule Courtbot.Workflow do
 
       body == "start" ->
         case Repo.one(Subscriber.find_by_number(from, :case)) do
-          %Subscriber{} -> {:invalid, fsm}
-           _ -> # Inform the user we blew away all their subscriptions due to being blocked
+          %Subscriber{} ->
+            {:invalid, fsm}
+
+          # Inform the user we blew away all their subscriptions due to being blocked
+          _ ->
             {:resubscribe, fsm}
         end
 
@@ -160,8 +163,8 @@ defmodule Courtbot.Workflow do
           from
           |> Subscriber.find_by_number(:case)
           |> Repo.all()
-        String.contains?(normalize_inquery, gettext("delete")) ->
 
+        String.contains?(normalize_inquery, gettext("delete")) ->
           [_, case_number] = String.split(normalize_inquery, " ")
 
           # Fetch all the subscriptions matching the case number and from.
