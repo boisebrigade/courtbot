@@ -13,6 +13,7 @@ defmodule Courtbot.Notification do
 
     field(:type, :string)
     field(:message, :string)
+    field(:status, :string)
 
     timestamps()
   end

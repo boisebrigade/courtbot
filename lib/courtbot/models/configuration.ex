@@ -60,6 +60,13 @@ defmodule Courtbot.Configuration do
 
     field(:timezone, :string)
 
+    field(:hostname, :string)
+
+    embeds_many :usage_alerts, UsageAlerts, primary_key: false, on_replace: :delete do
+      field(:amount, :integer)
+      field(:recurring, :string, default: "monthly")
+    end
+
     timestamps()
   end
 
@@ -110,9 +117,14 @@ defmodule Courtbot.Configuration do
     |> cast(params, [:queuing, :reminders])
   end
 
+  defp usage_alerts_changeset(changeset, params) do
+    changeset
+    |> cast(params, [:amount])
+  end
+
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:timezone, :locales])
+    |> cast(params, [:timezone, :locales, :hostname])
     |> cast_embed(:importer, with: &importer_changeset/2)
     |> cast_embed(:rollbar, with: &rollbar_changeset/2)
     |> cast_embed(:twilio, with: &twilio_changeset/2)
@@ -120,6 +132,7 @@ defmodule Courtbot.Configuration do
     |> cast_embed(:variables, with: &variables_changeset/2)
     |> cast_embed(:types, with: &types_changeset/2)
     |> cast_embed(:notifications, with: &notifications_changeset/2)
+    |> cast_embed(:usage_alerts, with: &usage_alerts_changeset/2)
   end
 
   def get(config) do

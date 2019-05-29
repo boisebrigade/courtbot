@@ -45,6 +45,8 @@ defmodule Courtbot.Hearing do
     changeset
     |> cast(params, [:case_id, :time, :date, :location, :detail])
     |> validate_required([:date, :time])
+    |> validate_length(:location, max: 255)
+    |> validate_length(:detail, max: 255)
     |> unique_constraint(:case_id, name: :hearings_case_id_date_time_index)
     |> unique_constraint(:date, name: :hearings_case_id_date_time_index)
     |> unique_constraint(:time, name: :hearings_case_id_date_time_index)
