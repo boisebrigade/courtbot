@@ -10,8 +10,10 @@ Courtbot is a simple web service for subscribing to case hearing details via SMS
   - Install [asdf](https://github.com/asdf-vm/asdf#setup)
   - Add Elixir asdf plugin: [asdf-elixir](https://github.com/asdf-vm/asdf-elixir) 
   - Goto where you've cloned the repo and run: `asdf install`
+    - If you are on OSX and installed `openssl` with brew, run `ERLANG_OPENSSL_PATH="/usr/local/opt/openssl" asdf install` 
 - Start docker: `docker-compose up -d`
 - Run Setup: `mix setup`
+- Create a self-signed SSL cert: `mix phx.gen.cert`
 - Start Phoenix: `mix phx.server`
 
 After `mix phx.server` Phoenix will running and for next steps in setting up Courtbot see [here](https://github.com/boisebrigade/Courtbot/wiki/Configuration) for additional details.
