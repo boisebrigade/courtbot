@@ -1,7 +1,7 @@
 defmodule Courtbot.Notification do
   use Ecto.Schema
 
-  alias Courtbot.Subscriber
+  alias Courtbot.{Subscriber, Configuration}
 
   import Ecto.Changeset
 
@@ -13,12 +13,16 @@ defmodule Courtbot.Notification do
 
     field(:type, :string)
     field(:message, :string)
+    field(:status, :string)
+    field(:sid, :string)
+    field(:interval, :string)
+
 
     timestamps()
   end
 
   def changeset(changeset, params \\ %{}) do
     changeset
-    |> cast(params, [:subscriber_id, :type, :message])
+    |> cast(params, [:id, :subscriber_id, :type, :status, :message, :sid, :interval])
   end
 end

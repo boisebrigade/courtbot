@@ -23,6 +23,9 @@ defmodule Courtbot.Party do
     |> cast(params, [:first_name, :last_name, :case_name])
     |> trim_case_name()
     |> validate_required_inclusion([:first_name, :last_name, :case_name])
+    |> validate_length(:case_name, max: 255)
+    |> validate_length(:first_name, max: 255)
+    |> validate_length(:last_name, max: 255)
     |> unique_constraint(:case_id, name: :party_case_id_first_name_last_name_index)
     |> unique_constraint(:case_id, name: :party_case_id_case_name_index)
     |> unique_constraint(:case_name, name: :party_case_id_case_name_index)
@@ -55,6 +58,9 @@ defmodule Courtbot.Party do
     end
   end
 
-  def format(%Party{first_name: first_name, last_name: last_name}) when first_name != nil and last_name != nil, do: "#{first_name} #{last_name}"
+  def format(%Party{first_name: first_name, last_name: last_name})
+      when first_name != nil and last_name != nil,
+      do: "#{first_name} #{last_name}"
+
   def format(%Party{case_name: case_name}), do: "\"#{String.slice(case_name, 0..50)}\""
 end

@@ -7,6 +7,8 @@ defmodule Courtbot.Case do
 
   import CourtbotWeb.Gettext
 
+  require Logger
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -23,7 +25,9 @@ defmodule Courtbot.Case do
     timestamps()
   end
 
-  def changeset(changeset, params \\ %{}, %{types: types} \\ Configuration.get([:types])) do
+  def changeset(changeset, params), do: changeset(changeset, params, Configuration.get([:types]))
+
+  def changeset(changeset, params \\ %{}, %{types: types}) do
     changeset
     |> cast(params, [
       :type,
@@ -38,6 +42,10 @@ defmodule Courtbot.Case do
     |> add_type(types)
     |> cast_assoc(:hearings)
     |> cast_assoc(:parties)
+    |> validate_length(:county, max: 255)
+    |> validate_length(:case_number, max: 255)
+    |> validate_length(:formatted_case_number, max: 255)
+    |> validate_length(:county, max: 255)
     |> unique_constraint(:case_number, name: :cases_case_number_index)
     |> unique_constraint(:case_number, name: :cases_case_number_type_index)
     |> unique_constraint(:case_number, name: :cases_case_number_county_index)
@@ -108,10 +116,7 @@ defmodule Courtbot.Case do
           end
 
         {:error, message} ->
-          Rollbax.report_message(
-            :error,
-            "Unable to determine type due to invalid regex: #{message}"
-          )
+          Logger.error("Unable to determine type due to invalid regex: #{message}")
 
           acc
       end

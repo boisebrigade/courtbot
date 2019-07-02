@@ -23,7 +23,7 @@ defmodule CourtbotWeb.Controller.SmsTest do
             %{time: ~T[09:00:00], date: Date.utc_today()}
           ]
         })
-        |> Repo.insert!(),
+        |> Repo.insert!()
     }
 
     {:ok, cases}
@@ -34,7 +34,9 @@ defmodule CourtbotWeb.Controller.SmsTest do
       %Plug.Conn{private: %{plug_session: session}} =
         build_conn()
         |> text("hi")
-        |> response("Reply with a case number to sign up for reminders. For example: CR00-19-00011")
+        |> response(
+          "Reply with a case number to sign up for reminders. For example: CR00-19-00011"
+        )
 
       assert session == %{}, "Sending 'hi' should not affect a users session"
     end
@@ -46,7 +48,8 @@ defmodule CourtbotWeb.Controller.SmsTest do
         build_conn()
         |> text("{case_number}")
 
-      assert state === :county, "Texting a case number should result in your workflow state being set to :county in your session"
+      assert state === :county,
+             "Texting a case number should result in your workflow state being set to :county in your session"
     end
   end
 end

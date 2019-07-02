@@ -1,5 +1,8 @@
 defmodule Courtbot.Import do
-  @moduledoc false
+  @moduledoc """
+  Handles import logic based on configuration.
+  """
+
   alias Courtbot.{
     Kinds.Csv,
     Repo,
@@ -8,29 +11,46 @@ defmodule Courtbot.Import do
 
   def run, do: Courtbot.Import.run(Configuration.get([:importer, :types]))
 
+  require Logger
+
+  @doc """
+  If a data source is from a file, open the file and load the data via a stream then import.
+  """
   def run(config = %{importer: %{kind: kind, origin: "file", source: source}, types: _types}) do
-    Rollbax.report_message(:info, "Starting file import from: #{source}")
+    Logger.info("Starting file import from: #{source}")
 
     with {:ok, %File.Stat{size: size, mtime: _mtime}} when size > 0 <- File.stat(source) do
       backup_and_truncate_hearings()
 
-      # TODO(ts): Warn if mtime is over a day.
-      {time, imported} = :timer.tc(&run_import/3, [kind, File.stream!(source), config])
+      stream = File.stream!(source)
 
-      Rollbax.report_message(:info, "Finished Import in #{time / 1_000_000}s")
+      # TODO(ts): Warn if mtime is over a day.
+      {time, imported} = :timer.tc(&run_import/3, [kind, stream, config])
+
+      Logger.info("Finished Import in #{time / 1_000_000}s")
+
+      lines = count_csv_lines(stream)
+      failed = count_fails(imported)
+
+      if failed > (lines * 0.05) do
+        Logger.error("More than 5% of the import failed")
+      end
 
       imported
     else
       {:ok, %File.Stat{size: 0}} ->
-        Rollbax.report_message(:error, "Unable to import. Source file, #{source}, is empty.")
+        Logger.error("Unable to import. Source file, #{source}, is empty.")
 
       {:error, reason} ->
-        Rollbax.report_message(:error, "Unable to import: #{reason}")
+        Logger.error("Unable to import: #{reason}")
     end
   end
 
+  @doc """
+  If a data source is from a URL then fetch and then import.
+  """
   def run(config = %{importer: %{kind: kind, origin: "url", source: source}, types: _types}) do
-    Rollbax.report_message(:info, "Starting import")
+    Logger.info("Starting import")
 
     data = request(source)
 
@@ -38,7 +58,14 @@ defmodule Courtbot.Import do
 
     {time, imported} = :timer.tc(&run_import/3, [kind, data, config])
 
-    Rollbax.report_message(:info, "Finished Import in #{time / 1_000_000}s")
+    Logger.info("Finished Import in #{time / 1_000_000}s")
+
+    lines = count_csv_lines(data)
+    failed = count_fails(imported)
+
+    if lines * 0.05 > failed do
+      Logger.error("More than 5% of the import failed")
+    end
 
     imported
   end
@@ -52,8 +79,6 @@ defmodule Courtbot.Import do
     do: raise("The supplied configuration to the importer is invalid")
 
   defp backup_and_truncate_hearings do
-    Rollbax.report_message(:info, "Creating backup hearings table")
-
     date = Date.utc_today() |> Date.add(-1) |> Timex.format!("%m_%d_%Y", :strftime)
 
     backup_table = "hearing_" <> date
@@ -61,15 +86,24 @@ defmodule Courtbot.Import do
     # Drop backup table if it has previously been created.
     Repo.query("DROP TABLE IF EXISTS #{backup_table}", [])
 
+    Logger.info("Creating backup hearings table")
+
     # Create a new backup table based upon the current hearings table.
     Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings;", [])
+
+    Logger.info("Truncating Hearings")  
 
     Repo.query("TRUNCATE hearings;", [])
   end
 
+  @doc """
+  Restore the previous days hearings.
+  """
   def restore_hearings do
     backup_table =
       "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
+
+    Logger.info("Restoring hearings from the previous day")
 
     Repo.query(
       """
@@ -90,13 +124,23 @@ defmodule Courtbot.Import do
         IO.binstream(data, :line)
 
       {:ok, %Tesla.Env{status: status}} ->
-        Rollbax.report_message(
-          :error,
-          "Unhandled status code received: #{status}, while fetching #{url}"
-        )
+        Logger.error("Unhandled status code received: #{status}, while fetching #{url}")
 
       {:error, err} ->
-        Rollbax.report_message(:error, "Unable to fetch #{url} because of: #{err}")
+        Logger.error("Unable to fetch #{url} because of: #{err}")
     end
+  end
+
+  defp count_csv_lines(stream) do
+    stream
+    |> Enum.to_list()
+    |> Enum.count()
+  end
+
+  defp count_fails(imported) do
+    Enum.count(imported, fn
+      {status, _, _, _} -> status === :error
+      {status, _} -> status === :error
+    end)
   end
 end

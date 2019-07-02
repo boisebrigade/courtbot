@@ -27,7 +27,9 @@ defmodule CourtbotTest.GenHelper do
     end
   end
 
-  def county, do: csv_string(max_length: 1)
+  #  def case_number(opts), do: csv_string(opts)
+
+  def county(opts \\ [max_length: 1]), do: csv_string(opts)
 
   def case_style do
     gen all first_one <- first_name(),
@@ -38,13 +40,13 @@ defmodule CourtbotTest.GenHelper do
     end
   end
 
-  def first_name, do: csv_string()
-  def last_name, do: csv_string()
+  def first_name(opts \\ [max_length: 60]), do: csv_string(opts)
+  def last_name(opts \\ [max_length: 60]), do: csv_string(opts)
 
-  def hearing_location, do: csv_string()
-  def hearing_type, do: csv_string()
+  def hearing_location(opts \\ [max_length: 255]), do: csv_string(opts)
+  def hearing_type(opts \\ [max_length: 255]), do: csv_string(opts)
 
-  defp csv_string(opts \\ []) do
+  defp csv_string(opts) do
     gen all string <- string(:ascii, opts) do
       string
       |> String.replace("\r", "")

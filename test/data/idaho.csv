@@ -1,30 +1,30 @@
-CaseNumber,CaseStyle ,HearingType,HearingDate,HearingTime,Court,County
-2018-CR-00001,"In The Matter of the Application of: Carrie Oakey, For a Change of Name.",Name Change Hearing,4/19/2019,1:30 PM,Ada County Magistrate Court,Ada
-2018-CR-00001,"In The Matter of the Application of: Carrie Oakey, For a Change of Name.",Name Change Hearing,4/19/2019,1:30 PM,Boundary County Magistrate Court,Boundary
-CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock
-CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock
-CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock
-CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock
-CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock
-CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock
-CR14-18-00007,State of Idaho vs. Robin Banks,Probation Review Hearing,4/17/2019,9:00 AM,Gem County District Court,Gem
-CR14-18-00007,State of Idaho vs. Robin Banks,Probation Review Hearing,4/17/2019,9:00 AM,Gem County District Court,Gem
-CR14-18-00007,State of Idaho vs. Robin Banks,Probation Review Hearing,4/17/2019,9:00 AM,Gem County District Court,Gem
-CR14-18-00007,State of Idaho vs. Robin Banks,Review Hearing,4/26/2019,2:30 PM,Payette County District Court,Payette
-CR-2006-0011,State of Idaho vs. Warren Peace,Pre Trial,4/15/2019,9:00 AM,Canyon County Magistrate Court,Canyon
-CR01-16-00002,,Status Conference,4/20/2019,1:30 PM,Teton County District Court,Teton
-CV07-18-00016,"Frank N Stein Petitioner, vs. Rick Shaw Respondent.",Status Conference,4/25/2019,1:30 PM,Canyon County Magistrate Court,Canyon
-CV07-18-00016,"Frank N Stein Petitioner, vs. Rick Shaw Respondent.",Status Conference,4/25/2019,1:30 PM,Canyon County Magistrate Court,Canyon
-CV07-18-00016,"Frank N Stein Petitioner, vs. Rick Shaw Respondent.",Status Conference,4/25/2019,1:30 PM,Canyon County Magistrate Court,Canyon
-CV20-19-00018,Riley Dean Ferrera vs. Brittany Mussgrove,Status Conference,4/18/2019,1:30 PM,Canyon County Magistrate Court,Canyon
-CV20-19-00018,Riley Dean Ferrera vs. Brittany Mussgrove,Status Conference,4/18/2019,1:30 PM,Canyon County Magistrate Court,Canyon
-CV-DR-2007-00020,Jay Walker vs. Chris P Bacon,Pre-trial Conference,4/16/2019,9:00 AM,Canyon County Magistrate Court,Canyon
-CV-DR-2007-00020,Jay Walker vs. Chris P Bacon,Pre-trial Conference,4/16/2019,9:00 AM,Canyon County Magistrate Court,Canyon
-CV-DR-2007-00020,Jay Walker vs. Chris P Bacon,Pre-trial Conference,4/16/2019,9:00 AM,Canyon County Magistrate Court,Canyon
-CV01-17-00011,Gladys Friday vs. Ali Bye,Motion for Contempt,4/19/2019,9:00 AM,Kootenai County Magistrate Court,Kootenai
-CV01-17-00011,Gladys Friday vs. Ali Bye,Motion for Contempt,4/19/2019,9:00 AM,Kootenai County Magistrate Court,Kootenai
-CR14-18-00005,In The Matter Of The Estate Of Rose Gardener Deceased,Motion to Withdraw as Attorney,4/19/2019,11:00 AM,Elmore County Magistrate Court,Elmore
-CR14-18-00006,State of Idaho  vs. Nick O Time,Jury Trial,4/29/2019,1:30 PM,Twin Falls County District Court,Twin Falls
-CR14-18-00006,State of Idaho  vs. Nick O Time,Status Conference,4/8/2019,2:30 PM,Twin Falls County District Court,Twin Falls
-CRFE20150000014,State of Idaho vs. Amanda B Recandwithe,Pre-Trial Conference,12/6/2050,3:00 PM,Ada County District Court,Ada
-CR14-18-00006,State of Idaho  vs. Nick O Time,Status Conference,4/8/2019,2:30 PM,Twin Falls County District Court,Twin Falls
+CaseNumber,CaseStyle ,HearingType,HearingDate,HearingTime,Court,County,CaseCategory
+2018-CR-00001,"In The Matter of the Application of: Carrie Oakey, For a Change of Name.",Name Change Hearing,4/19/2019,1:30 PM,Ada County Magistrate Court,Ada,CR
+2018-CR-00001,"In The Matter of the Application of: Carrie Oakey, For a Change of Name.",Name Change Hearing,4/19/2019,1:30 PM,Boundary County Magistrate Court,Boundary,CR
+CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock,CV
+CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock,CV
+CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock,CV
+CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock,CV
+CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock,CV
+CV07-18-00015,"Anna Fender, Candy Kane vs. Candy Barr, Ted E Bear",Status Conference,4/18/2019,1:00 PM,Bannock County District Court,Bannock,CV
+CR14-18-00007,State of Idaho vs. Robin Banks,Probation Review Hearing,4/17/2019,9:00 AM,Gem County District Court,Gem,CR
+CR14-18-00007,State of Idaho vs. Robin Banks,Probation Review Hearing,4/17/2019,9:00 AM,Gem County District Court,Gem,CR
+CR14-18-00007,State of Idaho vs. Robin Banks,Probation Review Hearing,4/17/2019,9:00 AM,Gem County District Court,Gem,CR
+CR14-18-00007,State of Idaho vs. Robin Banks,Review Hearing,4/26/2019,2:30 PM,Payette County District Court,Payette,CR
+CR-2006-0011,State of Idaho vs. Warren Peace,Pre Trial,7/15/2019,9:00 AM,Canyon County Magistrate Court,Canyon,CR
+CR01-16-00002,,Status Conference,4/20/2019,1:30 PM,Teton County District Court,Teton,CR
+CV07-18-00016,"Frank N Stein Petitioner, vs. Rick Shaw Respondent.",Status Conference,4/25/2019,1:30 PM,Canyon County Magistrate Court,Canyon,CV
+CV07-18-00016,"Frank N Stein Petitioner, vs. Rick Shaw Respondent.",Status Conference,4/25/2019,1:30 PM,Canyon County Magistrate Court,Canyon,CV
+CV07-18-00016,"Frank N Stein Petitioner, vs. Rick Shaw Respondent.",Status Conference,4/25/2019,1:30 PM,Canyon County Magistrate Court,Canyon,CV
+CV20-19-00018,Riley Dean Ferrera vs. Brittany Mussgrove,Status Conference,4/18/2019,1:30 PM,Canyon County Magistrate Court,Canyon,CV
+CV20-19-00018,Riley Dean Ferrera vs. Brittany Mussgrove,Status Conference,4/18/2019,1:30 PM,Canyon County Magistrate Court,Canyon,CV
+CV-DR-2007-00020,Jay Walker vs. Chris P Bacon,Pre-trial Conference,4/16/2019,9:00 AM,Canyon County Magistrate Court,Canyon,CV
+CV-DR-2007-00020,Jay Walker vs. Chris P Bacon,Pre-trial Conference,4/16/2019,9:00 AM,Canyon County Magistrate Court,Canyon,CV
+CV-DR-2007-00020,Jay Walker vs. Chris P Bacon,Pre-trial Conference,4/16/2019,9:00 AM,Canyon County Magistrate Court,Canyon,CV
+CV01-17-00011,Gladys Friday vs. Ali Bye,Motion for Contempt,4/19/2019,9:00 AM,Kootenai County Magistrate Court,Kootenai,CV
+CV01-17-00011,Gladys Friday vs. Ali Bye,Motion for Contempt,4/19/2019,9:00 AM,Kootenai County Magistrate Court,Kootenai,CV
+CR14-18-00005,In The Matter Of The Estate Of Rose Gardener Deceased,Motion to Withdraw as Attorney,4/19/2019,11:00 AM,Elmore County Magistrate Court,Elmore,CR
+CR14-18-00006,State of Idaho  vs. Nick O Time,Jury Trial,4/29/2019,1:30 PM,Twin Falls County District Court,Twin Falls,CR
+CR14-18-00006,State of Idaho  vs. Nick O Time,Status Conference,4/8/2019,2:30 PM,Twin Falls County District Court,Twin Falls,CR
+CRFE20150000014,State of Idaho vs. Amanda B Recandwithe,Pre-Trial Conference,12/6/2050,3:00 PM,Ada County District Court,Ada,CR
+CR14-18-00006,State of Idaho  vs. Nick O Time,Status Conference,4/8/2019,2:30 PM,Twin Falls County District Court,Twin Falls,CR

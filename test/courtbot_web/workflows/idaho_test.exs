@@ -166,17 +166,23 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
     for_case case_details do
       new_conversation()
       |> text("start")
-      |> response("You are not subscribed to any cases. Reply with a case number to sign up for reminders. For example: CR00-19-00011")
+      |> response(
+        "You are not subscribed to any cases. Reply with a case number to sign up for reminders. For example: CR00-19-00011"
+      )
     end
   end
 
-  test "send start when you are subscribed you should get reply with case number", %{valid: case_details} do
+  test "send start when you are subscribed you should get reply with case number", %{
+    valid: case_details
+  } do
     for_case case_details do
       new_conversation()
       |> text("{case_number}")
       |> response("We need more information to find your case. Which county is this case in?")
       |> text("{county}")
-      |> response("We found a case for {parties} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?")
+      |> response(
+        "We found a case for {parties} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?"
+      )
       |> text("yes")
 
       new_conversation()
@@ -184,7 +190,6 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
       |> response("Reply with a case number to sign up for reminders. For example: CR00-19-00011")
     end
   end
-
 
   test "attempt to subscribe to a case with county but have an invalid county with valid retry",
        %{valid: case_details} do
@@ -385,12 +390,12 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
       |> response("We need more information to find your case. Which county is this case in?")
       |> text("{county}")
       |> response(
-           "We found a case for {parties} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?"
-         )
+        "We found a case for {parties} in {county} County. The next hearing is on {date}, at {time}. Would you like a reminder a day before the next hearing date?"
+      )
       |> text("yes")
       |> response(
-           "OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}."
-         )
+        "OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}."
+      )
 
       new_conversation()
       |> text("Delete")
@@ -415,7 +420,6 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
       |> response(
         "OK. We will text you a courtesy reminder the day before the hearing date. Note that court schedules may change. You should always confirm your hearing date and time by going to {court_url}."
       )
-
 
       new_conversation()
       |> text("delete")
@@ -497,6 +501,9 @@ defmodule CourtbotWeb.Workflow.IdahoTest do
         "We found a case for {parties} in A County. The next hearing is on {date}, at 10:00 AM. Would you like a reminder a day before the next hearing date?"
       )
     end
+
+    # Wipe sessions so we don't have a conflict
+    Repo.delete_all(Courtbot.Sessions)
 
     for_case case_details_b do
       new_conversation()

@@ -142,11 +142,13 @@ defmodule CourtbotTest.NotifyTest do
 
     assert length(pending_notifications) === 0
 
-    Repo.insert(Hearing.changeset(%Hearing{}, %{
-      time: ~T[09:00:00],
-      date: Date.add(Date.utc_today(), 5),
-      case_id: case.id
-    }))
+    Repo.insert(
+      Hearing.changeset(%Hearing{}, %{
+        time: ~T[09:00:00],
+        date: Date.add(Date.utc_today(), 5),
+        case_id: case.id
+      })
+    )
 
     pending_notifications = Notify.queued_subscribers(today)
 

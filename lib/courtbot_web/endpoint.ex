@@ -20,16 +20,12 @@ defmodule CourtbotWeb.Endpoint do
   plug(Plug.MethodOverride)
   plug(Plug.Head)
 
-  # The session will be stored in the cookie and signed,
-  # this means its contents can be read but not tampered with.
-  # Set :encryption_salt if you would also like to encrypt it.
   plug(
     Plug.Session,
-    store: :cookie,
+    store: CourtbotWeb.Twilio.Session,
     key: "_courtbot_key",
     signing_salt: "JXkMr3AQ",
-    log: :debug,
-    max_age: 60*60*4
+    log: :debug
   )
 
   plug(CourtbotWeb.Router)

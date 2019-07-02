@@ -1,5 +1,10 @@
 defmodule Courtbot.Notify do
-  @moduledoc false
+  @moduledoc """
+  Notification logic.
+
+  Handles the queries for reminders and queued subscribers. Has the logic for batching and sending notifications at
+  specific times based on configuration.
+  """
   alias Courtbot.{
     Case,
     Configuration,
@@ -10,12 +15,19 @@ defmodule Courtbot.Notify do
     Subscriber
   }
 
+  require Logger
+
   alias CourtbotWeb.Response
 
   import Ecto.Query
 
-  def run() do
-    Rollbax.report_message(:info, "Starting batches of notifications")
+  def run(), do: run(DateTime.utc_now())
+
+  @doc """
+
+  """
+  def run(for_day) do
+    Logger.info("Starting batches of notifications")
 
     configuration =
       %{
@@ -26,26 +38,28 @@ defmodule Courtbot.Notify do
       } = Configuration.get([:locales, :notifications, :twilio, :timezone])
 
     Enum.map(
-      reminders,
-      &Enum.each(&1, fn {timescale, offset} ->
-        day = get_day(configuration.timezone, {String.to_atom(timescale), offset})
+      reminders, fn %{timescale: timescale, offset: offset} ->
+        day = get_day(for_day, configuration.timezone, {String.to_atom(timescale), offset})
 
-        notify(configuration, :remind, reminders_for_day(day))
-      end)
+        notify(configuration, :remind, reminders_for(for_day, day, "#{offset} #{timescale}"), "#{offset} #{timescale}")
+      end
     )
 
-    day = get_day(configuration.timezone)
+    day = get_day(for_day, configuration.timezone)
 
-    notify(configuration, :queued, queued_subscribers(day))
+    notify(configuration, :queued, queued_subscribers(for_day, day))
 
     with %Case{id: case_id} <- Case.find_with(case_number: "beepboop") do
       notify(configuration, :debug, Subscriber.subscribers_to_case(case_id, [:case]))
     end
 
-    Rollbax.report_message(:info, "Finished starting batches of notifications")
+    Logger.info("Finished starting batches of notifications")
   end
 
-  def notify(configuration, type, pending_notification) do
+  @doc """
+
+  """
+  def notify(configuration, type, pending_notification, interval \\ nil) do
     with pending when pending != [] <- pending_notification do
       pending
       |> batch_notifications()
@@ -53,57 +67,72 @@ defmodule Courtbot.Notify do
         SchedEx.run_at(
           Courtbot.Notify,
           :send_twilio_notification,
-          [notifications, configuration, type],
+          [notifications, configuration, type, interval],
           Timex.shift(DateTime.utc_now(), seconds: 100 * batch)
         )
       end)
     else
-      _ -> Rollbax.report_message(:warning, "Notification queue for #{type} is empty")
+      _ -> Logger.warn("Notification queue for #{type} is empty")
     end
   end
 
-  def get_day(timezone, offset \\ {:hours, 0}) do
-    {:ok, today} = DateTime.shift_zone(DateTime.utc_now(), timezone, Tzdata.TimeZoneDatabase)
+  @doc """
+
+  """
+  def get_day(day, timezone, offset \\ {:hours, 0}) do
+    {:ok, today} = DateTime.shift_zone(day, timezone, Tzdata.TimeZoneDatabase)
+
     Timex.shift(today, [offset])
   end
 
+  @doc """
+
+  """
   def send_twilio_notification(
         notifications,
         %{locales: locales, twilio: twilio_credentials},
-        type
+        type,
+        interval
       ) do
+
     Enum.each(
       notifications,
       fn subscriber = %{case: case, phone_number: phone_number, id: subscriber_id, locale: locale} ->
         from_number = Map.fetch!(locales, locale)
         body = Response.get_message({type, case}, locale)
 
+        notification_id = Ecto.UUID.generate()
+
         twilio_response =
           Twilio.new(twilio_credentials)
-          |> Twilio.message(%{From: from_number, To: phone_number, Body: body})
+          |> Twilio.send_message(
+            %{From: from_number, To: phone_number, Body: body},
+            notification_id
+          )
 
-        with {:ok, _result = %Tesla.Env{status: 201}} <- twilio_response do
+        with {:ok, result = %Tesla.Env{status: 201}} <- twilio_response do
           %Notification{}
           |> Notification.changeset(%{
+            id: notification_id,
             subscriber_id: subscriber_id,
             message: body,
-            type: Atom.to_string(type)
+            type: Atom.to_string(type),
+            sid: result.body["sid"],
+            interval: interval
           })
           |> Repo.insert!()
 
           Subscriber.changeset(subscriber, %{queued: false}) |> Repo.update!()
         else
           {:ok, %Tesla.Env{status: status, body: body}} ->
-            Rollbax.report_message(
-              :error,
-              "Unable to notify subscribers. Request to Twilio failed with #{status} and code #{
+            Logger.error(
+              "Unable to notify subscriber. Request to Twilio failed with #{status} and code #{
                 body["code"]
               }"
             )
 
           {:error, _} ->
-            Rollbax.report_message(
-              :error,
+            Logger.error(
               "Unable to send request to Twilio to notify subscriber: #{subscriber_id}"
             )
         end
@@ -111,21 +140,24 @@ defmodule Courtbot.Notify do
     )
   end
 
-  def reminders_for_day(day) do
+  @doc """
+
+  """
+  def reminders_for(utc_day, wall_day, interval) do
     notified =
       from(
         n in Notification,
-        where: n.inserted_at >= ^Timex.beginning_of_day(day),
-        where: n.inserted_at <= ^Timex.end_of_day(day),
+        where: n.inserted_at >= ^Timex.beginning_of_day(utc_day),
+        where: n.inserted_at <= ^Timex.end_of_day(utc_day),
         where: n.type == "remind",
-        select: n.subscriber_id
+        where: n.interval == ^interval
       )
 
     latest_hearing =
       from(
         h in Hearing,
         order_by: [h.date, h.time],
-        where: h.date >= ^day,
+        where: h.date >= ^wall_day,
         limit: 1
       )
 
@@ -138,7 +170,8 @@ defmodule Courtbot.Notify do
       left_join: n in subquery(notified),
       on: n.subscriber_id == s.id,
       where: is_nil(n.subscriber_id),
-      where: h.date == ^day,
+      where: h.date == ^wall_day,
+      distinct: s.id,
       preload: [
         case: [{:hearings, ^latest_hearing}, :parties]
       ]
@@ -146,12 +179,23 @@ defmodule Courtbot.Notify do
     |> Repo.all()
   end
 
-  def queued_subscribers(day) do
+  @doc """
+
+  """
+  def queued_subscribers(utc_day, wall_day) do
+    notified =
+      from(
+        n in Notification,
+        where: n.inserted_at >= ^Timex.beginning_of_day(utc_day),
+        where: n.inserted_at <= ^Timex.end_of_day(utc_day),
+        where: n.type == "queued"
+      )
+
     latest_hearing =
       from(
         h in Hearing,
         order_by: [h.date, h.time],
-        where: h.date >= ^day,
+        where: h.date > ^wall_day,
         limit: 1
       )
 
@@ -162,6 +206,11 @@ defmodule Courtbot.Notify do
       on: s.case_id == c.id,
       join: h in Hearing,
       on: h.case_id == s.case_id,
+      left_join: n in subquery(notified),
+      on: n.subscriber_id == s.id,
+      where: is_nil(n.subscriber_id),
+      where: h.date > ^wall_day,
+      distinct: s.id,
       preload: [
         case: [{:hearings, ^latest_hearing}, :parties]
       ]
