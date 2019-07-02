@@ -55,7 +55,11 @@ defmodule Courtbot.Configuration do
 
     embeds_one :notifications, Notifications, primary_key: false, on_replace: :update do
       field(:queuing, :boolean, default: false)
-      field(:reminders, {:array, :map})
+
+      embeds_many :reminders, Reminders, primary_key: false, on_replace: :delete do
+        field :timescale, :string
+        field :offset, :integer
+      end
     end
 
     field(:timezone, :string)
@@ -114,7 +118,13 @@ defmodule Courtbot.Configuration do
 
   defp notifications_changeset(changeset, params) do
     changeset
-    |> cast(params, [:queuing, :reminders])
+    |> cast(params, [:queuing])
+    |> cast_embed(:reminders, with: &reminders_changeset/2)
+  end
+
+  defp reminders_changeset(changeset, params) do
+    changeset
+    |> cast(params, [:timescale, :offset])
   end
 
   defp usage_alerts_changeset(changeset, params) do

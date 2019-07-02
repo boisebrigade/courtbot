@@ -47,7 +47,13 @@ defmodule CourtbotTest.Helper.Case do
     def text(conn, case, message) do
       message = replace_properties(case, message)
 
-      conn = post(conn, "/sms/en", %{"From" => "+12025550170", "Body" => message})
+      conn =
+        post(conn, "/sms/en", %{
+          "From" => "+12025550170",
+          "To" => "+12025550170",
+          "Body" => message
+        })
+
       assert(conn.status === 200, "Request failed with a non 200 error: #{conn.status}")
 
       conn
@@ -66,8 +72,7 @@ defmodule CourtbotTest.Helper.Case do
     end
 
     defp replace_properties(case_details = %Courtbot.Case{id: case_id}, original_message) do
-      subscribers =
-        Repo.all(from(s in Subscriber, where: s.case_id == ^case_id, preload: :case))
+      subscribers = Repo.all(from(s in Subscriber, where: s.case_id == ^case_id, preload: :case))
 
       case_properties =
         case_details

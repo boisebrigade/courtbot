@@ -1,5 +1,8 @@
 defmodule Courtbot.Import do
-  @moduledoc false
+  @moduledoc """
+  Handles import logic based on configuration.
+  """
+
   alias Courtbot.{
     Kinds.Csv,
     Repo,
@@ -10,16 +13,28 @@ defmodule Courtbot.Import do
 
   require Logger
 
+  @doc """
+  If a data source is from a file, open the file and load the data via a stream then import.
+  """
   def run(config = %{importer: %{kind: kind, origin: "file", source: source}, types: _types}) do
     Logger.info("Starting file import from: #{source}")
 
     with {:ok, %File.Stat{size: size, mtime: _mtime}} when size > 0 <- File.stat(source) do
       backup_and_truncate_hearings()
 
+      stream = File.stream!(source)
+
       # TODO(ts): Warn if mtime is over a day.
-      {time, imported} = :timer.tc(&run_import/3, [kind, File.stream!(source), config])
+      {time, imported} = :timer.tc(&run_import/3, [kind, stream, config])
 
       Logger.info("Finished Import in #{time / 1_000_000}s")
+
+      lines = count_csv_lines(stream)
+      failed = count_fails(imported)
+
+      if failed > (lines * 0.05) do
+        Logger.error("More than 5% of the import failed")
+      end
 
       imported
     else
@@ -31,6 +46,9 @@ defmodule Courtbot.Import do
     end
   end
 
+  @doc """
+  If a data source is from a URL then fetch and then import.
+  """
   def run(config = %{importer: %{kind: kind, origin: "url", source: source}, types: _types}) do
     Logger.info("Starting import")
 
@@ -41,6 +59,13 @@ defmodule Courtbot.Import do
     {time, imported} = :timer.tc(&run_import/3, [kind, data, config])
 
     Logger.info("Finished Import in #{time / 1_000_000}s")
+
+    lines = count_csv_lines(data)
+    failed = count_fails(imported)
+
+    if lines * 0.05 > failed do
+      Logger.error("More than 5% of the import failed")
+    end
 
     imported
   end
@@ -66,11 +91,14 @@ defmodule Courtbot.Import do
     # Create a new backup table based upon the current hearings table.
     Repo.query("CREATE TABLE #{backup_table} AS SELECT * FROM hearings;", [])
 
-    Logger.info("Truncating Hearings")
+    Logger.info("Truncating Hearings")  
 
     Repo.query("TRUNCATE hearings;", [])
   end
 
+  @doc """
+  Restore the previous days hearings.
+  """
   def restore_hearings do
     backup_table =
       "hearing_" <> (Date.add(Date.utc_today(), -1) |> Timex.format!("%m_%d_%Y", :strftime))
@@ -101,5 +129,18 @@ defmodule Courtbot.Import do
       {:error, err} ->
         Logger.error("Unable to fetch #{url} because of: #{err}")
     end
+  end
+
+  defp count_csv_lines(stream) do
+    stream
+    |> Enum.to_list()
+    |> Enum.count()
+  end
+
+  defp count_fails(imported) do
+    Enum.count(imported, fn
+      {status, _, _, _} -> status === :error
+      {status, _} -> status === :error
+    end)
   end
 end

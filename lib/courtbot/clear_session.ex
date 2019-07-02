@@ -37,10 +37,7 @@ defmodule Courtbot.ClearSessions do
 
   @impl true
   def handle_info(:clear, state) do
-
-    Repo.delete_all(
-      from(s in Sessions, where: s.expires_at <= ^NaiveDateTime.utc_now())
-    )
+    Repo.delete_all(from(s in Sessions, where: s.expires_at <= ^NaiveDateTime.utc_now()))
 
     clear_session(60_000)
 

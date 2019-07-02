@@ -25,7 +25,9 @@ defmodule Courtbot.Case do
     timestamps()
   end
 
-  def changeset(changeset, params \\ %{}, %{types: types} \\ Configuration.get([:types])) do
+  def changeset(changeset, params), do: changeset(changeset, params, Configuration.get([:types]))
+
+  def changeset(changeset, params \\ %{}, %{types: types}) do
     changeset
     |> cast(params, [
       :type,

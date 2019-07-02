@@ -11,14 +11,22 @@ defmodule Courtbot.Application do
   require Logger
 
   def start(_type, _args) do
+    :gen_event.swap_handler(:alarm_handler, {:alarm_handler, :swap}, {Courtbot.AlarmHandler, :ok})
+
     # Define workers and child supervisors to be supervised
     children = [
       CourtbotWeb.Endpoint,
       Courtbot.Repo,
       {DynamicSupervisor, name: ConfigSupervisor, strategy: :one_for_one},
+      # Load and start processes based upon configuration
       Courtbot.Config,
-      Courtbot.ClearSessions
+      # Helper to wipe sessions at a given interval
+      Courtbot.ClearSessions,
+      # In memory cache for checking if an event has already occurred
+      Courtbot.Idempotent
     ]
+
+    Courtbot.Workflow.telemetry()
 
     opts = [strategy: :one_for_one, name: Courtbot.Supervisor]
     Supervisor.start_link(children, opts)
@@ -54,7 +62,7 @@ defmodule Courtbot.Application do
              child_spec_for_scheduled_task(task, timezone)
            ) do
         {:ok, _} ->
-          Logger.info("Sucessfully scheduled #{name} task")
+          Logger.info("Successfully scheduled #{name} task")
 
         {:error, _message} ->
           Logger.error("Failed to schedule #{name} task")

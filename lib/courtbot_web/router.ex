@@ -3,17 +3,32 @@ defmodule CourtbotWeb.Router do
   use CourtbotWeb, :router
   use Plug.ErrorHandler
 
-  pipeline :sms do
+  require Logger
+
+  pipeline :twilio do
+    plug(CourtbotWeb.Twilio.Hmac)
     plug(:fetch_session)
     plug(:accepts, ["json"])
   end
 
+  pipeline :api do
+    plug(:accepts, ["json"])
+  end
+
   scope "/", CourtbotWeb do
-    pipe_through(:sms)
+    pipe_through(:twilio)
+
+    post("/sms/:locale", SmsController, :twilio)
+  end
+
+  scope "/", CourtbotWeb do
+    pipe_through(:api)
 
     get("/health", HealthController, :health)
 
-    post("/sms/:locale", SmsController, :twilio)
+    post("/status/:notificationId", SmsController, :status)
+
+    post("/usage", SmsController, :usage)
   end
 
   def handle_errors(conn, %{kind: kind, reason: reason, stack: stacktrace}) do
@@ -40,7 +55,8 @@ defmodule CourtbotWeb.Router do
         }
       }
 
-      Rollbax.report(kind, reason, stacktrace, _custom_data = %{}, occurrence_data)
+      # FIXME(ts): log the occurrence_data
+      #       Logger.error(Exception.format(:error, reason, __STACKTRACE__))
     end
   end
 

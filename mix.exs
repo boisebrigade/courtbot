@@ -21,7 +21,7 @@ defmodule Courtbot.Mixfile do
   def application do
     [
       mod: {Courtbot.Application, []},
-      extra_applications: [:logger, :runtime_tools, :hackney, :jason, :tzdata]
+      extra_applications: [:sasl, :logger, :runtime_tools, :hackney, :jason, :tzdata]
     ]
   end
 
@@ -60,7 +60,8 @@ defmodule Courtbot.Mixfile do
       {:mix_test_watch, "~> 0.6", only: [:dev, :test], runtime: false},
       {:excoveralls, "~> 0.10", only: :test},
       {:html_entities, "~> 0.4", only: :test},
-      {:distillery, "~> 2.0", runtime: false}
+      {:distillery, "~> 2.0", runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false}
     ]
   end
 

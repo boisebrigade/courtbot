@@ -1,4 +1,7 @@
 defmodule Courtbot.Workflow do
+  @moduledoc """
+  This is the Hello module.
+  """
   alias Courtbot.{
     Case,
     Configuration,
@@ -49,6 +52,9 @@ defmodule Courtbot.Workflow do
 
   @county gettext("county")
 
+  @doc """
+  Initialize the workflow struct with configuration.
+  """
   def init(fsm) do
     %{
       importer: %_{county_duplicates: county_duplicates},
@@ -59,8 +65,28 @@ defmodule Courtbot.Workflow do
     %{fsm | types: length(types) > 0, counties: county_duplicates, queuing: queuing}
   end
 
+  @doc """
+  Reset the Workflow to the initial state.
+  """
   def reset(response, fsm), do: {response, %{fsm | state: :inquery}}
 
+  @doc """
+  Handle the :inquery workflow state. This is the initial state a user will end up in.
+
+  First check if the user wants to unsubscribe.
+
+  If the user sends "subscribe" or "resubscribe" we want to make sure we catch this as the regex for case types in Idaho
+  includes a check for "CR" and these two common words can be mistaken for a case number.
+
+  Check if the user sends "Start" as this is a keyword from Twilio to tell them they'd like to continue receiving messages
+  from us.
+
+  Check if they send "Beepboop" which is the name of our debug case.
+
+  Check if the user is sending "Delete" or "Delete <case number>"
+
+  Otherwise assume the message is a case number and proceed to check it's type and any other conditions.
+  """
   def message(fsm = %Workflow{state: :inquery, locale: locale}, params = [from: from, body: body]) do
     cond do
       # If the user wants to unsubscribe handle that up front.
@@ -72,24 +98,34 @@ defmodule Courtbot.Workflow do
 
         # User shouldn't receive this message as Twilio would have blocked the response but try and send it anyway.
         if Enum.empty?(subscriptions) do
+          :telemetry.execute([:workflow, :inquery, :no_subscriptions], %{}, %{})
+
           {:no_subscriptions, fsm}
         else
           Repo.delete_all(Subscriber.find_by_number(from))
+
+          :telemetry.execute([:workflow, :inquery, :unsubscribe], %{}, %{})
 
           reset(:unsubscribe, fsm)
         end
 
       # Treat these two as special cases
       body == "subscribe" or body == "resubscribe" ->
+        :telemetry.execute([:workflow, :inquery, :invalid], %{}, %{})
+
         reset(:invalid, fsm)
 
       body == "start" ->
         case Repo.one(Subscriber.find_by_number(from, :case)) do
           %Subscriber{} ->
+            :telemetry.execute([:workflow, :inquery, :invalid], %{}, %{})
+
             {:invalid, fsm}
 
           # Inform the user we blew away all their subscriptions due to being blocked
           _ ->
+            :telemetry.execute([:workflow, :inquery, :resubscribe], %{}, %{})
+
             {:resubscribe, fsm}
         end
 
@@ -97,16 +133,22 @@ defmodule Courtbot.Workflow do
         case Case.find_with(case_number: "beepboop") do
           %Case{id: case_id} ->
             if Subscriber.already?(case_id, from) do
+              :telemetry.execute([:workflow, :inquery, :beep], %{}, %{})
+
               {:beep, fsm}
             else
               %Subscriber{}
               |> Subscriber.changeset(%{case_id: case_id, phone_number: from, locale: locale})
               |> Repo.insert()
 
+              :telemetry.execute([:workflow, :inquery, :boop], %{}, %{})
+
               {:boop, fsm}
             end
 
           _ ->
+            :telemetry.execute([:workflow, :inquery, :invaid], %{}, %{})
+
             reset(:invalid, fsm)
         end
 
@@ -124,10 +166,15 @@ defmodule Courtbot.Workflow do
           end
 
         with case_subscriptions when cases != [] <- cases do
+          :telemetry.execute([:workflow, :inquery, :unsubscribe_confirm], %{}, %{})
+
           {:unsubscribe_confirm,
            %{fsm | state: :unsubscribe, context: %{cases: case_subscriptions}}}
         else
-          _ -> reset(:no_subscriptions, fsm)
+          _ ->
+            :telemetry.execute([:workflow, :inquery, :no_subscriptions], %{}, %{})
+
+            reset(:no_subscriptions, fsm)
         end
 
       true ->
@@ -144,10 +191,20 @@ defmodule Courtbot.Workflow do
     end
   end
 
+  @doc """
+  Handle the :unsubscribe workflow state. If a user is unsubscribing we send them a message to confirm they'd no longer like
+  to be subscribing to a case.
+
+  This function handles the actual deletion if a user confirms they'd like to unsubscribe or respondings with the a yes or no
+  prompt until the user responds with something Courtbot understands.
+
+  """
   def message(
         fsm = %Workflow{state: :unsubscribe, input: %{inquery: inquery}},
         _params = [from: from, body: body]
       ) do
+    # Normalize the inquery like we would any previous input. This is done here as sometimes we want to maintain the exact text
+    # a user sent in originally for repeating it back to them. Think of cases like saying a case number does not exist.
     normalize_inquery =
       inquery
       |> String.trim()
@@ -168,7 +225,8 @@ defmodule Courtbot.Workflow do
           [_, case_number] = String.split(normalize_inquery, " ")
 
           # Fetch all the subscriptions matching the case number and from.
-          # TODO(ts): This may return more than one subscription if they are in separate counties. Need to evaluate if this is confusing behavior.
+          # TODO(ts): This may return more than one subscription if they are in separate counties. Need to evaluate if
+          # this is confusing behavior.
           from
           |> Subscriber.find_by_number_and_case(case_number, :case)
           |> Repo.all()
@@ -181,16 +239,31 @@ defmodule Courtbot.Workflow do
         |> Subscriber.find_by_number()
         |> Repo.delete_all()
 
+        :telemetry.execute([:workflow, :unsubscribe, :unsubcribe], %{}, %{})
         reset(:unsubscribe, fsm)
 
       Enum.member?(@reject_keywords, body) ->
+        :telemetry.execute([:workflow, :unsubscribe, :unsubscribe_reject], %{}, %{})
         reset(:unsubscribe_reject, fsm)
 
       true ->
+        :telemetry.execute([:workflow, :unsubscribe, :unsubscribe_yes_or_no], %{}, %{})
+
         {:unsubscribe_yes_or_no, %{fsm | context: %{cases: cases}}}
     end
   end
 
+  @doc """
+  Handle the :type workflow state. This is a "virtual" state as there is no way for a user to directly hit this state
+  without going through another first.
+
+
+  Check if a users input matches regex for a case type defined in configuration. If they do, and counties are enabled
+  then kick them over inquerying about their county. If counties is not enabled then ship them off to the load_case state.
+
+  If nothing matches then tell the user the :invalid response.
+
+  """
   def message(
         fsm = %Workflow{
           counties: counties,
@@ -205,15 +278,23 @@ defmodule Courtbot.Workflow do
       type = Atom.to_string(type)
 
       if counties do
+        :telemetry.execute([:workflow, :type, :county], %{}, %{})
         {:county, %{fsm | state: :county, properties: Map.merge(properties, %{type: type})}}
       else
         message(%{fsm | state: :load_case}, params)
       end
     else
-      nil -> reset(:invalid, fsm)
+      nil ->
+        :telemetry.execute([:workflow, :type, :invaild], %{}, %{})
+        reset(:invalid, fsm)
     end
   end
 
+  @doc """
+  Handle the :county workflow state. If counties are enabled then we ask the user what county they are interested in.
+
+  This state exists to help support multiple counties where there is potentially duplicate case numbers.
+  """
   def message(
         fsm = %Workflow{state: :county, properties: properties},
         params = [from: _from, body: body]
@@ -228,15 +309,22 @@ defmodule Courtbot.Workflow do
       |> Enum.map(&String.downcase(&1))
 
     if Enum.member?(all_counties, county) do
+      :telemetry.execute([:workflow, :state, :county], %{}, %{})
+
       message(
         %{fsm | state: :load_case, properties: Map.merge(properties, %{county: county})},
         params
       )
     else
+      :telemetry.execute([:workflow, :state, :no_case], %{}, %{})
+
       reset(:no_case, fsm)
     end
   end
 
+  @doc """
+  Handle the :load_case workflow state.
+  """
   def message(
         fsm = %Workflow{state: :load_case, properties: properties, queuing: queuing, types: types},
         params
@@ -255,13 +343,16 @@ defmodule Courtbot.Workflow do
 
       nil ->
         if queuing and types do
-          # FIXME(ts): Add support for queuing
+          # TOOO(ts): Add support for queuing
         else
           reset(:no_case, fsm)
         end
     end
   end
 
+  @doc """
+  Handle the :no_hearings workflow state.
+  """
   def message(
         fsm = %Workflow{state: :no_hearings, properties: properties, locale: locale},
         _params = [from: from, body: body]
@@ -295,6 +386,9 @@ defmodule Courtbot.Workflow do
     end
   end
 
+  @doc """
+  Handle the :is_subscribed workflow state.
+  """
   def message(
         fsm = %Workflow{state: :is_subscribed, properties: properties},
         _params = [from: from, body: _body]
@@ -311,6 +405,11 @@ defmodule Courtbot.Workflow do
     end
   end
 
+  @doc """
+  Handle the :subscribe workflow state.
+
+  If the user accepts we write to the subscribers table. If they rejext then we ask them again.
+  """
   def message(
         fsm = %Workflow{state: :subscribe, properties: properties, locale: locale},
         _params = [from: from, body: body]
@@ -334,5 +433,28 @@ defmodule Courtbot.Workflow do
       true ->
         {:yes_or_no, fsm}
     end
+  end
+
+  def telemetry() do
+    :telemetry.attach(
+      "courtbot-telemetry",
+      [:workflow, :request, :done],
+      &Courtbot.TelemetryHandler.handle_event/4,
+      nil
+    )
+
+    :telemetry.attach(
+      "courtbot-telemetry",
+      [:workflow, :request, :done],
+      &Courtbot.TelemetryHandler.handle_event/4,
+      nil
+    )
+
+    :telemetry.attach(
+      "courtbot-telemetry",
+      [:workflow, :request, :done],
+      &Courtbot.TelemetryHandler.handle_event/4,
+      nil
+    )
   end
 end

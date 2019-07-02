@@ -22,7 +22,15 @@ defmodule Courtbot.Integrations.Twilio do
     post(client, "/Messages.json", opts)
   end
 
+  def send_message(client, opts, subscriber_id) do
+    # If we have postback endpoint, set it.
+    opts = postback_status(opts, subscriber_id)
+
+    post(client, "/Messages.json", opts)
+  end
+
   def create_usage_triggers(client) do
+    # TODO(ts): Don't delete existing ones if they have been set by Courtbot already. This will prevent multiple fires of these alerts.
     # Delete our existing triggers
     Twilio.delete_usage_triggers(client)
 
@@ -66,6 +74,17 @@ defmodule Courtbot.Integrations.Twilio do
         Logger.error(
           "Unable to fetch usage triggers while attempting to delete Courtbot's existing triggers"
         )
+    end
+  end
+
+  defp postback_status(opts, subscriber_id) do
+    with %{hostname: hostname} <- Configuration.get([:hostname]) do
+      opts
+      |> Map.merge(%{"StatusCallback" => "#{hostname}/status/#{subscriber_id}"})
+    else
+      _ ->
+        Logger.warn("No hostname set. Not configuring twilio postback checking")
+        opts
     end
   end
 end

@@ -17,9 +17,10 @@ config :courtbot, CourtbotWeb.Endpoint,
   render_errors: [view: CourtbotWeb.ErrorView, accepts: ~w(json)],
   pubsub: [name: Courtbot.PubSub, adapter: Phoenix.PubSub.PG2]
 
+# config :sasl, sasl_error_logger: :false
+
 config :logger,
   level: :debug,
-  handle_sasl_reports: true,
   backends: [:console, {Courtbot.Rollbar, :rollbar}]
 
 # Configures Elixir's Logger
