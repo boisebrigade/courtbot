@@ -14,7 +14,7 @@ Courtbot is a simple web service for subscribing to case hearing details via SMS
 - Run Setup: `mix setup`
 - Start Phoenix: `mix phx.server`
 
-After `mix phx.server` Phoenix will running and for next steps in setting up Courtbot see [here](https://github.com/boisebrigade/Courtbot/wiki/Configuration) for additional details.
+After `mix phx.server` Phoenix will start running and for next steps in setting up Courtbot see [here](https://github.com/boisebrigade/Courtbot/wiki/Configuration) for additional details.
 
 ## Documentation
 - [Overview](https://github.com/boisebrigade/Courtbot/wiki)
